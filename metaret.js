@@ -46,6 +46,7 @@
     // ---------- Public API
 
     global.MetaFunction  = MetaFunction;  // MetaFunction returns a function.
+    global.metaparse     = metaparse;     // Returns nothing. Search for script tags with type="text/js-metaret", parse and apply them.
 
     // Constant that determines where the action (`self` etc) should be: 0: first place, 1: second place, etc.
     function ACTION_PARAM () { return 0; }
@@ -54,6 +55,39 @@
     MetaFunction.ACTION_PARAM = ACTION_PARAM.toString = ACTION_PARAM.toValue = ACTION_PARAM;
     
     // ---------- Public API implementation
+
+    var _metaparse_rx = /\s*#metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)((?!#metafun)[\s\S])*/g
+    ,  _metaparse_one_rx = /^\s*#metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)\s*\{\s*(((?!#metafun)[\s\S])*)\s*\}\s*$/
+    ;
+    function metaparse()
+    {
+        var noli = document.getElementsByTagName( 'script' );
+        for (var n = noli.length, i = 0; i < n; i++)
+        {
+            var s = noli[ i ];
+            if ('text/js-metaret' !== s.getAttribute( 'type' ))
+                continue;
+            
+            var metacode = s.textContent  ||  s.innerText
+            ,   arr      = metacode.match( _metaparse_rx )
+            ;
+            
+            for (var p = arr.length, j = 0; j < p; j++)
+            {
+                var one   = arr[ j ]
+                ,   mo    = _metaparse_one_rx.exec( one )
+                ,   name  = mo[ 1 ]
+                ,   param = mo[ 2 ]
+                ,   body  = mo[ 3 ]
+                ;
+                global[ name ] = MetaFunction( name, param, body );
+            }
+            
+            
+        }
+        
+    }
+
 
     var _name2info;
 
