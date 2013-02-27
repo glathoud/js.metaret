@@ -4,7 +4,7 @@
 <title>metaret.js</title>
 <script type="text/javascript" src="metaret.js"></script>
 <script type="text/js-metaret">
-#metafun fact2( #self, #k, #acc )
+#metafun fact( #self, #k, #acc )
 {
     #acc  ||  (#acc = 1);
     if (#k > 1)
@@ -13,10 +13,10 @@
         return #acc;
 }
 
-#metafun isEven2( #self, #n )
+#metafun isEven( #self, #n )
 {
     if (#n > 0)
-        #metaret isOdd2 ,, #n - 1;
+        #metaret isOdd ,, #n - 1;
 
     if (#n < 0)
         #metaret #self ,, -#n;
@@ -24,10 +24,10 @@
     return true;
 }
 
-#metafun isOdd2( #self, #n )
+#metafun isOdd( #self, #n )
 {
     if (#n > 0)
-        #metaret isEven2 ,, #n - 1;
+        #metaret isEven ,, #n - 1;
 
     if (#n < 0)
         #metaret #self ,, -#n;
@@ -41,94 +41,15 @@
 
 metaparse();
 
-assert( "'function' === typeof fact2" );
-assert( "'function' === typeof isOdd2" );
-assert( "'function' === typeof isEven2" );
-
-assert( '1 == fact2(0)' );
-assert( '1 == fact2(1)' );
-assert( '2 == fact2(2)' );
-assert( '6 == fact2(3)' );
-assert( '24 == fact2(4)' );
-
-assert( 'false === isOdd2( -4 )' );
-assert( 'true  === isOdd2( -3 )' );
-assert( 'false === isOdd2( -2 )' );
-assert( 'true  === isOdd2( -1 )' );
-assert( 'false === isOdd2( 0 )' );
-assert( 'true  === isOdd2( 1 )' );
-assert( 'false === isOdd2( 2 )' );
-assert( 'true  === isOdd2( 3 )' );
-assert( 'false === isOdd2( 4 )' );
-assert( 'true  === isOdd2( 1001 )' );
-assert( 'false === isOdd2( 1002 )' );
-assert( 'true  === isOdd2( 1000001 )' );
-assert( 'false === isOdd2( 1000002 )' );
-assert( 'true  === isOdd2( 10000001 )' );   // No stack issue because the code has been unrolled
-assert( 'false === isOdd2( 10000002 )' );
-
-assert( 'true  === isEven2( -4 )' );
-assert( 'false === isEven2( -3 )' );
-assert( 'true  === isEven2( -2 )' );
-assert( 'false === isEven2( -1 )' );
-assert( 'true  === isEven2( 0 )' );
-assert( 'false === isEven2( 1 )' );
-assert( 'true  === isEven2( 2 )' );
-assert( 'false === isEven2( 3 )' );
-assert( 'true  === isEven2( 4 )' );
-assert( 'false === isEven2( 1001 )' );
-assert( 'true  === isEven2( 1002 )' );
-assert( 'false === isEven2( 1000001 )' );
-assert( 'true  === isEven2( 1000002 )' );
-assert( 'false === isEven2( 10000001 )' );   // No stack issue because the code has been unrolled
-assert( 'true  === isEven2( 10000002 )' );
-
-// --- Similar tests as above, with functions declared programmatically
-
-var fact = MetaFunction
-( 
-    'fact'            // <- same name string as the variable name `fact`
-    , '#self,#k,#acc'
-    , [ 
-        '#acc  ||  (#acc = 1);'
-        , 'if (#k > 1)'
-        , '    #metaret #self ,, #k - 1 ,, #acc * #k;'
-        , 'else'
-        , '    return #acc;'
-    ].join( '\n' )
-);
+assert( "'function' === typeof fact" );
+assert( "'function' === typeof isOdd" );
+assert( "'function' === typeof isEven" );
 
 assert( '1 == fact(0)' );
 assert( '1 == fact(1)' );
 assert( '2 == fact(2)' );
 assert( '6 == fact(3)' );
 assert( '24 == fact(4)' );
-
-var isEven = MetaFunction
-(
-    'isEven'
-    , '#self,#n'
-    , [
-        ' if (#n > 0)'
-        , '    #metaret isOdd ,, #n - 1;'
-        , 'if (#n < 0)'
-        , '    #metaret #self ,, -#n;'
-        , 'return true;'
-    ].join( '\n' )
-);
-
-var isOdd = MetaFunction
-(
-    'isOdd'
-    , '#self,#n'
-    , [
-        'if (#n > 0)'
-        , '    #metaret isEven ,, #n - 1;'
-        , 'if (#n < 0)'
-        , '    #metaret #self ,, -#n;'
-        , 'return false;'
-    ].join( '\n' )
-);
 
 assert( 'false === isOdd( -4 )' );
 assert( 'true  === isOdd( -3 )' );
@@ -161,6 +82,85 @@ assert( 'false === isEven( 1000001 )' );
 assert( 'true  === isEven( 1000002 )' );
 assert( 'false === isEven( 10000001 )' );   // No stack issue because the code has been unrolled
 assert( 'true  === isEven( 10000002 )' );
+
+// --- Similar tests as above, with functions declared programmatically
+
+var fact2 = MetaFunction
+( 
+    'fact2'            // <- same name string as the variable name `fact2`
+    , '#self,#k,#acc'
+    , [ 
+        '#acc  ||  (#acc = 1);'
+        , 'if (#k > 1)'
+        , '    #metaret #self ,, #k - 1 ,, #acc * #k;'
+        , 'else'
+        , '    return #acc;'
+    ].join( '\n' )
+);
+
+assert( '1 == fact2(0)' );
+assert( '1 == fact2(1)' );
+assert( '2 == fact2(2)' );
+assert( '6 == fact2(3)' );
+assert( '24 == fact2(4)' );
+
+var isEven2 = MetaFunction
+(
+    'isEven2'
+    , '#self,#n'
+    , [
+        ' if (#n > 0)'
+        , '    #metaret isOdd2 ,, #n - 1;'
+        , 'if (#n < 0)'
+        , '    #metaret #self ,, -#n;'
+        , 'return true;'
+    ].join( '\n' )
+);
+
+var isOdd2 = MetaFunction
+(
+    'isOdd2'
+    , '#self,#n'
+    , [
+        'if (#n > 0)'
+        , '    #metaret isEven2 ,, #n - 1;'
+        , 'if (#n < 0)'
+        , '    #metaret #self ,, -#n;'
+        , 'return false;'
+    ].join( '\n' )
+);
+
+assert( 'false === isOdd2( -4 )' );
+assert( 'true  === isOdd2( -3 )' );
+assert( 'false === isOdd2( -2 )' );
+assert( 'true  === isOdd2( -1 )' );
+assert( 'false === isOdd2( 0 )' );
+assert( 'true  === isOdd2( 1 )' );
+assert( 'false === isOdd2( 2 )' );
+assert( 'true  === isOdd2( 3 )' );
+assert( 'false === isOdd2( 4 )' );
+assert( 'true  === isOdd2( 1001 )' );
+assert( 'false === isOdd2( 1002 )' );
+assert( 'true  === isOdd2( 1000001 )' );
+assert( 'false === isOdd2( 1000002 )' );
+assert( 'true  === isOdd2( 10000001 )' );   // No stack issue because the code has been unrolled
+assert( 'false === isOdd2( 10000002 )' );
+
+assert( 'true  === isEven2( -4 )' );
+assert( 'false === isEven2( -3 )' );
+assert( 'true  === isEven2( -2 )' );
+assert( 'false === isEven2( -1 )' );
+assert( 'true  === isEven2( 0 )' );
+assert( 'false === isEven2( 1 )' );
+assert( 'true  === isEven2( 2 )' );
+assert( 'false === isEven2( 3 )' );
+assert( 'true  === isEven2( 4 )' );
+assert( 'false === isEven2( 1001 )' );
+assert( 'true  === isEven2( 1002 )' );
+assert( 'false === isEven2( 1000001 )' );
+assert( 'true  === isEven2( 1000002 )' );
+assert( 'false === isEven2( 10000001 )' );   // No stack issue because the code has been unrolled
+assert( 'true  === isEven2( 10000002 )' );
 
 // ---
 
