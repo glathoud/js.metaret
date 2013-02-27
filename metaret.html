@@ -4,6 +4,10 @@
 <title>metaret.js</title>
 <script type="text/javascript" src="metaret.js"></script>
 <script type="text/js-metaret">
+/* I used hash # and double comma ,, so that a full-fledged parser is
+ not needed to analyze and unroll the metafunctions into functions.
+ */
+
 #metafun fact( #self, #k, #acc )
 {
     #acc  ||  (#acc = 1);
