@@ -1,0 +1,2489 @@
+%!PS-Adobe-3.0
+%%Title: metaret.js
+%%For: gl
+%%Creator: a2ps version 4.14
+%%CreationDate: Wed Feb 27 06:50:59 2013
+%%BoundingBox: 24 24 588 768
+%%DocumentData: Clean7Bit
+%%Orientation: Landscape
+%%Pages: 5
+%%PageOrder: Ascend
+%%DocumentMedia: Letter 612 792 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontType get 0 eq {
+    currentfont /FontMatrix get 3 get
+  }{
+    currentfont /FontMatrix get 3 get 1000 mul
+  } ifelse
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      % <vector> <key> <val>
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def % -
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Get the underline position and thickness if they're defined.
+    % Use 1 if they are not defined.
+    currentdict /FontInfo 2 copy known
+    { get
+      /UnderlinePosition 2 copy % <FontInfo> /UP <FontInfo> /UP
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+
+      /UnderlineThickness 2 copy % <FontInfo> /UT <FontInfo> /UT
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+      pop % -
+    }{ pop pop
+    } ifelse
+
+    currentdict
+  end 
+} bind def
+
+% composite fonts for ASCII-EUC mixed strings
+% Version 1.2 1/31/1990
+% Original Ken'ichi HANDA (handa@etl.go.jp)
+% Modified Norio Katayama (katayama@rd.nacsis.ac.jp),1998
+% Extend & Fix Koji Nakamaru (maru@on.cs.keio.ac.jp), 1999
+% Anyone can freely copy, modify, distribute this program.
+
+/copyfont {	% font-dic extra-entry-count  copyfont  font-dic
+	1 index maxlength add dict begin
+	{	1 index /FID ne 2 index /UniqueID ne and
+		{def} {pop pop} ifelse
+	} forall
+	currentdict
+	end
+} bind def
+
+/compositefont { % ASCIIFontName EUCFontName RomanScale RomanOffset Rot(T/F) compositefont font
+    /RomanRotation exch def
+    /RomanOffset exch def
+    /RomanScale exch def
+    userdict /fixeucfont_dict known not {
+	userdict begin
+	    /fixeucfont_dict 2 dict begin
+		/UpperByteEncoding [
+		    16#00 1 16#20 { pop 0 } for
+		    16#21 1 16#28 { 16#20 sub } for
+		    16#29 1 16#2F { pop 0 } for
+		    16#30 1 16#74 { 16#27 sub } for
+		    16#75 1 16#FF { pop 0 } for
+		] def
+	        /LowerByteEncoding [
+		    16#00 1 16#A0 { pop /.notdef } for
+		    16#A1 1 16#FE { 16#80 sub 16 2 string cvrs
+				    (cXX) dup 1 4 -1 roll
+				    putinterval cvn } for
+		    /.notdef
+		] def
+		currentdict
+	    end def
+	end
+    } if
+    findfont dup /FontType get 0 eq {
+	14 dict begin
+	    %
+	    % 7+8 bit EUC font
+	    %
+	    12 dict begin
+		/EUCFont exch def
+		/FontInfo (7+8 bit EUC font) readonly def
+		/PaintType 0 def
+		/FontType 0 def
+		/FontMatrix matrix def
+		% /FontName
+		/Encoding fixeucfont_dict /UpperByteEncoding get def
+		/FMapType 2 def
+		EUCFont /WMode known
+		{ EUCFont /WMode get /WMode exch def }
+		{ /WMode 0 def } ifelse
+		/FDepVector [
+		    EUCFont /FDepVector get 0 get
+		    [ 16#21 1 16#28 {} for 16#30 1 16#74 {} for ]
+		    {
+			13 dict begin
+			    /EUCFont EUCFont def
+			    /UpperByte exch 16#80 add def	
+			    % /FontName
+			    /FontInfo (EUC lower byte font) readonly def
+			    /PaintType 0 def
+			    /FontType 3 def
+			    /FontMatrix matrix def
+			    /FontBBox {0 0 0 0} def
+			    /Encoding
+				fixeucfont_dict /LowerByteEncoding get def
+			    % /UniqueID
+			    % /WMode
+			    /BuildChar {
+				gsave
+				exch dup /EUCFont get setfont
+				/UpperByte get
+				2 string
+				dup 0 4 -1 roll put
+				dup 1 4 -1 roll put
+				dup stringwidth setcharwidth
+				0 0 moveto show
+				grestore
+			    } bind def
+			    currentdict
+			end
+			/lowerbytefont exch definefont
+		    } forall
+		] def
+		currentdict
+	    end
+	    /eucfont exch definefont
+	    exch
+	    findfont 1 copyfont dup begin
+		RomanRotation {
+			/FontMatrix FontMatrix
+			[ 0 RomanScale neg RomanScale 0 RomanOffset neg 0 ]
+			matrix concatmatrix def
+		}{
+			/FontMatrix FontMatrix
+			[ RomanScale 0 0 RomanScale 0 RomanOffset ] matrix concatmatrix
+			def
+			/CDevProc
+			    {pop pop pop pop 0 exch -1000 exch 2 div 880} def
+		} ifelse
+	    end
+	    /asciifont exch definefont
+	    exch
+	    /FDepVector [ 4 2 roll ] def
+	    /FontType 0 def
+	    /WMode 0 def
+	    /FMapType 4 def
+	    /FontMatrix matrix def
+	    /Encoding [0 1] def
+	    /FontBBox {0 0 0 0} def
+%	    /FontHeight 1.0 def % XXXX
+	    /FontHeight RomanScale 1.0 ge { RomanScale }{ 1.0 } ifelse def
+	    /Descent -0.3 def   % XXXX
+	    currentdict
+	end
+	/tmpfont exch definefont
+	pop
+	/tmpfont findfont
+    }{
+	pop findfont 0 copyfont
+    } ifelse
+} def	
+
+/slantfont {	% FontName slant-degree  slantfont  font'
+    exch findfont 1 copyfont begin
+    [ 1 0 4 -1 roll 1 0 0 ] FontMatrix exch matrix concatmatrix
+    /FontMatrix exch def
+    currentdict
+    end
+} def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 612 def
+/sw 792 def
+/llx 24 def
+/urx 768 def
+/ury 588 def
+/lly 24 def
+/#copies 1 def
+/th 15.000000 def
+/fnfs 11 def
+/bfs 7.060185 def
+/cw 4.236111 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 86.400000 mul
+def
+/ph
+   520.335631 th add
+def
+/pmw urx llx sub pw 2 mul sub 1 div def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+  dup pmw add pw add
+] def
+/y [
+  pmh ph add 0 mul ph add
+  dup
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 5 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1-2) 1
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.965278 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+0 T (// Guillaume Lathoud, 2011, MIT License, see ./LICENSE.TXT) c n
+0 T (// ) N
+0 T (// Unit tests: ./metafunction.html) N
+0 T (//) N
+(5) # (// Idea:) N
+0 T (//) N
+0 T (// metafun fact\( self, k, acc \)) N
+0 T (// {) N
+0 T (//     acc || \(acc = 1\);) N
+(10) # (//     if \(k > 1\)) N
+0 T (//        metaret self, k-1, acc*k;  // metacomposition \(similar to [Backus78]\)) N
+0 T (//     else) N
+0 T (//        return acc;) N
+0 T (// }) N
+(15) # (//) N
+0 T (// Quick experiment in Javascript: Unroll the code similarly to [tomrec].) N
+0 T (// -> Task: Detection of metaret + prevention of variable name collision.) N
+0 T (//) N
+0 T (// \(mutual recursion is also supported\)) N
+(20) # (//) N
+0 T (// To avoid having to parse the whole code, and traverse complex) N
+0 T (// syntax trees [tomrec], I decided to use simple "flat" regexps, hash) N
+0 T (// all variable names, and use double comma in metaret calls:) N
+0 T (//) N
+(25) # (// fact = MetaFunction\( 'fact', '#self,#k,#acc', [) N
+0 T (//     '#acc || \(#acc = 1\);') N
+0 T (//     ,'   if \(#k > 1\)') N
+0 T (//     ,'      #metaret #self ,, #k-1 ,, #acc*#k;') N
+0 T (//     ,'   else') N
+(30) # (//     ,'     return #acc;') N
+0 T (//   ].join\( '\\n' \)) N
+0 T (// \);    ) N
+0 T (//) N
+0 T (//) N
+(35) # (// [Backus78] "Can Programming Be Liberated from the von Neumann) N
+0 T (// Style?  A Functional Style and Its Algebra of Programs", by John) N
+0 T (// Backus, Communications of the ACM, August 1978 Volume 21 Number 8.) N
+0 T (//) N
+0 T (// [tomrec] http://glat.info/jscheck/tomrec_prod.html) N
+(40) # () N
+0 T () N
+0 T (/*global console*/) N
+0 T () N
+0 T () S
+(;\(function \(global\) {) p n
+(45) # () N
+0 T (    ) S
+(// ---------- Public API) c n
+0 T () N
+0 T () S
+(    global.MetaFunction  = MetaFunction;  ) p
+(// MetaFunction returns a function.) c n
+0 T () N
+(50) # () S
+(    ) p
+(// Constant that determines where the action \(`self` etc\) should be: 0: firs) c n
+0 T (t place, 1: second place, etc.) N
+0 T () S
+(    ) p
+(function) K
+( ) p
+(ACTION_PARAM) l
+( \(\) { ) p
+(return) K
+( 0; }) p n
+0 T (        ) N
+0 T (    ) S
+(// Read-only access         Convenience cast support.) c n
+0 T () S
+(    MetaFunction.ACTION_PARAM = ACTION_PARAM.toString = ACTION_PARAM.toValue = A) p n
+0 T (CTION_PARAM;) N
+(55) # (    ) N
+0 T (    ) S
+(// ---------- Public API implementation) c n
+0 T () N
+0 T () S
+(    ) p
+(var) K
+( _name2info;) p n
+0 T () N
+(60) # (    ) S
+(function) K
+( ) p
+(MetaFunction) l
+(\() p
+(/*string*/) c
+(name, ) p
+(/* string like "#self,#a,#b,#c" */) c
+(param) p n
+0 T (, ) S
+(/*string, where all variable identifiers have a hash: #myVarname*/) c
+(body\) ) p n
+0 T (    {) N
+0 T (        ) S
+(// Returns a function `ret`. So it does not matter whether you) c n
+0 T () S
+(        ) p
+(// use `new MetaFunction\(...\)`, or just `MetaFunction\(...\)`.) c n
+0 T () S
+(        ) p
+(//) c n
+(65) # () S
+(        ) p
+(// Advice: use the same name string as your target variable name:) c n
+0 T () S
+(        ) p
+(/*) c n
+0 T (        var fact = MetaFunction) N
+0 T (        \( ) N
+0 T (            'fact'            // <- same name string as the variable name `fact`) N
+(70) # (            , '#self,#k,#acc'     // hashes in all identifiers to make parsing e) N
+(metaret.js) (Page 1/10) (Sep 02, 11 18:09) title
+border
+/v 1 store
+/x0 x v get 2.965278 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+0 T (asy without a full-fledged JS parser) c n
+0 T (            , [ ) N
+0 T (                '#acc  ||  \(#acc = 1\);') N
+0 T (                , 'if \(#k > 1\)') N
+0 T (                , '    #metaret #self ,, #k - 1 ,, #acc * #k;'       // double c) N
+0 T (omma to make parsing easy without a full-fledged JS parser) N
+(75) # (                , 'else') N
+0 T (                , '    return #acc;') N
+0 T (            ].join\( '\\n' \)) N
+0 T (        \);) N
+0 T (        */) N
+(80) # () S
+(        ) p n
+0 T (        _checkName\( name \);) N
+0 T () N
+0 T (        ) S
+(var) K
+( info     = _name2info[ name ] = { name : name  ,  origParam : param ) p n
+0 T ( ,  origBody : body  ,  impl : ) S
+(null) k
+( }) p n
+0 T (        , paramArr   = info.paramArr      = _checkExtractParam\( param \)  ) N
+(85) # (        , varArr     = info.varArr        = _extractVar\( body \)) N
+0 T (        , metaretArr = info.metaretArr    = _checkExtractMetaret\( body, paramArr) N
+0 T (.self, name \)) N
+0 T (        , solve      = info.solve         = _createSolver\( info \)) N
+0 T (        ;) N
+0 T (        ) N
+(90) # (        ) S
+(if) K
+( \(metaretArr.hasAll\(\)\)) p n
+0 T (        {) N
+0 T (            ) S
+(// If we can solve right away \(e.g. self-recursion case\),) c n
+0 T () S
+(            ) p
+(// then we do not need the `function ret\(\)` check anymore.) c n
+0 T () S
+(            solve\(\);) p n
+(95) # (            ret = info.impl;) N
+0 T (        }) N
+0 T (        ) N
+0 T (        ) S
+(return) K
+( ret;) p n
+0 T () N
+(100) # (        ) S
+(// Solve later \(e.g. mutual recursion case where some of the) c n
+0 T () S
+(        ) p
+(// metaret actions \(= other metafunctions\) are not known yet\).) c n
+0 T () N
+0 T () S
+(        ) p
+(function) K
+( ) p
+(ret) l
+( \() p
+(/*...*/) c
+(\) ) p n
+0 T (        { ) N
+(105) # (            ) S
+(if) K
+( \(!info.impl\)) p n
+0 T (                solve\(\);) N
+0 T (            ) N
+0 T (            ) S
+(return) K
+( info.impl.apply\( ) p
+(null) k
+(, arguments \);) p n
+0 T (        }) N
+(110) # () N
+0 T (    }) N
+0 T () N
+0 T (    ) S
+(// ---------- Private constant) c n
+0 T () S
+(    ) p n
+(115) # (    ) S
+(var) K
+( _RX_NAME      = /) p
+(^[a-zA-Z_]\\w*$) str
+(/) p n
+0 T (        , _RX_PARAM   = /) S
+(^\(\(?:^\\s*|\\s*,\\s*\)#[a-zA-Z_]\\w*\(?:\\s*\)\)+$) str
+(/) p n
+0 T (        , _RX_ACTION  = /) S
+(^[a-zA-Z_]\\w*?\(\\.[a-zA-Z_]\\w*?\)*$) str
+(/) p n
+0 T (        , _RE_VAR     = ') S
+(\(?:^|[^#]\)\(#\(?!metaret\\\\b\)[a-zA-Z_]\\\\w*\\\\b\)) str
+(') p n
+0 T (    , _RX_VAR         = ) S
+(new) K
+( RegExp\( _RE_VAR \)) p n
+(120) # (    , _RE_METARET     = ') S
+(\(?:^|[^#]\)#metaret\\\\s+\(\(\\\\S[\\\\S\\\\s]*?\\\\s*\)\(,,\\\\s*\\\\S[\\\\S\\\\s]*?\)*\);) str
+(') p n
+0 T (    , _Aps            = Array.) S
+(prototype) k
+(.slice) p n
+0 T (    ;) N
+0 T () N
+0 T (    ) S
+(// ---------- Private static) c n
+(125) # () N
+0 T () S
+(    ) p
+(var) K
+( _name2info = {};  ) p
+(// name -> metafunction information \(dependencies, imp) c n
+0 T (lementation, etc\)) N
+0 T () N
+0 T () S
+(    ) p
+(// ---------- Private function) c n
+0 T () N
+(130) # () S
+(    ) p
+(function) K
+( ) p
+(_createSolver) l
+(\( info \)) p n
+0 T (    {) N
+0 T (        ) S
+(var) K
+( name     = info.name) p n
+0 T (        , metaretArr = info.metaretArr) N
+0 T (        , paramArr   = info.paramArr) N
+(135) # (        , varArr     = info.varArr) N
+0 T (        , origBody   = info.origBody) N
+0 T (        ;) N
+0 T () N
+(metaret.js) (Page 2/10) (Sep 02, 11 18:09) title
+border
+grestore
+(Printed by gl) rhead
+(./metaret.js) (1/5) (Wednesday February 27, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.965278 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+0 T (        ) p
+(return) K
+( solve;) p n
+(140) # (        ) N
+0 T (        ) S
+(function) K
+( ) p
+(solve) l
+(\(\)) p n
+0 T (        {) N
+0 T (            ) S
+(if) K
+( \(info.impl\)  ) p n
+0 T (                ) S
+(return) K
+(;  ) p
+(// Done already) c n
+(145) # () N
+0 T () S
+(            ) p
+(// Not done yet. Make sure it is feasible.) c n
+0 T () N
+0 T () S
+(            ) p
+(if) K
+( \(!metaretArr.hasAll\(\)\)) p n
+0 T (                ) S
+(throw) K
+( ) p
+(new) K
+( Error\( ') p
+(MetaFunction : _createSolver : solve\(\) could not resolve all depende) str n
+0 T (ncies yet for metafunction ") S
+(' + name + ') p
+(".) str
+(' \);) p n
+(150) # (            ) N
+0 T (            ) S
+(if) K
+( \(!metaretArr.length\)) p n
+0 T (                solveNoMetaret\(\);) N
+0 T (            ) S
+(else) K
+( ) p
+(if) K
+( \(!metaretArr.hasOther\(\)\)) p n
+0 T (                solveSelf\(\);) N
+(155) # (            ) S
+(else) K n
+0 T () S
+(                solveMulti\(\);) p n
+0 T (        }) N
+0 T () N
+0 T (        ) S
+(function) K
+( ) p
+(solveNoMetaret) l
+(\(\)) p n
+(160) # (        {) N
+0 T (            console.warn\( ') S
+(MetaFunction : _createSolver:solveNoMetaret\(\) no #metaret in body of metafu) str n
+0 T (nction ") S
+(' + name + ') p
+(".) str
+(' \);) p n
+0 T (            ) N
+0 T (            ) S
+(var) K
+( newParam = info.newParam = _checkRemoveHash\( paramArr \)) p n
+0 T (            , newBody    = info.newBody  = _checkRemoveHash\( paramArr.concat\( va) N
+0 T (rArr \).concat\( [ ') S
+(##) str
+(' ] \) ) p
+(// We also simplify double ## into single #) c n
+(165) # () S
+(                                                             ,  origBody \)) p n
+0 T (            ;) N
+0 T (            info.impl = ) S
+(new) K
+( Function\( newParam.join\( ') p
+(,) str
+(' \), newBody \);) p n
+0 T (        }) N
+0 T () N
+(170) # (        ) S
+(function) K
+( ) p
+(solveSelf) l
+(\(\)) p n
+0 T (        {) N
+0 T (            ) S
+(var) K
+( against = [ paramArr, origBody ]) p n
+0 T (            , label     = _generateAddName\( ') S
+(L_) str
+(' + name, against \)  ) p
+(// Avoid col) c n
+0 T (lision) N
+0 T () S
+(            , undefName = _generateAddName\( ') p
+(undef) str
+(', against \)  ) p
+(// Avoid collisio) c n
+0 T (n   ) N
+(175) # () S
+(            , newParam  = info.newParam = _checkRemoveHash\( paramArr \)) p n
+0 T (            , i4        = _indentGen\( 4 \)) N
+0 T (            , i8        = _indentGen\( 8 \)) N
+0 T (            , newBody   = info.newBody  = i4\( ) N
+0 T (                ') S
+(var ) str
+(' + undefName + ') p
+(;\\n) str
+(' + ) p n
+(180) # (                label + ') S
+(: while \(true\) {\\n) str
+(' + ) p n
+0 T (                    i4\( _checkRemoveHash\( paramArr) N
+0 T (                                          .concat\( varArr \)) N
+0 T (                                          .concat\( [ ') S
+(##) str
+(' ] \)   ) p
+(// We also simpl) c n
+0 T (ify a double hash "##" into a single hash "#") N
+0 T () S
+(                                          , _reinitUndef\( _replaceMetaretWithCon) p n
+0 T (tinue\( metaretArr, origBody, label, paramArr \)) N
+(185) # (                                                          , info.varArr) N
+0 T (                                                          , undefName \)) N
+0 T (                                        \) + ') S
+(\\n) str
+(') p n
+0 T (                      \) +) N
+0 T (                    ') S
+(  return;\\n) str
+(' +) p n
+(190) # (                    ') S
+(}\\n) str
+(') p n
+0 T (            \)) N
+0 T (            ;) N
+0 T (            info.impl = ) S
+(new) K
+( Function\( newParam.join\( ') p
+(,) str
+(' \), newBody \);) p n
+0 T (        }) N
+(195) # () N
+0 T (        ) S
+(function) K
+( ) p
+(solveMulti) l
+(\(\)) p n
+0 T (        {) N
+0 T (            ) S
+(// For simplicity and readability we opted for switch) c n
+0 T () S
+(            ) p
+(// \(flat, maybe less variable name collision issues\)) c n
+(200) # () S
+(            ) p
+(// rather than expanding recursively \(faster than switch,) c n
+0 T () S
+(            ) p
+(// but code duplication\).) c n
+0 T () S
+(            ) p n
+0 T (            ) S
+(var) K
+( nameArr  = [ name ].concat\( metaretArr.hasOther\(\) \)) p n
+0 T (            , infoArr    = nameArr.map\( function \(n\) { ) S
+(return) K
+( _name2info[ n ]; }) p n
+(metaret.js) (Page 3/10) (Sep 02, 11 18:09) title
+border
+/v 1 store
+/x0 x v get 2.965278 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+0 T ( \)) p n
+(205) # (            , against    = infoArr.map\( function \(info\) { ) S
+(return) K
+( info.paramArr.c) p n
+0 T (oncat\( info.origBody \); } \)) N
+0 T (            , switch_ind_name = nameArr.switch_ind_name = _generateAddName\( ') S
+(swit) str n
+0 T (ch_ind) S
+(', against \)) p n
+0 T (            , switchLabel     = nameArr.switchLabel     = _generateAddName\( ') S
+(L_s) str n
+0 T (witch) S
+(', against \)) p n
+0 T (            , undefName       = _generateAddName\( ') S
+(undef) str
+(', against \)  ) p
+(// Avoid co) c n
+0 T (llision   ) N
+0 T () S
+(            ; ) p n
+(210) # (            ) N
+0 T (            ) S
+(var) K
+( i4     = _indentGen\( 4 \)) p n
+0 T (            , i8       = _indentGen\( 8 \)) N
+0 T (            , i12      = _indentGen\( 12 \)) N
+0 T (            , newParam = info.newParam = _checkRemoveHash\( paramArr \)) N
+(215) # (            , newBody    = info.newBody = i4\( [) N
+0 T (                ') S
+(var ) str
+(' + undefName + ') p
+(;) str
+(') p n
+0 T (                , ') S
+(var ) str
+(' + switch_ind_name  + ') p
+( = 0;) str
+(') p n
+0 T (                , switchLabel + ') S
+(: while \(true\) {) str
+(') p n
+0 T (                , i4\( ') S
+(switch \() str
+(' + switch_ind_name + ') p
+(\) {) str
+(' \)) p n
+(220) # (            ].concat\( ) N
+0 T (                infoArr.map\( info2code \)) N
+0 T (            \).concat\( [) N
+0 T (                i4\( ') S
+(}) str
+(' \)) p n
+0 T (                , i4\( ') S
+(return;) str
+(' \)) p n
+(225) # (                , ') S
+(}) str
+(') p n
+0 T (                , '') N
+0 T (            ]\)\).join\( ') S
+(\\n) str
+(' \)) p n
+0 T (            ;) N
+0 T (            ) N
+(230) # (            info.impl = ) S
+(new) K
+( Function\( newParam.join\( ') p
+(,) str
+(' \), newBody \);) p n
+0 T () N
+0 T (            ) S
+(function) K
+( ) p
+(info2code) l
+(\( info, ind \)) p n
+0 T (            {) N
+0 T (                ) S
+(var) K
+( code = [ ) p n
+(235) # (                    '') N
+0 T (                    , ') S
+(/* ) str
+(' + info.name + ') p
+( */) str
+(') p n
+0 T (                    , ') S
+(case ) str
+(' + ind + ') p
+(:) str
+(' ) p n
+0 T (                ]) N
+0 T (                ) N
+(240) # (                code.push\( i4\( _checkRemoveHash\( info.paramArr.concat\( info.varA) N
+0 T (rr \).concat\( [ ') S
+(##) str
+(' ] \)) p n
+0 T (                                                 , _reinitUndef\( ) N
+0 T (                                                     _replaceMetaretWithContinue) N
+0 T (\( info.metaretArr, info.origBody, nameArr, against \)) N
+0 T (                                                     , info.varArr) N
+0 T (                                                     , undefName) N
+(245) # (                                                 \)) N
+0 T (                                               \)) N
+0 T (                             \) ) N
+0 T (                         \);) N
+0 T (                ) N
+(250) # (                code.push\( ') S
+(break;) str
+(' \);) p n
+0 T (                code.push\( '' \);) N
+0 T (                ) S
+(return) K
+( code.map\( i8 \).join\( ') p
+(\\n) str
+(' \);) p n
+0 T (            }) N
+0 T (        }) N
+(255) # () N
+0 T (    }  ) S
+(// end of function _createSolver) c n
+0 T () N
+0 T () S
+(    ) p
+(// ---------- Private implementation: deeper) c n
+0 T () N
+(260) # () S
+(    ) p
+(function) K
+( ) p
+(_checkName) l
+(\() p
+(/*string*/) c
+(name\)) p n
+0 T (    {) N
+0 T (        ) S
+(if) K
+( \(!_RX_NAME.test\( name \)\)  ) p n
+0 T (            ) S
+(throw) K
+( ) p
+(new) K
+( Error\(') p
+(MetaFunction : _checkName : Invalid function name ") str
+(' + name + ') p
+(". T) str n
+0 T (he function name must match [a-zA-Z_][a-zA-Z_0-9]*) S
+('\);) p n
+0 T () N
+(265) # (        ) S
+(if) K
+( \(name ) p
+(in) K
+( _name2info\)) p n
+0 T (            ) S
+(throw) K
+( ) p
+(new) K
+( Error\(') p
+(MetaFunction : _checkName : Duplicate function name ") str
+(' + name + ') p
+(") str n
+0 T (. The function name must be unique: ) S
+(' + ) p n
+0 T (                            ') S
+(MetaFunction can be called one time only with a given name.) str
+(' ) p n
+0 T (                           \);) N
+(metaret.js) (Page 4/10) (Sep 02, 11 18:09) title
+border
+grestore
+(Printed by gl) rhead
+(./metaret.js) (2/5) (Wednesday February 27, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (5-6) 3
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.965278 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+0 T (    }) p n
+(270) # () N
+0 T (    ) S
+(function) K
+( ) p
+(_checkExtractParam) l
+(\( ) p
+(/*string*/) c
+(param \)  ) p n
+0 T (    {) N
+0 T (        ) S
+(if) K
+( \(!_RX_PARAM.test\( param \)\)) p n
+0 T (            ) S
+(throw) K
+( ) p
+(new) K
+( Error\(') p
+(MetaFunction : _checkExtractParam : Invalid parameters string, the string ) str n
+0 T (must be like "#x,#self,#y,#z".) S
+('\)) p n
+(275) # () N
+0 T (        ) S
+(var) K
+( ret = param.replace\(/\\s+/g, '' \).split\( ') p
+(,) str
+(' \);) p n
+0 T (        ret.self = ret.splice\( ACTION_PARAM, 1 \)[ 0 ];) N
+0 T (        ) S
+(return) K
+( ret;) p n
+0 T (    }) N
+(280) # () N
+0 T (    ) S
+(function) K
+( ) p
+(_extractVar) l
+(\( ) p
+(/*string*/) c
+(body \)) p n
+0 T (    {) N
+0 T (        ) S
+(var) K
+( rx = ) p
+(new) K
+( RegExp\( _RE_VAR, ') p
+(g) str
+(' \)) p n
+0 T (        , m_arr) N
+(285) # (        , ret = []) N
+0 T (        ;) N
+0 T (        ) S
+(while) K
+( \(m_arr = rx.exec\( body \)\)) p n
+0 T (        {) N
+0 T (            ) S
+(var) K
+( text = m_arr[1];) p n
+(290) # (            ret.push\( { text    : text) N
+0 T (                        , end   : rx.lastIndex + 1) N
+0 T (                        , start : rx.lastIndex + 1 - m_arr[ 0 ].length) N
+0 T (                      }) N
+0 T (                    \);) N
+(295) # (            ) N
+0 T (        }) N
+0 T (        ) S
+(return) K
+( ret;) p n
+0 T (    }) N
+0 T () N
+(300) # (    ) S
+(function) K
+( ) p
+(_checkExtractMetaret) l
+(\( ) p
+(/*string*/) c
+(body, ) p
+(/*string*/) c
+(self, ) p
+(/*string*/) c
+(selfNa) p n
+0 T (me \)) N
+0 T (    {) N
+0 T (        ) S
+(var) K
+( rx = ) p
+(new) K
+( RegExp\( _RE_METARET, ') p
+(g) str
+(' \)) p n
+0 T (        , m_arr) N
+0 T (        , ret  = []) N
+(305) # (        ;) N
+0 T () N
+0 T (        ) S
+(// Remember) c n
+0 T () N
+0 T () S
+(        ret.body     = body;) p n
+(310) # (        ret.self     = self;) N
+0 T (        ret.selfName = selfName;) N
+0 T () N
+0 T (        ) S
+(// Parse) c n
+0 T () N
+(315) # () S
+(        ) p
+(while) K
+( \(m_arr = rx.exec\( body \)\)) p n
+0 T (        {) N
+0 T (            ) S
+(var) K
+( exprArr = m_arr[1].split\( ') p
+(,,) str
+(' \)) p n
+0 T (            , n         = exprArr.length) N
+0 T (            ;) N
+(320) # (            ) S
+(for) K
+( \() p
+(var) K
+( i = n ; i-- ; \) ) p n
+0 T (                exprArr[ i ] = exprArr[ i ].replace\( /^\\s+/, '' \).replace\( /\\s+$) N
+0 T (/, '' \);) N
+0 T (            ) N
+0 T (            ) S
+(var) K
+( action = n > 1  &&  exprArr.splice\( ACTION_PARAM, 1 \)[ 0 ];) p n
+0 T (            ) S
+(if) K
+( \(!action\)) p n
+(325) # (                ) S
+(throw) K
+( ) p
+(new) K
+( Error\(') p
+(MetaFunction : _checkExtractMetaret\(\) : A `#metaret` needs at least a) str n
+0 T (n action.) S
+('\);) p n
+0 T (            ) N
+0 T (            ) S
+(if) K
+( \(action !== self  &&  !_RX_ACTION.test\( action \)\)) p n
+0 T (            {) N
+0 T (                ) S
+(throw) K
+( ) p
+(new) K
+( Error\(') p
+(MetaFunction : _checkExtractMetaret : Invalid action ") str
+(' + action) p n
+0 T ( + ') S
+(". action must be self \(") str
+(' + self + ) p n
+(330) # (                                ') S
+("\) or a named action \(like "myOtherAction" or "my.other.action" or ") str n
+0 T (my_other_action"\).) S
+(') p n
+0 T (                               \);) N
+0 T (            }) N
+0 T (            ) N
+0 T (            ) S
+(var) K
+( isSelf = action === self  ||  action === selfName;) p n
+(335) # () N
+(metaret.js) (Page 5/10) (Sep 02, 11 18:09) title
+border
+/v 1 store
+/x0 x v get 2.965278 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+0 T (            ret.push\( { exprArr  : exprArr  ) p
+(// array of string) c n
+0 T () S
+(                        , isSelf : isSelf) p n
+0 T (                        , action : isSelf ? selfName : action   ) S
+(// string) c n
+0 T () S
+(                        , end    : rx.lastIndex + 1) p n
+(340) # (                        , start  : rx.lastIndex + 1 - m_arr[ 0 ].length) N
+0 T (                      }) N
+0 T (                    \);) N
+0 T (        }) N
+0 T () N
+(345) # (        ) S
+(// Add convenience methods) c n
+0 T () N
+0 T () S
+(        ret.hasOther = hasOther;) p n
+0 T (        ret.hasAll   = hasAll;) N
+0 T () N
+(350) # (        ) S
+(return) K
+( ret;) p n
+0 T (    }) N
+0 T () N
+0 T (    ) S
+(function) K
+( ) p
+(hasOther) l
+(\(\)) p n
+0 T (    {) N
+(355) # (        ) S
+(var) K
+( cache = ') p
+(hasOtherResult) str
+('; ) p n
+0 T (        ) S
+(if) K
+( \(cache ) p
+(in) K
+( ) p
+(this) k
+(\)  ) p n
+0 T (            ) S
+(return) K
+( ) p
+(this) k
+([ cache ];) p n
+0 T () N
+0 T (        ) S
+(var) K
+( arr = [];) p n
+(360) # () N
+0 T (        ) S
+(for) K
+( \() p
+(var) K
+( i = ) p
+(this) k
+(.length; i--; \)) p n
+0 T (        {) N
+0 T (            ) S
+(if) K
+( \(!) p
+(this) k
+([ i ].isSelf\)) p n
+0 T (                arr.push\( ) S
+(this) k
+([ i ].action \);) p n
+(365) # (        }) N
+0 T (        ) N
+0 T (        ) S
+(return) K
+( ) p
+(this) k
+([ cache ] = arr.length  &&  arr;) p n
+0 T (    }) N
+0 T () N
+(370) # (    ) S
+(function) K
+( ) p
+(hasAll) l
+(\() p
+(/*?object?*/) c
+(visited, ) p
+(/*?array of string?*/) c
+(visitedArr\)) p n
+0 T (    {) N
+0 T (        ) S
+(// Returns  false | array of strings) c n
+0 T () S
+(     ) p n
+0 T (        ) S
+(var) K
+( topLevel = !arguments.length;) p n
+(375) # (        ) S
+(if) K
+( \(topLevel\)) p n
+0 T (        {) N
+0 T (            ) S
+(var) K
+( cache = ') p
+(hasAllResult) str
+(';) p n
+0 T (            ) S
+(if) K
+( \(cache ) p
+(in) K
+( ) p
+(this) k
+(\)  ) p n
+0 T (                ) S
+(return) K
+( ) p
+(this) k
+([ cache ];) p n
+(380) # (        }) N
+0 T () N
+0 T (        ) S
+(// Do the \(possibly recursive\) search) c n
+0 T () S
+(        ) p n
+0 T (        visited     ||  \(visited = {}\);) N
+(385) # (        visitedArr  ||  \(visitedArr = []\);) N
+0 T () N
+0 T (        ) S
+(for) K
+( \() p
+(var) K
+( i = ) p
+(this) k
+(.length; i--; \)) p n
+0 T (        {) N
+0 T (            ) S
+(var) K
+( x = ) p
+(this) k
+([ i ];) p n
+(390) # (            ) S
+(if) K
+( \(x.isSelf\)) p n
+0 T (                ) S
+(continue) K
+(;) p n
+0 T () N
+0 T (            ) S
+(var) K
+( action = x.action;) p n
+0 T (            ) S
+(if) K
+( \(!action\)) p n
+(395) # (                ) S
+(throw) K
+( ) p
+(new) K
+( Error\(') p
+(MetaFunction : hasAll : Found a bug: empty metaret action \(not permi) str n
+0 T (tted\).) S
+('\);) p n
+0 T () N
+0 T (            ) S
+(if) K
+( \(action ) p
+(in) K
+( visited\)  ) p
+(// Prevent infinite cycles) c n
+0 T () S
+(                ) p
+(continue) K
+(;) p n
+0 T () N
+(400) # (            ) S
+(if) K
+( \(!\(action ) p
+(in) K
+( _name2info\)\)) p n
+0 T (                ) S
+(return) K
+( ) p
+(false) k
+(;       ) p
+(// Failure) c n
+0 T () N
+0 T () S
+(            visited[ action ] = 1;) p n
+0 T (            visitedArr.push\( action \);) N
+(405) # () N
+0 T (            ) S
+(if) K
+( \(!_name2info[ action ].metaretArr.hasAll\( visited, visitedArr \)\)) p n
+0 T (                ) S
+(return) K
+( ) p
+(false) k
+(;       ) p
+(// Failure) c n
+(metaret.js) (Page 6/10) (Sep 02, 11 18:09) title
+border
+grestore
+(Printed by gl) rhead
+(./metaret.js) (3/5) (Wednesday February 27, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (7-8) 4
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.965278 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+0 T (        }) p n
+0 T () N
+(410) # (        ) S
+(if) K
+( \(topLevel\)) p n
+0 T (            ) S
+(return) K
+( ) p
+(this) k
+([ cache ] = visitedArr;   ) p
+(// Success) c n
+0 T () S
+(        ) p
+(else) K n
+0 T () S
+(            ) p
+(return) K
+( visitedArr;   ) p
+(// Not finished yet) c n
+0 T () S
+(    }) p n
+(415) # (    ) N
+0 T () N
+0 T (    ) S
+(function) K
+( ) p
+(_checkRemoveHash) l
+(\( ) p
+(/*array of object or string, each starting with #) c n
+0 T (*/) S
+(hashArr, ) p
+(/*?string | array of string?*/) c
+(body_or_arr \) ) p n
+0 T (    {) N
+0 T (        ) S
+(// maps:  array -> array  or:   string -> string) c n
+(420) # () N
+0 T () S
+(        ) p
+(if) K
+( \(body_or_arr == ) p
+(null) k
+(\)) p n
+0 T (            body_or_arr = hashArr;) N
+0 T () N
+0 T (        ) S
+(if) K
+( \() p
+(typeof) K
+( body_or_arr !== ') p
+(string) str
+('\)) p n
+(425) # (            ) S
+(return) K
+( body_or_arr.map\( function \(s\) { ) p
+(return) K
+( _checkRemoveHash\( hash) p n
+0 T (Arr, s \); } \);) N
+0 T (        ) N
+0 T (        ) S
+(// string) c n
+0 T () N
+0 T () S
+(        ) p
+(var) K
+( newBody = body_or_arr;) p n
+(430) # () N
+0 T (        hashArr.forEach\( update_newBody \);) N
+0 T () N
+0 T (        ) S
+(return) K
+( newBody;) p n
+0 T () N
+(435) # (        ) S
+(function) K
+( ) p
+(update_newBody) l
+(\( ) p
+(/*object | string*/) c
+(hash \)) p n
+0 T (        {) N
+0 T (            ) S
+(if) K
+( \() p
+(typeof) K
+( hash === ') p
+(object) str
+('\)) p n
+0 T (                hash = hash.text;) N
+0 T () N
+(440) # (            ) S
+(if) K
+( \(hash.charAt\( 0 \) !== ') p
+(#) str
+('\)) p n
+0 T (                ) S
+(throw) K
+( ) p
+(new) K
+( Error\( ') p
+(MetaFunction : _checkRemoveHash : Invalid hash string ") str
+(' + ha) p n
+0 T (sh + ') S
+(". It must at least start with a hash.) str
+(' \);) p n
+0 T (            ) N
+0 T (            newBody = newBody.replace\( ) S
+(new) K
+( RegExp\( hash, ') p
+(g) str
+(' \), hash.slice\( 1 \) ) p n
+0 T (\);  ) S
+(// Drop the hash at the beginning) c n
+0 T () S
+(        }) p n
+(445) # (    }) N
+0 T () N
+0 T (    ) S
+(function) K
+( ) p
+(_dropAction) l
+(\( ) p
+(/*array of string*/) c
+(paramArr \)) p n
+0 T (    {) N
+0 T (        ) S
+(return) K
+( paramArr.slice\( 0, ACTION_PARAM \).concat\( paramArr.slice\( ACTION_) p n
+0 T (PARAM + 1 \) \);) N
+(450) # (    }) N
+0 T () N
+0 T (    ) S
+(function) K
+( ) p
+(_generateAddName) l
+(\( ) p
+(/*string*/) c
+(baseName, ) p
+(/*array of ... */) c
+(against\)) p n
+0 T (    {) N
+0 T (        ) S
+(var) K
+( newName = _generateName\( baseName, against \);) p n
+(455) # (        against.push\( newName \);) N
+0 T (        ) S
+(return) K
+( newName;) p n
+0 T (    }) N
+0 T () N
+0 T (    ) S
+(function) K
+( ) p
+(_generateName) l
+(\( ) p
+(/*string*/) c
+(baseName ) p
+(/*, ... recursive array of strings) c n
+0 T (: string | array of \( string | array of ..\) ... */) S
+( \)) p n
+(460) # (    {) N
+0 T (        ) S
+(// Generate a string based on `baseName`, that cannot be found) c n
+0 T () S
+(        ) p
+(// in any of the strings in `against`.) c n
+0 T () N
+0 T () S
+(        ) p
+(var) K
+( against = _Aps.call\( arguments, 1 \);  ) p
+(// array of ...) c n
+(465) # () N
+0 T () S
+(        ) p
+(for) K
+( \() p
+(var) K
+( i = ) p
+(null) k
+( ; ) p
+(true) k
+( ; i = \(i >>> 0\) + 1\)) p n
+0 T (        {) N
+0 T (            ) S
+(var) K
+( label = ') p
+(_) str
+(' + baseName + \(i || ''\) + ') p
+(_) str
+(';) p n
+0 T (            ) N
+(470) # (            ) S
+(if) K
+( \(!match\( against \)\)) p n
+0 T (                ) S
+(return) K
+( label;  ) p
+(// success) c n
+0 T () S
+(            ) p n
+0 T (            ) S
+(// failure) c n
+0 T () S
+(        }) p n
+(metaret.js) (Page 7/10) (Sep 02, 11 18:09) title
+border
+/v 1 store
+/x0 x v get 2.965278 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(475) # () p n
+0 T (        ) S
+(function) K
+( ) p
+(match) l
+(\( ) p
+(/*array | string*/) c
+(against \)) p n
+0 T (        {) N
+0 T (            ) S
+(if) K
+( \() p
+(typeof) K
+( against === ') p
+(string) str
+('\)) p n
+0 T (                ) S
+(return) K
+( -1 < against.indexOf\( label \)  ||  -1 < against.indexOf\( ) p n
+0 T (') S
+(#) str
+(' + label \);) p n
+(480) # () N
+0 T (            ) S
+(// array -> recurse \(OR logic\)) c n
+0 T () N
+0 T () S
+(            ) p
+(for) K
+( \() p
+(var) K
+( i = against.length; i--; \)) p n
+0 T (            {) N
+(485) # (                ) S
+(if) K
+( \(match\( against[ i ] \)\)) p n
+0 T (                    ) S
+(return) K
+( ) p
+(true) k
+(;) p n
+0 T (            }) N
+0 T () N
+0 T (            ) S
+(return) K
+( ) p
+(false) k
+(;) p n
+(490) # (        }) N
+0 T (    }) N
+0 T () N
+0 T (    ) S
+(function) K
+( ) p
+(_replaceMetaretWithContinue) l
+(\( metaretArr, origBody, ) p
+(/*string | array of ) c n
+0 T (string*/) S
+(label_or_nameArr ) p
+(/*, ... recursive array of strings: string | array of \() c n
+0 T ( string | array ...\) ... */) S
+( \)) p n
+0 T (    {) N
+(495) # (        ) S
+(var) K
+( against = _Aps.call\( arguments, 1 \)  ) p
+(// Including `origBody`, `label) c n
+0 T (` and `newVarArr`) N
+0 T () S
+(        , isLabel   = ) p
+(typeof) K
+( label_or_nameArr === ') p
+(string) str
+(') p n
+0 T (        , ret       = origBody) N
+0 T (        ;) N
+0 T (        ) S
+(for) K
+( \() p
+(var) K
+( i = metaretArr.length; i--; \)   ) p
+(// Downward order important) c n
+(500) # () S
+(        {) p n
+0 T (            ) S
+(var) K
+( metaret = metaretArr[ i ]) p n
+0 T (            , code      = prepareCode\( metaret \)) N
+0 T (            ;) N
+0 T (            ret = ret.slice\( 0, metaret.start \) + code + ret.slice\( metaret.end ) N
+0 T (\);) N
+(505) # (        }) N
+0 T (        ) N
+0 T (        ) S
+(return) K
+( ret;) p n
+0 T () N
+0 T (        ) S
+(function) K
+( ) p
+(prepareCode) l
+(\( metaret \)) p n
+(510) # (        {) N
+0 T (            ) S
+(var) K
+( code   = []) p n
+0 T (            , info     = _name2info[ metaret.action ]) N
+0 T (            , paramArr = info.paramArr) N
+0 T (            , exprArr  = metaret.exprArr) N
+(515) # (            ;) N
+0 T (            ) N
+0 T (            ) S
+(if) K
+( \(paramArr.length !== exprArr.length\)) p n
+0 T (            {) N
+0 T (                ) S
+(throw) K
+( ) p
+(new) K
+( Error\( ') p
+(MetaFunction : _replaceMetaretWithContinue : prepareCode : Invali) str n
+0 T (d number of metaret arguments, action  ") S
+(' + ) p n
+(520) # (                                 metaret.action + ') S
+(" expects ) str
+(' + paramArr.length + ) p n
+0 T (') S
+( arguments, but ) str
+(' + exprArr.length + ') p
+( were given.) str
+(') p n
+0 T (                               \);) N
+0 T (            }) N
+0 T () N
+0 T (            ) S
+(if) K
+( \(paramArr.length === 1\)) p n
+(525) # (            {) N
+0 T (                code.push\( paramArr[ 0 ] + ') S
+( = ) str
+(' + exprArr[ 0 ] + ') p
+(;) str
+(' \);) p n
+0 T (            }) N
+0 T (            ) S
+(else) K n
+0 T () S
+(            {) p n
+(530) # (                ) S
+(for) K
+( \() p
+(var) K
+( i = 0, end = paramArr.length; i < end; i++\)) p n
+0 T (                {) N
+0 T (                    ) S
+(var) K
+( varname  = paramArr[ i ]) p n
+0 T (                    , newVarname = _generateName\( varname.slice\( 1 \), against \) ) N
+0 T (  ) S
+(// slice\( 1 \): remove '#' right away) c n
+0 T () S
+(                    ;) p n
+(535) # (                    against.push\( newVarname \);  ) S
+(// Prevent future collisions on) c n
+0 T ( this new name) N
+0 T () S
+(                    ) p n
+0 T (                    code.splice\( i, 0, ') S
+(var ) str
+(' + newVarname + ') p
+( = ) str
+(' + exprArr[ i ] ) p n
+0 T (+ ') S
+(;) str
+(' \);) p n
+(metaret.js) (Page 8/10) (Sep 02, 11 18:09) title
+border
+grestore
+(Printed by gl) rhead
+(./metaret.js) (4/5) (Wednesday February 27, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (9-10) 5
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 2.965278 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+0 T (                    code.push\( varname + ') p
+( = ) str
+(' + newVarname + ') p
+(;) str
+(' \);) p n
+0 T (                }) N
+(540) # (            }) N
+0 T () N
+0 T (            ) S
+(if) K
+( \(isLabel\)) p n
+0 T (            {) N
+0 T (                ) S
+(// self-recursion case  \(continue <Label>\)) c n
+(545) # () S
+(                code.push\( ') p
+(continue ) str
+(' + label_or_nameArr + ') p
+(;) str
+(' \);) p n
+0 T (            }) N
+0 T (            ) S
+(else) K n
+0 T () S
+(            {) p n
+0 T (                ) S
+(// mutual recursion case \(switch style\)) c n
+(550) # () N
+0 T () S
+(                ) p
+(var) K
+( nameArr  = label_or_nameArr;) p n
+0 T () N
+0 T (                ) S
+(if) K
+( \(metaret.action === metaretArr.selfName\)) p n
+0 T (                {) N
+(555) # (                    ) S
+(// Actually a self-recursion \(switch style\)) c n
+0 T () S
+(                    code.push\( ') p
+(continue ) str
+(' + nameArr.switchLabel + ') p
+(; /* stay in: ) str
+(' + me) p n
+0 T (taret.action + ') S
+( */) str
+(' \);) p n
+0 T (                }) N
+0 T (                ) S
+(else) K n
+0 T () S
+(                {) p n
+(560) # (                    ) S
+(// Moving to the body of another metafunction \(switch style\)) c n
+0 T () S
+(                    ) p
+(var) K
+( switch_ind = nameArr.indexOf\( metaret.action \);) p n
+0 T (                    ) S
+(if) K
+( \(0 > switch_ind\)) p n
+0 T (                    {) N
+0 T (                        ) S
+(throw) K
+( ) p
+(new) K
+( Error\(') p
+(MetaFunction : _replaceMetaretWithContinue : prepareC) str n
+0 T (ode : Found a bug! Could not find the switch index of action ") S
+(' +) p n
+(565) # (                                        metaret.action + ') S
+(") str
+(' ) p n
+0 T (                                       \);) N
+0 T (                    }) N
+0 T (                    ) N
+0 T (                    code.push\( nameArr.switch_ind_name + ') S
+( = ) str
+(' + switch_ind + ') p
+(; /*) str n
+0 T ( go to: ) S
+(' + metaret.action + ') p
+( */) str
+(' \);) p n
+(570) # (                    code.push\( ') S
+(continue ) str
+(' + nameArr.switchLabel + ') p
+(;) str
+(' \);) p n
+0 T (                }) N
+0 T (            }   ) N
+0 T (            ) N
+0 T (            code.unshift\( ') S
+({) str
+(' \);) p n
+(575) # (            code.push\( ') S
+(}) str
+(' \);) p n
+0 T () N
+0 T (            ) S
+(return) K
+( code.join\( ') p
+(\\n) str
+(' \) + ') p
+(\\n) str
+(';) p n
+0 T (        }) N
+0 T () N
+(580) # (    }) N
+0 T () N
+0 T (    ) S
+(function) K
+( ) p
+(_reinitUndef) l
+(\( ) p
+(/*string*/) c
+(body, ) p
+(/*array of string*/) c
+(varArr, ) p
+(/*string*/) c
+(und) p n
+0 T (efName \)) N
+0 T (    {) N
+0 T (        ) S
+(var) K
+( toReinit = []) p n
+(585) # (        , textSeen   = {}) N
+0 T (        ;) N
+0 T (        ) S
+(for) K
+( \() p
+(var) K
+( i = 0, i_end = varArr.length; i < i_end; i++ \)) p n
+0 T (        {) N
+0 T (            ) S
+(var) K
+( v  = varArr[ i ]) p n
+(590) # (            , text = v.text) N
+0 T (            ;) N
+0 T (            ) S
+(if) K
+( \(text ) p
+(in) K
+( textSeen\)) p n
+0 T (                ) S
+(continue) K
+(;) p n
+0 T (            textSeen[ text ] = 1;) N
+(595) # () N
+0 T (            ) S
+(var) K
+( maybeDeclInd = body.search\() p
+(new) K
+( RegExp\( text + ') p
+(\\\\s*[,;]) str
+('\)\);) p n
+0 T (            ) N
+0 T (            ) S
+(if) K
+( \(-1 < maybeDeclInd  &&  maybeDeclInd < v.end\)) p n
+0 T (            {) N
+(600) # (                ) S
+(// Might well be a declaration without initialization.) c n
+0 T () S
+(                ) p
+(// To guarantee the same behaviour of the unrolled) c n
+0 T () S
+(                ) p
+(// code, we'll add an explicit reinit to `undefined`) c n
+0 T () S
+(                ) p
+(// at the begining of the unrolled code.) c n
+0 T () S
+(                toReinit.push\( text \);) p n
+(605) # (            }) N
+0 T (        }) N
+(metaret.js) (Page 9/10) (Sep 02, 11 18:09) title
+border
+/v 1 store
+/x0 x v get 2.965278 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+0 T () p n
+0 T (        ) S
+(if) K
+( \(!toReinit.length\)) p n
+0 T (            ) S
+(return) K
+( body;  ) p
+(// unchanged) c n
+(610) # () N
+0 T () S
+(        ) p
+(return) K
+( ') p
+(var ) str
+(' + toReinit.map\( function \(s\) { ) p
+(return) K
+( s + ') p
+( = ) str
+(' + undefName;) p n
+0 T ( } \).join\( ') S
+(\\n, ) str
+(' \) + \(toReinit.length > 1 ? ') p
+(\\n) str
+(' : ''\) + ') p
+(;\\n) str
+(' + body;) p n
+0 T (    }) N
+0 T () N
+0 T (    ) S
+(function) K
+( ) p
+(_indentGen) l
+(\( n \) ) p n
+(615) # (    {) N
+0 T (        ) S
+(var) K
+( x = ') p
+( ) str
+(') p n
+0 T (        , s   = []) N
+0 T (        ;) N
+0 T (        ) S
+(while) K
+( \(n\)) p n
+(620) # (        {) N
+0 T (            ) S
+(if) K
+( \(n & 1\)) p n
+0 T (                s.push\( x \);) N
+0 T (            ) N
+0 T (            n >>= 1;) N
+(625) # (            x += x;) N
+0 T (        }) N
+0 T (        ) N
+0 T (        ) S
+(var) K
+( s_indent = s.join\( '' \);) p n
+0 T (        ) S
+(return) K
+( indentFun;) p n
+(630) # () N
+0 T (        ) S
+(function) K
+( ) p
+(indentFun) l
+(\( ) p
+(/*string | array of string*/) c
+(s_or_a\)) p n
+0 T (        {) N
+0 T (            ) S
+(if) K
+( \() p
+(typeof) K
+( s_or_a === ') p
+(string) str
+('\)) p n
+0 T (            {) N
+(635) # (                ) S
+(var) K
+( rxEol = /) p
+(\\n) str
+(/;) p n
+0 T (                ) S
+(if) K
+( \(rxEol.test\(s_or_a\)\)) p n
+0 T (                    ) S
+(return) K
+( s_or_a.split\( rxEol \).map\( indentFun \).join\( ') p
+(\\n) str
+(' \);) p n
+0 T (                ) N
+0 T (                ) S
+(return) K
+( s_indent + s_or_a;) p n
+(640) # (            }) N
+0 T (            ) N
+0 T (            ) S
+(return) K
+( s_or_a.map\( indentFun \);) p n
+0 T (        }) N
+0 T (    }) N
+(645) # () N
+0 T (}\)\() S
+(this) k
+(\);) p n
+(metaret.js) (Page 10/10) (Sep 02, 11 18:09) title
+border
+grestore
+(Printed by gl) rhead
+(./metaret.js) (5/5) (Wednesday February 27, 2013) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF

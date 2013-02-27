@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>metafunction.js</title>
+<script type="text/javascript" src="metafunction.js"></script>
+<script type="text/javascript">
+var fact = MetaFunction
+( 
+    'fact'            // <- same name string as the variable name `fact`
+    , '#self,#k,#acc'
+    , [ 
+        '#acc  ||  (#acc = 1);'
+        , 'if (#k > 1)'
+        , '    #metaret #self ,, #k - 1 ,, #acc * #k;'
+        , 'else'
+        , '    return #acc;'
+    ].join( '\n' )
+);
+
+assert( '1 == fact(0)' );
+assert( '1 == fact(1)' );
+assert( '2 == fact(2)' );
+assert( '6 == fact(3)' );
+assert( '24 == fact(4)' );
+
+var isEven = MetaFunction
+(
+    'isEven'
+    , '#self,#n'
+    , [
+        ' if (#n > 0)'
+        , '    #metaret isOdd ,, #n - 1;'
+        , 'if (#n < 0)'
+        , '    #metaret #self ,, -#n;'
+        , 'return true;'
+    ].join( '\n' )
+);
+
+var isOdd = MetaFunction
+(
+    'isOdd'
+    , '#self,#n'
+    , [
+        'if (#n > 0)'
+        , '    #metaret isEven ,, #n - 1;'
+        , 'if (#n < 0)'
+        , '    #metaret #self ,, -#n;'
+        , 'return false;'
+    ].join( '\n' )
+);
+
+assert( 'false === isOdd( -4 )' );
+assert( 'true  === isOdd( -3 )' );
+assert( 'false === isOdd( -2 )' );
+assert( 'true  === isOdd( -1 )' );
+assert( 'false === isOdd( 0 )' );
+assert( 'true  === isOdd( 1 )' );
+assert( 'false === isOdd( 2 )' );
+assert( 'true  === isOdd( 3 )' );
+assert( 'false === isOdd( 4 )' );
+assert( 'true  === isOdd( 1001 )' );
+assert( 'false === isOdd( 1002 )' );
+assert( 'true  === isOdd( 1000001 )' );
+assert( 'false === isOdd( 1000002 )' );
+assert( 'true  === isOdd( 10000001 )' );   // No stack issue because the code has been unrolled
+assert( 'false === isOdd( 10000002 )' );
+
+assert( 'true  === isEven( -4 )' );
+assert( 'false === isEven( -3 )' );
+assert( 'true  === isEven( -2 )' );
+assert( 'false === isEven( -1 )' );
+assert( 'true  === isEven( 0 )' );
+assert( 'false === isEven( 1 )' );
+assert( 'true  === isEven( 2 )' );
+assert( 'false === isEven( 3 )' );
+assert( 'true  === isEven( 4 )' );
+assert( 'false === isEven( 1001 )' );
+assert( 'true  === isEven( 1002 )' );
+assert( 'false === isEven( 1000001 )' );
+assert( 'true  === isEven( 1000002 )' );
+assert( 'false === isEven( 10000001 )' );   // No stack issue because the code has been unrolled
+assert( 'true  === isEven( 10000002 )' );
+
+function assert(codestring) { if (!eval( codestring )) throw new Error( 'Failed test: ' + codestring ); }
+
+console.log('All tests passed.');
+</script>
+</head>
+<body>
+</body>
+</html>
