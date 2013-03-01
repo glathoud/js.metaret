@@ -1,4 +1,6 @@
-// Guillaume Lathoud, 2011, MIT License, see ./LICENSE.TXT
+/*global document console*/
+
+// Guillaume Lathoud, 2011, 2013, MIT License, see ./LICENSE.TXT
 // 
 // Unit tests: ./metaret.html
 //
@@ -22,15 +24,16 @@
 // syntax trees [tomrec], I decided to use simple "flat" regexps, hash
 // all variable names, and use double comma in metaret calls:
 //
-// fact = MetaFunction( 'fact', '#self,#k,#acc', [
-//     '#acc || (#acc = 1);'
-//     ,'   if (#k > 1)'
-//     ,'      #metaret #self ,, #k-1 ,, #acc*#k;'
-//     ,'   else'
-//     ,'     return #acc;'
-//   ].join( '\n' )
-// );    
+//     #metafun fact( #self, #k, #acc )
+//     {
+//         #acc  ||  (#acc = 1);
+//         if (#k > 1)
+//             #metaret #self ,, #k - 1 ,, #acc * #k;
+//         else
+//             return #acc;
+//     }
 //
+// References
 //
 // [Backus78] "Can Programming Be Liberated from the von Neumann
 // Style?  A Functional Style and Its Algebra of Programs", by John
@@ -43,21 +46,20 @@
 
 ;(function (global) {
 
+    // The place of `#self` in the parameters: 0:first place, 1:second
+    // place, etc.
+    var ACTION_PARAM = 0;
+
     // ---------- Public API
 
-    global.MetaFunction  = MetaFunction;  // MetaFunction returns a function.
+    global.MetaDecl      = MetaDecl;      // Returns nothing, declares a function in the global name space
+    global.MetaFunction  = MetaFunction;  // MetaFunction returns a function. Optionally you can give a local name space object.
     global.metaparse     = metaparse;     // Returns nothing. Search for script tags with type="text/js-metaret", parse and apply them.
 
-    // Constant that determines where the action (`self` etc) should be: 0: first place, 1: second place, etc.
-    function ACTION_PARAM () { return 0; }
-        
-    // Read-only access         Convenience cast support.
-    MetaFunction.ACTION_PARAM = ACTION_PARAM.toString = ACTION_PARAM.toValue = ACTION_PARAM;
-    
     // ---------- Public API implementation
-
-    var _metaparse_rx = /\s*#metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)((?!#metafun)[\s\S])*/g
-    ,  _metaparse_one_rx = /^\s*#metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)\s*\{\s*(((?!#metafun)[\s\S])*)\s*\}\s*$/
+    
+    var _metaparse_rx     = /\s*#metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)((?!#metafun)[\s\S])*/g
+    ,   _metaparse_one_rx = /^\s*#metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)\s*\{\s*(((?!#metafun)[\s\S])*)\s*\}\s*$/
     ;
     function metaparse()
     {
@@ -71,57 +73,92 @@
             var metacode = s.textContent  ||  s.innerText
             ,   arr      = metacode.match( _metaparse_rx )
             ;
-            
             for (var p = arr.length, j = 0; j < p; j++)
-            {
-                var one   = arr[ j ]
-                ,   mo    = _metaparse_one_rx.exec( one )
-                ,   name  = mo[ 1 ]
-                ,   param = mo[ 2 ]
-                ,   body  = mo[ 3 ]
-                ;
-                global[ name ] = MetaFunction( name, param, body );
-            }
-            
-            
+                MetaDecl( arr[ j ] );
         }
-        
     }
 
-
-    var _name2info;
-
-    function MetaFunction(/*string*/name, /* string like "#self,#a,#b,#c" */param, /*string, where all variable identifiers have a hash: #myVarname*/body) 
+    var _global_name2info = {};    
+    function MetaDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body )
     {
-        // Returns a function `ret`. So it does not matter whether you
-        // use `new MetaFunction(...)`, or just `MetaFunction(...)`.
-        //
-        // Advice: use the same name string as your target variable name:
-        /*
-        var fact = MetaFunction
-        ( 
-            'fact'            // <- same name string as the variable name `fact`
-            , '#self,#k,#acc'     // hashes in all identifiers to make parsing easy without a full-fledged JS parser
-            , [ 
-                '#acc  ||  (#acc = 1);'
-                , 'if (#k > 1)'
-                , '    #metaret #self ,, #k - 1 ,, #acc * #k;'       // double comma to make parsing easy without a full-fledged JS parser
-                , 'else'
-                , '    return #acc;'
-            ].join( '\n' )
-        );
-        */
-        
-        _checkName( name );
+        if (arguments.length < 2)
+        {
+            // --- Single argument: code string
 
-        var info     = _name2info[ name ] = { name : name  ,  origParam : param  ,  origBody : body  ,  impl : null }
+            // For convenience, prepend #metafun automatically.
+            var code  = /^\s*#metafun\s/.test( code_or_name )  ?  code_or_name  :  '#metafun' + code_or_name
+            
+            ,   mo    = _metaparse_one_rx.exec( code )
+            ,   name  = mo[ 1 ]
+            ;
+            param = mo[ 2 ];
+            body  = mo[ 3 ];
+            
+            MetaDecl( name, param, body );
+            return;
+        }
+        
+        // --- Three arguments
+
+        var name = code_or_name;
+
+        // Support for dotted names: automatically any missing part
+        // within the global object.
+        
+        var dot_arr = name.split( '.' )
+        ,   g       = global
+        ;
+        while (dot_arr.length > 1)
+        {
+            var next = dot_arr.shift();
+            g = g[ next ]  ||  (g[ next ] = {});
+        }
+        
+        // Now we are ready to create the metafunction
+        
+        g[ dot_arr[ 0 ] ] = MetaFunction( name, param, body, _global_name2info );
+    }
+
+    function MetaFunction(
+        /*string*/name
+        , /* string like "#self,#a,#b,#c" */param
+        , /*string: code, where ALL variable identifiers have a hash: #myVarname*/body
+        , /*object*/name2info
+    ) 
+    // Returns a function `ret`. So it does not matter whether you
+    // use `new MetaFunction(...)`, or just `MetaFunction(...)`.
+    //
+    // Advice: use the same name string as your target variable name:
+    /*
+      var fact = MetaFunction
+      ( 
+      'fact'            // <- same name string as the variable name `fact`
+      , '#self,#k,#acc'     // hashes in all identifiers to make parsing easy without a full-fledged JS parser
+      , [ 
+      '#acc  ||  (#acc = 1);'
+      , 'if (#k > 1)'
+      , '    #metaret #self ,, #k - 1 ,, #acc * #k;'       // double comma to make parsing easy without a full-fledged JS parser
+      , 'else'
+      , '    return #acc;'
+      ].join( '\n' )
+      );
+    */
+    {        
+        _checkNameNotUsedYet( name2info, name );
+
+        var info     = name2info[ name ]  = { name        : name  
+                                              , origParam : param  
+                                              , origBody  : body  
+                                              , impl      : null         // Where we'll store the resulting unwrapped implementation, as soon as we need it.
+                                              , name2info : name2info 
+                                            }
         , paramArr   = info.paramArr      = _checkExtractParam( param )  
         , varArr     = info.varArr        = _extractVar( body )
         , metaretArr = info.metaretArr    = _checkExtractMetaret( body, paramArr.self, name )
         , solve      = info.solve         = _createSolver( info )
         ;
         
-        if (metaretArr.hasAll())
+        if (metaretArr.hasAll( name2info ))
         {
             // If we can solve right away (e.g. self-recursion case),
             // then we do not need the `function ret()` check anymore.
@@ -155,10 +192,6 @@
     , _Aps            = Array.prototype.slice
     ;
 
-    // ---------- Private static
-
-    var _name2info = {};  // name -> metafunction information (dependencies, implementation, etc)
-
     // ---------- Private function
 
     function _createSolver( info )
@@ -168,6 +201,8 @@
         , paramArr   = info.paramArr
         , varArr     = info.varArr
         , origBody   = info.origBody
+
+        , name2info  = info.name2info
         ;
 
         return solve;
@@ -179,7 +214,7 @@
 
             // Not done yet. Make sure it is feasible.
 
-            if (!metaretArr.hasAll())
+            if (!metaretArr.hasAll( name2info ))
                 throw new Error( 'MetaFunction : _createSolver : solve() could not resolve all dependencies yet for metafunction "' + name + '".' );
             
             if (!metaretArr.length)
@@ -215,7 +250,7 @@
                     i4( _checkRemoveHash( paramArr
                                           .concat( varArr )
                                           .concat( [ '##' ] )   // We also simplify a double hash "##" into a single hash "#"
-                                          , _reinitUndef( _replaceMetaretWithContinue( metaretArr, origBody, label, paramArr )
+                                          , _reinitUndef( _replaceMetaretWithContinue( name2info, metaretArr, origBody, label, paramArr )
                                                           , info.varArr
                                                           , undefName )
                                         ) + '\n'
@@ -235,7 +270,7 @@
             // but code duplication).
             
             var nameArr  = [ name ].concat( metaretArr.hasOther() )
-            , infoArr    = nameArr.map( function (n) { return _name2info[ n ]; } )
+            , infoArr    = nameArr.map( function (n) { return name2info[ n ]; } )
             , against    = infoArr.map( function (info) { return info.paramArr.concat( info.origBody ); } )
             , switch_ind_name = nameArr.switch_ind_name = _generateAddName( 'switch_ind', against )
             , switchLabel     = nameArr.switchLabel     = _generateAddName( 'L_switch', against )
@@ -273,7 +308,7 @@
                 
                 code.push( i4( _checkRemoveHash( info.paramArr.concat( info.varArr ).concat( [ '##' ] )
                                                  , _reinitUndef( 
-                                                     _replaceMetaretWithContinue( info.metaretArr, info.origBody, nameArr, against )
+                                                     _replaceMetaretWithContinue( name2info, info.metaretArr, info.origBody, nameArr, against )
                                                      , info.varArr
                                                      , undefName
                                                  )
@@ -291,15 +326,19 @@
 
     // ---------- Private implementation: deeper
 
-    function _checkName(/*string*/name)
+    function _checkNameNotUsedYet(/*object*/name2info, /*string*/name)
     {
         if (!_RX_NAME.test( name ))  
-            throw new Error('MetaFunction : _checkName : Invalid function name "' + name + '". The function name must match [a-zA-Z_][a-zA-Z_0-9]*');
+            throw new Error(
+                'MetaFunction : _checkNameNotUsedYet : Invalid function name "' + name + '". The function name must match [a-zA-Z_][a-zA-Z_0-9]*'
+            );
 
-        if (name in _name2info)
-            throw new Error('MetaFunction : _checkName : Duplicate function name "' + name + '". The function name must be unique: ' + 
-                            'MetaFunction can be called one time only with a given name.' 
-                           );
+        if (name in name2info)
+            throw new Error(
+                'MetaFunction : _checkNameNotUsedYet : Duplicate function name "' + name + '". The function name must be unique: ' + 
+                    'MetaFunction can be called one time only with a given name.' 
+            );
+
     }
 
     function _checkExtractParam( /*string*/param )  
@@ -370,8 +409,8 @@
             ret.push( { exprArr  : exprArr  // array of string
                         , isSelf : isSelf
                         , action : isSelf ? selfName : action   // string
-                        , end    : rx.lastIndex + 1
-                        , start  : rx.lastIndex + 1 - m_arr[ 0 ].length
+                        , end    : rx.lastIndex
+                        , start  : rx.lastIndex - m_arr[ 0 ].length
                       }
                     );
         }
@@ -401,11 +440,11 @@
         return this[ cache ] = arr.length  &&  arr;
     }
 
-    function hasAll(/*?object?*/visited, /*?array of string?*/visitedArr)
+    function hasAll(/*object*/name2info, /*?object?*/visited, /*?array of string?*/visitedArr)
     {
         // Returns  false | array of strings
      
-        var topLevel = !arguments.length;
+        var topLevel = arguments.length < 2;
         if (topLevel)
         {
             var cache = 'hasAllResult';
@@ -431,13 +470,13 @@
             if (action in visited)  // Prevent infinite cycles
                 continue;
 
-            if (!(action in _name2info))
+            if (!(action in name2info))
                 return false;       // Failure
 
             visited[ action ] = 1;
             visitedArr.push( action );
 
-            if (!_name2info[ action ].metaretArr.hasAll( visited, visitedArr ))
+            if (!name2info[ action ].metaretArr.hasAll( name2info, visited, visitedArr ))
                 return false;       // Failure
         }
 
@@ -524,7 +563,13 @@
         }
     }
 
-    function _replaceMetaretWithContinue( metaretArr, origBody, /*string | array of string*/label_or_nameArr /*, ... recursive array of strings: string | array of ( string | array ...) ... */ )
+    function _replaceMetaretWithContinue( 
+        name2info
+        , metaretArr
+        , origBody
+        , /*string | array of string*/label_or_nameArr 
+        /*, ... recursive array of strings: string | array of ( string | array ...) ... */ 
+    )
     {
         var against = _Aps.call( arguments, 1 )  // Including `origBody`, `label` and `newVarArr`
         , isLabel   = typeof label_or_nameArr === 'string'
@@ -543,7 +588,7 @@
         function prepareCode( metaret )
         {
             var code   = []
-            , info     = _name2info[ metaret.action ]
+            , info     = name2info[ metaret.action ]
             , paramArr = info.paramArr
             , exprArr  = metaret.exprArr
             ;

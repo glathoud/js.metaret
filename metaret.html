@@ -89,9 +89,9 @@ assert( 'true  === isEven( 10000002 )' );
 
 // --- Similar tests as above, with functions declared programmatically
 
-var fact2 = MetaFunction
+MetaDecl
 ( 
-    'fact2'            // <- same name string as the variable name `fact2`
+    'fact2'   
     , '#self,#k,#acc'
     , [ 
         '#acc  ||  (#acc = 1);'
@@ -108,30 +108,26 @@ assert( '2 == fact2(2)' );
 assert( '6 == fact2(3)' );
 assert( '24 == fact2(4)' );
 
-var isEven2 = MetaFunction
+MetaDecl  // Let us try the "one string" variant
 (
-    'isEven2'
-    , '#self,#n'
-    , [
-        ' if (#n > 0)'
-        , '    #metaret isOdd2 ,, #n - 1;'
-        , 'if (#n < 0)'
-        , '    #metaret #self ,, -#n;'
-        , 'return true;'
-    ].join( '\n' )
+      '#metafun isEven2 ( #self, #n ) {'
+      + ' if (#n > 0)'
+      + '    #metaret isOdd2 ,, #n - 1;'
+      + 'if (#n < 0)'
+      + '    #metaret #self ,, -#n;'
+      + 'return true;'
+      + '}'
 );
 
-var isOdd2 = MetaFunction
+MetaDecl  // Let us try the "one string" variant with "#metafun" omitted
 (
-    'isOdd2'
-    , '#self,#n'
-    , [
-        'if (#n > 0)'
-        , '    #metaret isEven2 ,, #n - 1;'
-        , 'if (#n < 0)'
-        , '    #metaret #self ,, -#n;'
-        , 'return false;'
-    ].join( '\n' )
+      'isOdd2(#self,#n) {'
+      + 'if (#n > 0)'
+      + '    #metaret isEven2 ,, #n - 1;'
+      + 'if (#n < 0)'
+      + '    #metaret #self ,, -#n;'
+      + 'return false;'
+      + '}'
 );
 
 assert( 'false === isOdd2( -4 )' );
