@@ -87,6 +87,33 @@ assert( 'true  === isEven( 1000002 )' );
 assert( 'false === isEven( 10000001 )' );   // No stack issue because the code has been unrolled
 assert( 'true  === isEven( 10000002 )' );
 
+// ---- Test the local `name2info`
+
+// For test purposes: same name 'fact2' as used below, 
+// but different function (just a sum)
+
+var local_name2info = {}
+,   local_fun = MetaFunction(
+        'fact2' 
+
+        , '#self,#k,#acc'
+
+        , '#acc ||  (#acc = 0);  '
+          + 'if (#k > 0)  #metaret  #self ,, #k-1 ,, #acc + #k;'
+          + 'else         return #acc;'
+
+        , local_name2info
+      )
+;
+
+assert( '0 === local_fun( 0 )' );
+assert( '1 === local_fun( 1 )' );
+assert( '3 === local_fun( 2 )' );
+assert( '6 === local_fun( 3 )' );
+assert( '10 === local_fun( 4 )' );
+assert( '10000*10001/2 === local_fun( 10000 )' );  // No stack issue because the code has been unrolled
+
+
 // --- Similar tests as above, with functions declared programmatically
 
 MetaDecl
@@ -161,6 +188,15 @@ assert( 'false === isEven2( 1000001 )' );
 assert( 'true  === isEven2( 1000002 )' );
 assert( 'false === isEven2( 10000001 )' );   // No stack issue because the code has been unrolled
 assert( 'true  === isEven2( 10000002 )' );
+
+// --- Test again `local_fun` to make sure it as not been affected by the global declaration `fact2`
+
+assert( '0 === local_fun( 0 )' );
+assert( '1 === local_fun( 1 )' );
+assert( '3 === local_fun( 2 )' );
+assert( '6 === local_fun( 3 )' );
+assert( '10 === local_fun( 4 )' );
+assert( '10000*10001/2 === local_fun( 10000 )' );  // No stack issue because the code has been unrolled
 
 // ---
 
