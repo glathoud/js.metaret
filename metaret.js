@@ -183,7 +183,7 @@
 
     // ---------- Private constant
     
-    var _RX_NAME      = /^[a-zA-Z_]\w*$/
+    var _RX_NAME      = /^[a-zA-Z_][\w\.]*$/
         , _RX_PARAM   = /^((?:^\s*|\s*,\s*)#[a-zA-Z_]\w*(?:\s*))+$/
         , _RX_ACTION  = /^[a-zA-Z_]\w*?(\.[a-zA-Z_]\w*?)*$/
         , _RE_VAR     = '(?:^|[^#])(#(?!metaret\\b)[a-zA-Z_]\\w*\\b)'
@@ -538,7 +538,7 @@
 
         for (var i = null ; true ; i = (i >>> 0) + 1)
         {
-            var label = '_' + baseName + (i || '') + '_';
+            var label = '_' + baseName.replace( /\./g, '_' ) + (i || '') + '_';
             
             if (!match( against ))
                 return label;  // success

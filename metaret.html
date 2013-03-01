@@ -87,10 +87,16 @@ assert( 'true  === isEven( 1000002 )' );
 assert( 'false === isEven( 10000001 )' );   // No stack issue because the code has been unrolled
 assert( 'true  === isEven( 10000002 )' );
 
-// ---- Test the local `name2info`
+// --- Tests with functions declared programmatically
+
+// - Test the local `name2info`
 
 // For test purposes: same name 'fact2' as used below, 
 // but different function (just a sum)
+//
+// Since we are using a `local_name2info`
+// there must not be any impact on the 
+// global declaration 'fact2` further below
 
 var local_name2info = {}
 ,   local_fun = MetaFunction(
@@ -99,7 +105,7 @@ var local_name2info = {}
         , '#self,#k,#acc'
 
         , '#acc ||  (#acc = 0);  '
-          + 'if (#k > 0)  #metaret  #self ,, #k-1 ,, #acc + #k;'
+          + 'if (#k > 0)  #metaret  #self ,, #k-1 ,, #acc + #k;'  // sum
           + 'else         return #acc;'
 
         , local_name2info
@@ -113,8 +119,32 @@ assert( '6 === local_fun( 3 )' );
 assert( '10 === local_fun( 4 )' );
 assert( '10000*10001/2 === local_fun( 10000 )' );  // No stack issue because the code has been unrolled
 
+// - Test global declarations with dotted names. 
 
-// --- Similar tests as above, with functions declared programmatically
+// For test purposes: same name 'fact2' as used above and below, but
+// different implementation (sum of squares).
+//
+// Since we are using a name space 'some.name.space' there must not be
+// any impact on the above local declaration, and on the similarly
+// named global declarations below.
+
+MetaDecl( 'some.name.space.fact2'
+          , '#self, #k, #acc'
+          , '#acc  ||  (#acc = 0);'
+          + 'if (#k > 0)  #metaret  #self ,, #k-1 ,, #acc + #k * #k;'  // sum of squares
+          + 'else         return #acc;'
+        );
+
+assert( '0 === some.name.space.fact2( 0 )' );
+assert( '1 === some.name.space.fact2( 1 )' );
+assert( '5 === some.name.space.fact2( 2 )' );
+assert( '14 === some.name.space.fact2( 3 )' );
+assert( '30 === some.name.space.fact2( 4 )' );
+assert( '10000 * 10001 * 20001 / 6 === some.name.space.fact2( 10000 )' ) // No stack issue because the code has been unrolled
+
+// - Test global declarations 'fact2', 'isEven2' and 'isOdd2'
+//   These implementations are similar as those in the script tag
+//   (see above, at the beginning).
 
 MetaDecl
 ( 
@@ -123,7 +153,7 @@ MetaDecl
     , [ 
         '#acc  ||  (#acc = 1);'
         , 'if (#k > 1)'
-        , '    #metaret #self ,, #k - 1 ,, #acc * #k;'
+        , '    #metaret #self ,, #k - 1 ,, #acc * #k;'  // factorial
         , 'else'
         , '    return #acc;'
     ].join( '\n' )
@@ -197,6 +227,15 @@ assert( '3 === local_fun( 2 )' );
 assert( '6 === local_fun( 3 )' );
 assert( '10 === local_fun( 4 )' );
 assert( '10000*10001/2 === local_fun( 10000 )' );  // No stack issue because the code has been unrolled
+
+// --- Test again `some.name.space.fact2` to make sure it as not been affected by the global declaration `fact2`
+
+assert( '0 === some.name.space.fact2( 0 )' );
+assert( '1 === some.name.space.fact2( 1 )' );
+assert( '5 === some.name.space.fact2( 2 )' );
+assert( '14 === some.name.space.fact2( 3 )' );
+assert( '30 === some.name.space.fact2( 4 )' );
+assert( '10000 * 10001 * 20001 / 6 === some.name.space.fact2( 10000 )' ) // No stack issue because the code has been unrolled
 
 // ---
 
