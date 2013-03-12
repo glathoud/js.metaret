@@ -67,7 +67,7 @@
         for (var n = noli.length, i = 0; i < n; i++)
         {
             var s = noli[ i ];
-            if ('text/js-metaret' !== s.getAttribute( 'type' ))
+            if ('text/js-metaret-decl' !== s.getAttribute( 'type' ))
                 continue;
             
             var metacode = s.textContent  ||  s.innerText

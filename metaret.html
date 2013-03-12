@@ -3,10 +3,11 @@
 <head>
 <title>metaret.js</title>
 <script type="text/javascript" src="metaret.js"></script>
-<script type="text/js-metaret" id="metaret-decls">
+<script type="text/js-metaret-decl" id="metaret-decls">
 /* 
-type="js-metaret": JavaScript augmented with two extra keywords
-"metaret" and "metafun". 
+
+type="js-metaret-decl": JavaScript augmented with two extra keywords
+"metaret" and "metafun". Only function declarations at this point.
 
 I used "#" and double comma ",," because I did not want to write an
 augmented parser to just test an idea. Hence, all variable names
@@ -51,7 +52,7 @@ turned into a single comma ","
 }           
 </script>
 <script type="text/javascript" id="metaret-tests">
-// --- Tests with functions declared in script tag(s) with type="text/js-metaret"
+// --- Tests with functions declared in script tag(s) with type="text/js-metaret-decl"
 
 metaparse();
 
