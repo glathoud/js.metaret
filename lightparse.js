@@ -20,6 +20,8 @@
              , commentArr  : []
              , reservedArr : []
              , identifierArr     : []
+
+             // The last three are derived from `identifierArr`, for convenience.
              , identifierReverse : []
              , identifierObj        : {}
              , identifierObjReverse : {}
@@ -36,14 +38,28 @@
          ;
          while (true)
          {
+             // Search for a string or comment, whichever comes first
+
              var sq = code.indexOf( "'" , searchPosition )
              ,   dq = code.indexOf( '"' , searchPosition )
-             ,   cs = code.indexOf( '/*', searchPosition )
-             ,   cd = code.indedOf( '//', searchPosition )
+             ,   sc = code.indexOf( '/*', searchPosition )
+             ,   dc = code.indexOf( '//', searchPosition )
 
-             , max = Math.max( sq, dq, cs, cd )
+             ,   four = [ sq, dq, sc, dc ]
+             ,   begin = +Infinity
+             ,   ind  = -1
              ;
-             if (max < 0)
+             for (var i = four.length; i--;)
+             {
+                 var v = four[ i ];
+                 if (-1 < v  &&  v < begin)
+                 {
+                     begin = v;
+                     ind  = i;
+                 }
+             }
+
+             if (ind < 0)
              {
                  // Not found
 
@@ -51,40 +67,23 @@
                  break;
              }
 
-             // Found: which one came first
+             // Found: find its end
 
-             var four = [ sq, dq, cs, cd ]
-             ,   minV = +Infinity
-             ,   ind  = -1
-             ;
-             for (var i = four.length; i--;)
-             {
-                 var v = four[ i ];
-                 if (-1 < v  &&  v < minV)
-                 {
-                     minV = v;
-                     ind  = i;
-                 }
-             }
-             
-             var begin = minV
-             ,   rest  = code.substring( begin )
-             ;
+             var rest  = code.substring( begin )
 
-             // Find its end
+             , rx =   ind === 0  ?  /^[\s\S]+?[^\\]\'/
+                 :    ind === 1  ?  /^[\s\S]+?[^\\]\"/
+                 :    ind === 2  ?  /^[\s\S]+?\*\//
+                 :                  /^[\s\S]+?[\r\n]/
 
-             var rx = i === 0  ?  /^.*?[^\\]\'/
-                 :    i === 1  ?  /^.*?[^\\]\"/
-                 :    i === 2  ?  /^.*?\*\//
-                 :                /^.*?[\r\n]/
-                 , mo = rx.exec( rest )
+             , mo    = rx.exec( rest )
              , delta = mo  ?  mo.index + mo[ 0 ].length  :  rest.length
              , end   = begin + delta
              ;
              
              // Store
 
-             (i < 2  ?  sA  :  cA).push( [ begin, end ] );
+             (ind < 2  ?  sA  :  cA).push( { begin : begin,  value : code.substring( begin, end ) } );
 
              // Prepare for identifier search
 
@@ -95,7 +94,7 @@
 
              // Prepare for the next search
 
-             searchPosition = begin;
+             searchPosition = end;
 
          }
          
@@ -108,13 +107,13 @@
          var rA        = ret.reservedArr
          ,   iA        = ret.identifierArr
          ,   nakedCode = nakedCodeArr.join( '' )
-         ,   rx        = /\b[_a-zA-Z]\w*\b/
+         ,   rx        = /\b[_a-zA-Z]\w*\b/g
              , mo
          ;
          while ( mo = rx.exec( nakedCode ) )
          {
              var name = mo[ 0 ];
-             (name in reservedObj  ?  rA  :  iA).push( { name : name, begin : mo.index } );
+             (name in reservedObj  ?  rA  :  iA).push( { name : name,  begin : mo.index } );
          }
          
          // Identifiers: a few derived values, for convenience
@@ -124,7 +123,7 @@
          
          ,   iO  = ret.identifierObj = {}
          ;
-         for (var i = iA.length; i--;)
+         for (var n = iA.length, i = 0; i < n; i++)
          {
              var x = iA[ i ];
              (
