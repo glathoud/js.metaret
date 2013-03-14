@@ -16,13 +16,14 @@
 // }
 //
 // Quick experiment in Javascript: Unroll the code similarly to [tomrec].
-// -> Task: Detection of metaret + prevention of variable name collision.
+// -> Task: Detection of metaret + prevention of variable name collision
+// (hygienic renaming).
 //
-// (mutual recursion is also supported)
+// Mutual recursion is also supported, as shown in ./metaret_test.html
 //
 // To avoid having to parse the whole code, and traverse complex
-// syntax trees [tomrec], I decided to use simple "flat" regexps, hash
-// all variable names, and use double comma in metaret calls:
+// syntax trees [tomrec], I decided to use a simple "flat" parser
+// (./lightparse.js), and use "#" as separator in metaret calls:
 //
 //     metafun fact( self, k, acc )
 //     {
