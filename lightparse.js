@@ -12,13 +12,19 @@
      
      global.lightparse = lightparse;
      
+     lightparse.getDefaultReservedArr = getDefaultReservedArr; 
+
+     // --- Implementation
+     
+     function getDefaultReservedArr() { return [].concat( RESERVED_ARR ); }
+
      // In the implementation of `lightparse`, the small comments
      // /*sc*/, /**/ etc. delimitate beginnings and ends of strings,
      // comments and regexps, for unit testing: ./lightparse_test.js
 
      function lightparse( /*sc*//*string*//**/code, /*sc*//*?object?*//**/opt )
      {
-         var reservedArr = RESERVED_ARR.concat( (opt && opt.extraReservedArr)  ||  [] )
+         var reservedArr = ((opt  &&  opt.reservedArr)  ||  RESERVED_ARR).concat( (opt  &&  opt.extraReservedArr)  ||  [] )
          ,   ret = {
              strArr : []
              , commentArr  : []
