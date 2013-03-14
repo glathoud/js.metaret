@@ -24,13 +24,13 @@
 // syntax trees [tomrec], I decided to use simple "flat" regexps, hash
 // all variable names, and use double comma in metaret calls:
 //
-//     #metafun fact( #self, #k, #acc )
+//     metafun fact( self, k, acc )
 //     {
-//         #acc  ||  (#acc = 1);
-//         if (#k > 1)
-//             #metaret #self ,, #k - 1 ,, #acc * #k;
+//         acc  ||  (acc = 1);
+//         if (k > 1)
+//             metaret self # k - 1 # acc * k;
 //         else
-//             return #acc;
+//             return acc;
 //     }
 //
 // References
@@ -41,14 +41,19 @@
 //
 // [tomrec] http://glat.info/jscheck/tomrec_prod.html
 
+if ('function' === typeof load  &&  'undefined' === typeof lightparse)
+    load( 'lightparse.js' );  // V8, Rhino
 
-/*global console*/
 
 ;(function (global) {
 
-    // The place of `#self` in the parameters: 0:first place, 1:second
+    // The place of `self` in the parameters: 0:first place, 1:second
     // place, etc.
-    var ACTION_PARAM = 0;
+    var ACTION_PARAM = 0
+    , METAFUN        = 'metafun'
+    , METARET        = 'metaret'
+    , EXTRA_RESERVED_ARR = [ METAFUN, METARET ]
+    ;
 
     // ---------- Public API
 
@@ -58,8 +63,8 @@
 
     // ---------- Public API implementation
     
-    var _metaparse_rx     = /\s*#metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)((?!#metafun)[\s\S])*/g
-    ,   _metaparse_one_rx = /^\s*#metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)\s*\{\s*(((?!#metafun)[\s\S])*)\s*\}\s*$/
+    var _metaparse_rx     = /\s*metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)((?!metafun)[\s\S])*/g
+    ,   _metaparse_one_rx = /^\s*metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)\s*\{\s*(((?!metafun)[\s\S])*)\s*\}\s*$/
     ;
     function metaparse()
     {
@@ -85,8 +90,8 @@
         {
             // --- Single argument: code string
 
-            // For convenience, prepend #metafun automatically.
-            var code  = /^\s*#metafun\s/.test( code_or_name )  ?  code_or_name  :  '#metafun' + code_or_name
+            // For convenience, prepend metafun automatically.
+            var code  = /^\s*metafun\s/.test( code_or_name )  ?  code_or_name  :  'metafun' + code_or_name
             
             ,   mo    = _metaparse_one_rx.exec( code )
             ,   name  = mo[ 1 ]
@@ -121,8 +126,8 @@
 
     function MetaFunction(
         /*string*/name
-        , /* string like "#self,#a,#b,#c" */param
-        , /*string: code, where ALL variable identifiers have a hash: #myVarname*/body
+        , /* string like "self,a,b,c" */param
+        , /*string: code*/body
         , /*object*/name2info
     ) 
     // Returns a function `ret`. So it does not matter whether you
@@ -133,13 +138,13 @@
       var fact = MetaFunction
       ( 
       'fact'            // <- same name string as the variable name `fact`
-      , '#self,#k,#acc'     // hashes in all identifiers to make parsing easy without a full-fledged JS parser
+      , 'self,k,acc'     // hashes in all identifiers to make parsing easy without a full-fledged JS parser
       , [ 
-      '#acc  ||  (#acc = 1);'
-      , 'if (#k > 1)'
-      , '    #metaret #self ,, #k - 1 ,, #acc * #k;'       // double comma to make parsing easy without a full-fledged JS parser
+      'acc  ||  (acc = 1);'
+      , 'if (k > 1)'
+      , '    metaret self # k - 1 # acc * k;'       // double comma to make parsing easy without a full-fledged JS parser
       , 'else'
-      , '    return #acc;'
+      , '    return acc;'
       ].join( '\n' )
       );
     */
@@ -184,11 +189,9 @@
     // ---------- Private constant
     
     var _RX_NAME      = /^[a-zA-Z_][\w\.]*$/
-        , _RX_PARAM   = /^((?:^\s*|\s*,\s*)#[a-zA-Z_]\w*(?:\s*))+$/
+        , _RX_PARAM   = /^((?:^\s*|\s*,\s*)[a-zA-Z_]\w*(?:\s*))+$/
         , _RX_ACTION  = /^[a-zA-Z_]\w*?(\.[a-zA-Z_]\w*?)*$/
-        , _RE_VAR     = '(?:^|[^#])(#(?!metaret\\b)[a-zA-Z_]\\w*\\b)'
-    , _RX_VAR         = new RegExp( _RE_VAR )
-    , _RE_METARET     = '(?:^|[^#])#metaret\\s+((\\S[\\S\\s]*?\\s*)(,,\\s*\\S[\\S\\s]*?)*);'
+        , _RX_METARET_ARGS = '^\\s+((\\S[\\S\\s]*?\\s*)(#\\s*\\S[\\S\\s]*?)*);'
     , _Aps            = Array.prototype.slice
     ;
 
@@ -229,9 +232,8 @@
         {
             console.warn( 'MetaFunction : _createSolver:solveNoMetaret() no #metaret in body of metafunction "' + name + '".' );
             
-            var newParam = info.newParam = _checkRemoveHash( paramArr )
-            , newBody    = info.newBody  = _checkRemoveHash( paramArr.concat( varArr ).concat( [ '##' ] ) // We also simplify double ## into single #
-                                                             ,  origBody )
+            var newParam = info.newParam = paramArr
+            , newBody    = info.newBody  = origBody
             ;
             info.impl = new Function( newParam.join( ',' ), newBody );
         }
@@ -241,19 +243,16 @@
             var against = [ paramArr, origBody ]
             , label     = _generateAddName( 'L_' + name, against )  // Avoid collision
             , undefName = _generateAddName( 'undef', against )  // Avoid collision   
-            , newParam  = info.newParam = _checkRemoveHash( paramArr )
+            , newParam  = info.newParam = paramArr
             , i4        = _indentGen( 4 )
             , i8        = _indentGen( 8 )
             , newBody   = info.newBody  = i4( 
                 'var ' + undefName + ';\n' + 
                 label + ': while (true) {\n' + 
-                    i4( _checkRemoveHash( paramArr
-                                          .concat( varArr )
-                                          .concat( [ '##' ] )   // We also simplify a double hash "##" into a single hash "#"
-                                          , _reinitUndef( _replaceMetaretWithContinue( name2info, metaretArr, origBody, label, paramArr )
-                                                          , info.varArr
-                                                          , undefName )
-                                        ) + '\n'
+                    i4( _reinitUndef( _replaceMetaretWithContinue( name2info, metaretArr, origBody, label, paramArr )
+                                      , info.varArr
+                                      , undefName )
+                        + '\n'
                       ) +
                     '  return;\n' +
                     '}\n'
@@ -280,7 +279,7 @@
             var i4     = _indentGen( 4 )
             , i8       = _indentGen( 8 )
             , i12      = _indentGen( 12 )
-            , newParam = info.newParam = _checkRemoveHash( paramArr )
+            , newParam = info.newParam = paramArr
             , newBody    = info.newBody = i4( [
                 'var ' + undefName + ';'
                 , 'var ' + switch_ind_name  + ' = 0;'
@@ -306,13 +305,12 @@
                     , 'case ' + ind + ':' 
                 ]
                 
-                code.push( i4( _checkRemoveHash( info.paramArr.concat( info.varArr ).concat( [ '##' ] )
-                                                 , _reinitUndef( 
-                                                     _replaceMetaretWithContinue( name2info, info.metaretArr, info.origBody, nameArr, against )
-                                                     , info.varArr
-                                                     , undefName
-                                                 )
-                                               )
+                code.push( i4( _reinitUndef
+                               ( 
+                                   _replaceMetaretWithContinue( name2info, info.metaretArr, info.origBody, nameArr, against )
+                                   , info.varArr
+                                   , undefName
+                               )
                              ) 
                          );
                 
@@ -344,7 +342,7 @@
     function _checkExtractParam( /*string*/param )  
     {
         if (!_RX_PARAM.test( param ))
-            throw new Error('MetaFunction : _checkExtractParam : Invalid parameters string, the string must be like "#x,#self,#y,#z".')
+            throw new Error('MetaFunction : _checkExtractParam : Invalid parameters string, the string must be like "self,x,y,z".')
 
         var ret = param.replace(/\s+/g, '' ).split( ',' );
         ret.self = ret.splice( ACTION_PARAM, 1 )[ 0 ];
@@ -353,16 +351,16 @@
 
     function _extractVar( /*string*/body )
     {
-        var rx = new RegExp( _RE_VAR, 'g' )
-        , m_arr
+        var lp = lightparse( body, { extraReservedArr : EXTRA_RESERVED_ARR } )
+        ,   iA = lp.identifierArr
         , ret = []
         ;
-        while (m_arr = rx.exec( body ))
+        for (var n = iA.length, i = 0; i < n; i++)
         {
-            var text = m_arr[1];
-            ret.push( { text    : text
-                        , end   : rx.lastIndex + 1
-                        , start : rx.lastIndex + 1 - m_arr[ 0 ].length
+            var x = iA[ i ];
+            ret.push( { text    : x.str
+                        , end   : x.begin + x.str.length
+                        , start : x.begin
                       }
                     );
             
@@ -372,8 +370,8 @@
 
     function _checkExtractMetaret( /*string*/body, /*string*/self, /*string*/selfName )
     {
-        var rx = new RegExp( _RE_METARET, 'g' )
-        , m_arr
+        var lp = lightparse( body, { extraReservedArr : EXTRA_RESERVED_ARR } )
+        , resA = lp.reservedArr
         , ret  = []
         ;
 
@@ -385,9 +383,14 @@
 
         // Parse
 
-        while (m_arr = rx.exec( body ))
+        for (var resN = resA.length, resI = 0; resI < resN; resI++)
         {
-            var exprArr = m_arr[1].split( ',,' )
+            var x = resA[ resI ];
+            if (x.str !== METARET)
+                continue;
+
+            var exprStr = body.substring( x.begin + x.str.length ).match( _RX_METARET_ARGS )[ 0 ]
+            ,   exprArr = exprStr.split( '#' )
             , n         = exprArr.length
             ;
             for (var i = n ; i-- ; ) 
@@ -395,7 +398,7 @@
             
             var action = n > 1  &&  exprArr.splice( ACTION_PARAM, 1 )[ 0 ];
             if (!action)
-                throw new Error('MetaFunction : _checkExtractMetaret() : A `#metaret` needs at least an action.');
+                throw new Error('MetaFunction : _checkExtractMetaret() : A `metaret` needs at least an action.');
             
             if (action !== self  &&  !_RX_ACTION.test( action ))
             {
@@ -409,8 +412,8 @@
             ret.push( { exprArr  : exprArr  // array of string
                         , isSelf : isSelf
                         , action : isSelf ? selfName : action   // string
-                        , end    : rx.lastIndex
-                        , start  : rx.lastIndex - m_arr[ 0 ].length
+                        , end    : x.begin + x.str.length + exprStr.length
+                        , start  : x.begin
                       }
                     );
         }
@@ -486,37 +489,6 @@
             return visitedArr;   // Not finished yet
     }
     
-
-    function _checkRemoveHash( /*array of object or string, each starting with #*/hashArr, /*?string | array of string?*/body_or_arr ) 
-    {
-        // maps:  array -> array  or:   string -> string
-
-        if (body_or_arr == null)
-            body_or_arr = hashArr;
-
-        if (typeof body_or_arr !== 'string')
-            return body_or_arr.map( function (s) { return _checkRemoveHash( hashArr, s ); } );
-        
-        // string
-
-        var newBody = body_or_arr;
-
-        hashArr.forEach( update_newBody );
-
-        return newBody;
-
-        function update_newBody( /*object | string*/hash )
-        {
-            if (typeof hash === 'object')
-                hash = hash.text;
-
-            if (hash.charAt( 0 ) !== '#')
-                throw new Error( 'MetaFunction : _checkRemoveHash : Invalid hash string "' + hash + '". It must at least start with a hash.' );
-            
-            newBody = newBody.replace( new RegExp( hash, 'g' ), hash.slice( 1 ) );  // Drop the hash at the beginning
-        }
-    }
-
     function _dropAction( /*array of string*/paramArr )
     {
         return paramArr.slice( 0, ACTION_PARAM ).concat( paramArr.slice( ACTION_PARAM + 1 ) );
@@ -549,7 +521,7 @@
         function match( /*array | string*/against )
         {
             if (typeof against === 'string')
-                return -1 < against.indexOf( label )  ||  -1 < against.indexOf( '#' + label );
+                return -1 < against.indexOf( label );
 
             // array -> recurse (OR logic)
 
@@ -609,7 +581,7 @@
                 for (var i = 0, end = paramArr.length; i < end; i++)
                 {
                     var varname  = paramArr[ i ]
-                    , newVarname = _generateName( varname.slice( 1 ), against )   // slice( 1 ): remove '#' right away
+                    , newVarname = _generateName( varname, against )
                     ;
                     against.push( newVarname );  // Prevent future collisions on this new name
                     

@@ -2,51 +2,46 @@
 <html>
 <head>
 <title>metaret.js</title>
+<script type="text/javascript" src="lightparse.js"></script>
 <script type="text/javascript" src="metaret.js"></script>
 <script type="text/js-metaret-decl" id="metaret-decls">
 /* 
 
 type="js-metaret-decl": JavaScript augmented with two extra keywords
-"metaret" and "metafun". Only function declarations at this point.
+`metaret` and `metafun`. Only function declarations at this point.
 
-I used "#" and double comma ",," because I did not want to write an
-augmented parser to just test an idea. Hence, all variable names
-inside a function must be preceded by "#" to guarantee hygienic
-renaming when generating JavaScript code where the tail calls have
-been unrolled.
-
-In the future, using an augmented parser, "#" can be dropped, and ",,"
-turned into a single comma ","
+I used the hash symbol "#" because I did not need a full parser to
+just test an idea ; ./lightparse.js permits enough hygienic renaming.
 
 */
 
-#metafun fact( #self, #k, #acc )
+metafun fact( self, k, acc )
 {
-    #acc  ||  (#acc = 1);
-    if (#k > 1)
-        #metaret #self ,, #k - 1 ,, #acc * #k;
+    acc  ||  (acc = 1);
+    if (k > 1)
+        metaret self # k - 1 # acc * k;
     else
-        return #acc;
+        return acc;
 }
 
-#metafun isEven( #self, #n )
+metafun isEven( self, n )
 {
-    if (#n > 0)
-        #metaret isOdd ,, #n - 1;
+    if (n > 0)
+        metaret isOdd # n - 1;
 
-    if (#n < 0)
-        #metaret #self ,, -#n;
+    if (n < 0)
+        metaret self # -n;
 
     return true;
 }
 
-#metafun isOdd( #self, #n )
+metafun isOdd( self, n )
 {
-    if (#n > 0)
-        #metaret isEven ,, #n - 1;
+    if (n > 0)
+        metaret isEven # n - 1;
 
-    if (#n < 0)
-        #metaret #self ,, -#n;
+    if (n < 0)
+        metaret self # -n;
 
     return false; 
 }           
@@ -113,11 +108,11 @@ var local_name2info = {}
 ,   local_fun = MetaFunction(
         'fact2' 
 
-        , '#self,#k,#acc'
+        , 'self,k,acc'
 
-        , '#acc ||  (#acc = 0);  '
-          + 'if (#k > 0)  #metaret  #self ,, #k-1 ,, #acc + #k;'  // sum
-          + 'else         return #acc;'
+        , 'acc ||  (acc = 0);  '
+          + 'if (k > 0)  metaret  self # k-1 # acc + k;'  // sum
+          + 'else         return acc;'
 
         , local_name2info
       )
@@ -140,10 +135,10 @@ assert( '10000*10001/2 === local_fun( 10000 )' );  // No stack issue because the
 // named global declarations below.
 
 MetaDecl( 'some.name.space.fact2'
-          , '#self, #k, #acc'
-          , '#acc  ||  (#acc = 0);'
-          + 'if (#k > 0)  #metaret  #self ,, #k-1 ,, #acc + #k * #k;'  // sum of squares
-          + 'else         return #acc;'
+          , 'self, k, acc'
+          , 'acc  ||  (acc = 0);'
+          + 'if (k > 0)  metaret  self # k-1 # acc + k * k;'  // sum of squares
+          + 'else         return acc;'
         );
 
 assert( '0 === some.name.space.fact2( 0 )' );
@@ -160,13 +155,13 @@ assert( '10000 * 10001 * 20001 / 6 === some.name.space.fact2( 10000 )' ) // No s
 MetaDecl
 ( 
     'fact2'   
-    , '#self,#k,#acc'
+    , 'self,k,acc'
     , [ 
-        '#acc  ||  (#acc = 1);'
-        , 'if (#k > 1)'
-        , '    #metaret #self ,, #k - 1 ,, #acc * #k;'  // factorial
+        'acc  ||  (acc = 1);'
+        , 'if (k > 1)'
+        , '    metaret self # k - 1 # acc * k;'  // factorial
         , 'else'
-        , '    return #acc;'
+        , '    return acc;'
     ].join( '\n' )
 );
 
@@ -178,22 +173,22 @@ assert( '24 == fact2(4)' );
 
 MetaDecl  // Let us try the "one string" variant
 (
-      '#metafun isEven2 ( #self, #n ) {'
-      + ' if (#n > 0)'
-      + '    #metaret isOdd2 ,, #n - 1;'
-      + 'if (#n < 0)'
-      + '    #metaret #self ,, -#n;'
+      'metafun isEven2 ( self, n ) {'
+      + ' if (n > 0)'
+      + '    metaret isOdd2 # n - 1;'
+      + 'if (n < 0)'
+      + '    metaret self # -n;'
       + 'return true;'
       + '}'
 );
 
-MetaDecl  // Let us try the "one string" variant with "#metafun" omitted
+MetaDecl  // Let us try the "one string" variant with "metafun" omitted
 (
-      'isOdd2(#self,#n) {'
-      + 'if (#n > 0)'
-      + '    #metaret isEven2 ,, #n - 1;'
-      + 'if (#n < 0)'
-      + '    #metaret #self ,, -#n;'
+      'isOdd2(self,n) {'
+      + 'if (n > 0)'
+      + '    metaret isEven2 # n - 1;'
+      + 'if (n < 0)'
+      + '    metaret self # -n;'
       + 'return false;'
       + '}'
 );
