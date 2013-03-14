@@ -50,6 +50,8 @@ metafun isOdd( self, n )
 }           
 </script>
 <script type="text/javascript" id="metaret-tests">
+var _all_tests_passed = false;
+
 // --- Tests with functions declared in script tag(s) with type="text/js-metaret-decl"
 
 metaparse();
@@ -250,6 +252,8 @@ assert( '10000 * 10001 * 20001 / 6 === some.name.space.fact2( 10000 )' ) // No s
 
 console.log('All tests passed.');
 
+_all_tests_passed = true;
+
 // ---
 
 function assert(codestring) { if (!eval( codestring )) throw new Error( 'Failed test: ' + codestring ); }
@@ -267,6 +271,12 @@ function assert(codestring) { if (!eval( codestring )) throw new Error( 'Failed 
       })();
 </script></code></pre>
 
+<h3>Generated code</h3>
+<pre class="prettyprint lang-js"><code><script type="text/javascript">
+      document.write( '// fact\n\n' + fact + '\n\n\n//isOdd\n\n' + isOdd + '\n' );
+</script></code></pre>
+
+
 <h3>Tests</h3>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
       (function () {
@@ -281,6 +291,7 @@ function assert(codestring) { if (!eval( codestring )) throw new Error( 'Failed 
 <link href="prettify/prettify.css" type="text/css" rel="stylesheet"/>
 <script type="text/javascript" src="prettify/prettify.js"></script>
 <script type="text/javascript">setTimeout( prettyPrint );</script>
+<script type="text/javascript">if (!_all_tests_passed) alert("Some tests failed! Please check the console.");</script>
 
 </body>
 </html>
