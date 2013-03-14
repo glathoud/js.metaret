@@ -112,7 +112,7 @@ var local_name2info = {}
 
         , 'acc ||  (acc = 0);  '
           + 'if (k > 0)  metaret  self # k-1 # acc + k;'  // sum
-          + 'else         return acc;'
+          + 'else        return acc;'
 
         , local_name2info
       )
@@ -138,7 +138,7 @@ MetaDecl( 'some.name.space.fact2'
           , 'self, k, acc'
           , 'acc  ||  (acc = 0);'
           + 'if (k > 0)  metaret  self # k-1 # acc + k * k;'  // sum of squares
-          + 'else         return acc;'
+          + 'else        return acc;'
         );
 
 assert( '0 === some.name.space.fact2( 0 )' );
