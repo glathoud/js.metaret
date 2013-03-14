@@ -38,7 +38,7 @@
 
          var sA = ret.strArr
          ,   cA = ret.commentArr
-         ,   rA = ret.regexpArr
+         ,  rxA = ret.regexpArr
          , nakedCodeArr   = []
          , searchPosition = 0
          ;
@@ -91,7 +91,7 @@
              
              /*dc*/// Store
 
-             (ind < 2  ?  sA  :  ind < 4  ?  cA  :  rA).push( { begin : begin,  str : code.substring( begin, end ) } );
+             (ind < 2  ?  sA  :  ind < 4  ?  cA  :  rxA).push( { begin : begin,  str : code.substring( begin, end ) } );
 
              /*dc*/// Prepare for identifier search
 
@@ -112,7 +112,7 @@
          for (var i = reservedArr.length; i--;)  
              reservedObj[ reservedArr[ i ] ] = 1;
          
-         var rA        = ret.reservedArr
+         var resA      = ret.reservedArr
          ,   iA        = ret.identifierArr
          ,   nakedCode = nakedCodeArr.join( '' )
          ,   rx        = /*rr*//\b[_a-zA-Z]\w*\b/g/**/
@@ -121,7 +121,7 @@
          while ( mo = rx.exec( nakedCode ) )
          {
              var str = mo[ 0 ];
-             (str in reservedObj  ?  rA  :  iA).push( { str : str,  begin : mo.index } );
+             (str in reservedObj  ?  resA  :  iA).push( { str : str,  begin : mo.index } );
          }
          
          /*dc*/// Identifiers: a few derived values, for convenience
