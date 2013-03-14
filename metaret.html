@@ -7,11 +7,14 @@
 <script type="text/js-metaret-decl" id="metaret-decls">
 /* 
 
-type="js-metaret-decl": JavaScript augmented with two extra keywords
-`metaret` and `metafun`. Only function declarations at this point.
+type="js-metaret-decl": meta-function declarations, using JavaScript
+augmented with two extra keywords `metaret` and `metafun`.
 
-I used the hash symbol "#" because I did not need a full parser to
-just test an idea ; ./lightparse.js permits enough hygienic renaming.
+`metaret` uses the hash symbol "#" as separator instead of comma ","
+so that a full parser is not needed (./lightparse.js suffices).
+
+`metaret` is not a function call, but rather metacomposition,
+implemented here through hygienic inlining. Details: ./metaret.js
 
 */
 
@@ -250,30 +253,30 @@ console.log('All tests passed.');
 // ---
 
 function assert(codestring) { if (!eval( codestring )) throw new Error( 'Failed test: ' + codestring ); }
-
 </script>
 </head>
 <body>
 
-<p>Metafunction declarations:</p>
+<h3>Metafunction declarations</h3>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
       (function () {
         var s = document.getElementById('metaret-decls');
         document.write('&lt;script type="' + s.getAttribute('type') + '" id="' + s.getAttribute('id') + '"&gt;\n');
         document.write('\x3Cspan class="prettyprint lang-js"\x3E' + s.textContent + '\x3C/span\x3E');
-        document.write('\n&lt;script&gt;');
+        document.write('\n&lt;/script&gt;');
       })();
 </script></code></pre>
 
-<p>Tests:</p>
+<h3>Tests</h3>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
       (function () {
         var s = document.getElementById('metaret-tests');
         document.write('&lt;script type="' + s.getAttribute('type') + '" id="' + s.getAttribute('id') + '"&gt;\n');
         document.write(s.textContent);
-        document.write('\n&lt;script&gt;');
+        document.write('\n&lt;/script&gt;');
       })();
 </script></code></pre>
+
 
 <link href="prettify/prettify.css" type="text/css" rel="stylesheet"/>
 <script type="text/javascript" src="prettify/prettify.js"></script>
