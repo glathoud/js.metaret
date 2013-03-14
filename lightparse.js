@@ -1,6 +1,6 @@
 (function (global)
  {
-     var RESERVED_ARR = [     // ECMAScript 5, Section 7.6       
+     var RESERVED_ARR = [     // ECMAScript 5, Section 7.6
          
          "break", "case", "catch", "continue", "debugger", "default", "delete", "do", "else", "finally", "for", "function", "if", "in", "instanceof"
          , "new", "return", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with"
@@ -12,7 +12,11 @@
      
      global.lightparse = lightparse;
      
-     function lightparse( /*string*/code, /*?object?*/opt )
+     // In the implementation of `lightparse`, the small comments
+     // /*sc*/, /**/ etc. delimitate beginnings and ends of strings,
+     // comments and regexps, for unit testing: ./lightparse_test.js
+
+     function lightparse( /*sc*//*string*//**/code, /*sc*//*?object?*//**/opt )
      {
          var reservedArr = RESERVED_ARR.concat( (opt && opt.extraReservedArr)  ||  [] )
          ,   ret = {
@@ -22,15 +26,15 @@
              , reservedArr       : []
              , identifierArr     : []
 
-             // The last three are derived from `identifierArr`, for convenience.
+             /*dc*/// The last three are derived from `identifierArr`, for convenience.
              , identifierReverse : []
              , identifierObj        : {}
              , identifierObjReverse : {}
          }
          ;
 
-         // Detect comments and strings, and produce a "nakedCode"
-         // string where they've all been replaced with spaces.
+         /*dc*/// Detect comments and strings, and produce a "nakedCode"
+         /*dc*/// string where they've all been replaced with spaces.
 
          var sA = ret.strArr
          ,   cA = ret.commentArr
@@ -40,7 +44,7 @@
          ;
          while (true)
          {
-             // Search for a string or comment, whichever comes first
+             /*dc*/// Search for a string or comment, whichever comes first
 
              var sq = code.indexOf( "'" , searchPosition )
              ,   dq = code.indexOf( '"' , searchPosition )
@@ -64,45 +68,45 @@
 
              if (ind < 0)
              {
-                 // Not found
+                 /*dc*/// Not found
 
                  nakedCodeArr.push( code.substring( searchPosition ) );
                  break;
              }
 
-             // Found: find its end
+             /*dc*/// Found: find its end
 
              var rest  = code.substring( begin )
 
-             , rx =   ind === 0  ?  /^[\s\S]+?[^\\]\'/
-                 :    ind === 1  ?  /^[\s\S]+?[^\\]\"/
-                 :    ind === 2  ?  /^[\s\S]+?\*\//
-                 :    ind === 3  ?  /^\/\/([^\r\n])*/
-                 :                  /^\/.*?[^\\]\//
+             , rx =   ind === 0  ?  /*rr*//^[\s\S]*?[^\\]\'//**/
+                 :    ind === 1  ?  /*rr*//^[\s\S]*?[^\\]\"//**/
+                 :    ind === 2  ?  /*rr*//^\/\*[\s\S]*?\*\///**/
+                 :    ind === 3  ?  /*rr*//^\/\/([^\r\n])*//**/
+                 :                  /*rr*//^\/.*?[^\\]\/[gmi]?//**/
 
              , mo    = rx.exec( rest )
              , delta = mo  ?  mo.index + mo[ 0 ].length  :  rest.length
              , end   = begin + delta
              ;
              
-             // Store
+             /*dc*/// Store
 
-             (ind < 2  ?  sA  :  ind < 4  ?  cA  :  rA).push( { begin : begin,  value : code.substring( begin, end ) } );
+             (ind < 2  ?  sA  :  ind < 4  ?  cA  :  rA).push( { begin : begin,  str : code.substring( begin, end ) } );
 
-             // Prepare for identifier search
+             /*dc*/// Prepare for identifier search
 
              nakedCodeArr.push(
                  code.substring( searchPosition, begin )
                  , str_repli( ' ', delta )
              );
 
-             // Prepare for the next search
+             /*dc*/// Prepare for the next search
 
              searchPosition = end;
 
          }
          
-         // Detect identifiers and reserved words
+         /*dc*/// Detect identifiers and reserved words
          
          var reservedObj = {};
          for (var i = reservedArr.length; i--;)  
@@ -111,16 +115,16 @@
          var rA        = ret.reservedArr
          ,   iA        = ret.identifierArr
          ,   nakedCode = nakedCodeArr.join( '' )
-         ,   rx        = /\b[_a-zA-Z]\w*\b/g
+         ,   rx        = /*rr*//\b[_a-zA-Z]\w*\b/g/**/
              , mo
          ;
          while ( mo = rx.exec( nakedCode ) )
          {
-             var name = mo[ 0 ];
-             (name in reservedObj  ?  rA  :  iA).push( { name : name,  begin : mo.index } );
+             var str = mo[ 0 ];
+             (str in reservedObj  ?  rA  :  iA).push( { str : str,  begin : mo.index } );
          }
          
-         // Identifiers: a few derived values, for convenience
+         /*dc*/// Identifiers: a few derived values, for convenience
 
          var iA = ret.identifierArr
          ,   iR = ret.identifierReverse = reversed( iA )
@@ -131,16 +135,16 @@
          {
              var x = iA[ i ];
              (
-                 iO[ x.name ]  ||  (iO[ x.name ] = [])
+                 iO[ x.str ]  ||  (iO[ x.str ] = [])
              )
                  .push( x.begin )
              ;
          }
          
          var iOR = ret.identifierObjReverse = {};
-         for (var name in iO) { if (!(name in iOR)) {
+         for (var str in iO) { if (!(str in iOR)) {
 
-             iOR[ name ] = reversed( iO[ name ] );
+             iOR[ str ] = reversed( iO[ str ] );
              
          }}
          
