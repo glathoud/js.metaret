@@ -18,7 +18,8 @@
          ,   ret = {
              strArr : []
              , commentArr  : []
-             , reservedArr : []
+             , regexpArr   : []
+             , reservedArr       : []
              , identifierArr     : []
 
              // The last three are derived from `identifierArr`, for convenience.
@@ -33,6 +34,7 @@
 
          var sA = ret.strArr
          ,   cA = ret.commentArr
+         ,   rA = ret.regexpArr
          , nakedCodeArr   = []
          , searchPosition = 0
          ;
@@ -44,18 +46,19 @@
              ,   dq = code.indexOf( '"' , searchPosition )
              ,   sc = code.indexOf( '/*', searchPosition )
              ,   dc = code.indexOf( '//', searchPosition )
+             ,   rr = code.indexOf( '/',  searchPosition )
 
-             ,   four = [ sq, dq, sc, dc ]
+             ,   four = [ sq, dq, sc, dc, rr ]
              ,   begin = +Infinity
              ,   ind  = -1
              ;
-             for (var i = four.length; i--;)
+             for (var n = four.length, i = 0; i < n; i++)
              {
                  var v = four[ i ];
                  if (-1 < v  &&  v < begin)
                  {
                      begin = v;
-                     ind  = i;
+                     ind   = i;
                  }
              }
 
@@ -74,7 +77,8 @@
              , rx =   ind === 0  ?  /^[\s\S]+?[^\\]\'/
                  :    ind === 1  ?  /^[\s\S]+?[^\\]\"/
                  :    ind === 2  ?  /^[\s\S]+?\*\//
-                 :                  /^[\s\S]+?[\r\n]/
+                 :    ind === 3  ?  /^\/\/([^\r\n])*/
+                 :                  /^\/.*?[^\\]\//
 
              , mo    = rx.exec( rest )
              , delta = mo  ?  mo.index + mo[ 0 ].length  :  rest.length
@@ -83,7 +87,7 @@
              
              // Store
 
-             (ind < 2  ?  sA  :  cA).push( { begin : begin,  value : code.substring( begin, end ) } );
+             (ind < 2  ?  sA  :  ind < 4  ?  cA  :  rA).push( { begin : begin,  value : code.substring( begin, end ) } );
 
              // Prepare for identifier search
 
