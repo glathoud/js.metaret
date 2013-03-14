@@ -46,11 +46,11 @@
          {
              /*dc*/// Search for a string or comment, whichever comes first
 
-             var sq = code.indexOf( "'" , searchPosition )
-             ,   dq = code.indexOf( '"' , searchPosition )
-             ,   sc = code.indexOf( '/*', searchPosition )
-             ,   dc = code.indexOf( '//', searchPosition )
-             ,   rr = code.indexOf( '/',  searchPosition )
+             var sq = code.indexOf( /*dq*/"'"/**/ , searchPosition )
+             ,   dq = code.indexOf( /*sq*/'"'/**/ , searchPosition )
+             ,   sc = code.indexOf( /*sq*/'/*'/**/, searchPosition )
+             ,   dc = code.indexOf( /*sq*/'//'/**/, searchPosition )
+             ,   rr = code.indexOf( /*sq*/'/'/**/,  searchPosition )
 
              ,   four = [ sq, dq, sc, dc, rr ]
              ,   begin = +Infinity
@@ -97,7 +97,7 @@
 
              nakedCodeArr.push(
                  code.substring( searchPosition, begin )
-                 , str_repli( ' ', delta )
+                 , str_repli( /*sq*/' '/**/, delta )
              );
 
              /*dc*/// Prepare for the next search
@@ -114,7 +114,7 @@
          
          var resA      = ret.reservedArr
          ,   iA        = ret.identifierArr
-         ,   nakedCode = nakedCodeArr.join( '' )
+         ,   nakedCode = nakedCodeArr.join( /*sq*/''/**/ )
          ,   rx        = /*rr*//\b[_a-zA-Z]\w*\b/g/**/
              , mo
          ;
