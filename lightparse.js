@@ -30,6 +30,9 @@
              , commentArr  : []
              , regexpArr   : []
              , reservedArr       : []
+             , callArr           : []
+             , dotArr            : []
+             , dotcallArr        : []
              , identifierArr     : []
 
              /*dc*/// The last three are derived from `identifierArr`, for convenience.
@@ -119,15 +122,30 @@
              reservedObj[ reservedArr[ i ] ] = 1;
          
          var resA      = ret.reservedArr
+         ,   cA        = ret.callArr
+         ,   dA        = ret.dotArr
+         ,   dcA       = ret.dotcallArr
          ,   iA        = ret.identifierArr
          ,   nakedCode = nakedCodeArr.join( /*sq*/''/**/ )
-         ,   rx        = /*rr*//\b[_a-zA-Z]\w*\b/g/**/
-             , mo
+         ,   rx        = /*rr*//(\.\s*)?(\b[_a-zA-Z]\w*\b)(\s*\()?/g/**/
+         ,   mo
          ;
          while ( mo = rx.exec( nakedCode ) )
          {
-             var str = mo[ 0 ];
-             (str in reservedObj  ?  resA  :  iA).push( { str : str,  begin : mo.index } );
+             var  str = mo[ 0 ]
+             ,    dot = mo[ 1 ]
+             ,   name = mo[ 2 ]
+             ,   call = mo[ 3 ]
+             ;
+             (
+                 name in reservedObj  ?  resA  
+                     : dot && call    ?   dcA
+                     : dot            ?    dA
+                     : call           ?    cA
+                     :                    iA
+             )
+                 .push( { str : str,  begin : mo.index , name : name } )
+             ;
          }
          
          /*dc*/// Identifiers: a few derived values, for convenience
