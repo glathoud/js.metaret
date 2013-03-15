@@ -122,9 +122,9 @@
              reservedObj[ reservedArr[ i ] ] = 1;
          
          var resA      = ret.reservedArr
-         ,   cA        = ret.callArr
+         ,   caA       = ret.callArr
          ,   dA        = ret.dotArr
-         ,   dcA       = ret.dotcallArr
+         ,   dcaA      = ret.dotcallArr
          ,   iA        = ret.identifierArr
          ,   nakedCode = nakedCodeArr.join( /*sq*/''/**/ )
          ,   rx        = /*rr*//(\.\s*)?(\b[_a-zA-Z]\w*\b)(\s*\()?/g/**/
@@ -139,10 +139,10 @@
              ;
              (
                  name in reservedObj  ?  resA  
-                     : dot && call    ?   dcA
+                     : dot && call    ?  dcaA
                      : dot            ?    dA
-                     : call           ?    cA
-                     :                    iA
+                     : call           ?   caA
+                     :                     iA
              )
                  .push( { str : str,  begin : mo.index , name : name } )
              ;
