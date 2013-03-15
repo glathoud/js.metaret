@@ -52,7 +52,8 @@ metafun isOdd( self, n )
 <script type="text/javascript" id="metaret-tests">
 var all_tests_passed = false;
 
-// --- Tests with functions declared in script tag(s) with type="text/js-metaret-decl"
+// --- Tests with functions declared in script tag(s) with
+// --- type="text/js-metaret-decl"
 
 metaparse();
 
@@ -79,7 +80,9 @@ assert( 'true  === isOdd( 1001 )' );
 assert( 'false === isOdd( 1002 )' );
 assert( 'true  === isOdd( 1000001 )' );
 assert( 'false === isOdd( 1000002 )' );
-assert( 'true  === isOdd( 10000001 )' );   // No stack issue because the code has been unrolled
+
+// No stack issue because the code has been unrolled
+assert( 'true  === isOdd( 10000001 )' );   
 assert( 'false === isOdd( 10000002 )' );
 
 assert( 'true  === isEven( -4 )' );
@@ -95,7 +98,9 @@ assert( 'false === isEven( 1001 )' );
 assert( 'true  === isEven( 1002 )' );
 assert( 'false === isEven( 1000001 )' );
 assert( 'true  === isEven( 1000002 )' );
-assert( 'false === isEven( 10000001 )' );   // No stack issue because the code has been unrolled
+
+// No stack issue because the code has been unrolled
+assert( 'false === isEven( 10000001 )' );   
 assert( 'true  === isEven( 10000002 )' );
 
 // --- Tests with functions declared programmatically
@@ -128,7 +133,9 @@ assert( '1 === local_fun( 1 )' );
 assert( '3 === local_fun( 2 )' );
 assert( '6 === local_fun( 3 )' );
 assert( '10 === local_fun( 4 )' );
-assert( '10000*10001/2 === local_fun( 10000 )' );  // No stack issue because the code has been unrolled
+
+// No stack issue because the code has been unrolled
+assert( '10000*10001/2 === local_fun( 10000 )' );  
 
 // - Test global declarations with dotted names. 
 
@@ -142,7 +149,10 @@ assert( '10000*10001/2 === local_fun( 10000 )' );  // No stack issue because the
 MetaDecl( 'some.name.space.fact2'
           , 'self, k, acc'
           , 'acc  ||  (acc = 0);'
-          + 'if (k > 0)  metaret  self # k-1 # acc + k * k;'  // sum of squares
+
+          // sum of squares
+          + 'if (k > 0)  metaret  self # k-1 # acc + k * k;' 
+          
           + 'else        return acc;'
         );
 
@@ -151,11 +161,13 @@ assert( '1 === some.name.space.fact2( 1 )' );
 assert( '5 === some.name.space.fact2( 2 )' );
 assert( '14 === some.name.space.fact2( 3 )' );
 assert( '30 === some.name.space.fact2( 4 )' );
-assert( '10000 * 10001 * 20001 / 6 === some.name.space.fact2( 10000 )' ) // No stack issue because the code has been unrolled
 
-// - Test global declarations 'fact2', 'isEven2' and 'isOdd2'
-//   These implementations are similar as those in the script tag
-//   (see above, at the beginning).
+ // No stack issue because the code has been unrolled
+assert( '10000 * 10001 * 20001 / 6 === some.name.space.fact2( 10000 )' )
+
+// - Test global declarations 'fact2', 'isEven2' and 'isOdd2' These
+//   implementations are similar as those in the script tag (see
+//   above, at the beginning).
 
 MetaDecl
 ( 
@@ -164,7 +176,10 @@ MetaDecl
     , [ 
         'acc  ||  (acc = 1);'
         , 'if (k > 1)'
-        , '    metaret self # k - 1 # acc * k;'  // factorial
+
+        // factorial
+        , '    metaret self # k - 1 # acc * k;'  
+        
         , 'else'
         , '    return acc;'
     ].join( '\n' )
@@ -176,7 +191,8 @@ assert( '2 == fact2(2)' );
 assert( '6 == fact2(3)' );
 assert( '24 == fact2(4)' );
 
-MetaDecl  // Let us try the "one string" variant
+// Let us try the "one string" variant
+MetaDecl
 (
       'metafun isEven2 ( self, n ) {'
       + ' if (n > 0)'
@@ -187,7 +203,8 @@ MetaDecl  // Let us try the "one string" variant
       + '}'
 );
 
-MetaDecl  // Let us try the "one string" variant with "metafun" omitted
+// Let us try the "one string" variant with "metafun" omitted
+MetaDecl  
 (
       'isOdd2(self,n) {'
       + 'if (n > 0)'
@@ -211,7 +228,9 @@ assert( 'true  === isOdd2( 1001 )' );
 assert( 'false === isOdd2( 1002 )' );
 assert( 'true  === isOdd2( 1000001 )' );
 assert( 'false === isOdd2( 1000002 )' );
-assert( 'true  === isOdd2( 10000001 )' );   // No stack issue because the code has been unrolled
+
+// No stack issue because the code has been unrolled
+assert( 'true  === isOdd2( 10000001 )' );  
 assert( 'false === isOdd2( 10000002 )' );
 
 assert( 'true  === isEven2( -4 )' );
@@ -227,26 +246,34 @@ assert( 'false === isEven2( 1001 )' );
 assert( 'true  === isEven2( 1002 )' );
 assert( 'false === isEven2( 1000001 )' );
 assert( 'true  === isEven2( 1000002 )' );
-assert( 'false === isEven2( 10000001 )' );   // No stack issue because the code has been unrolled
+
+// No stack issue because the code has been unrolled
+assert( 'false === isEven2( 10000001 )' );
 assert( 'true  === isEven2( 10000002 )' );
 
-// --- Test again `local_fun` to make sure it as not been affected by the global declaration `fact2`
+// --- Test again `local_fun` to make sure it as not been affected by
+// --- the global declaration `fact2`
 
 assert( '0 === local_fun( 0 )' );
 assert( '1 === local_fun( 1 )' );
 assert( '3 === local_fun( 2 )' );
 assert( '6 === local_fun( 3 )' );
 assert( '10 === local_fun( 4 )' );
-assert( '10000*10001/2 === local_fun( 10000 )' );  // No stack issue because the code has been unrolled
 
-// --- Test again `some.name.space.fact2` to make sure it as not been affected by the global declaration `fact2`
+// No stack issue because the code has been unrolled
+assert( '10000*10001/2 === local_fun( 10000 )' );
+
+// --- Test again `some.name.space.fact2` to make sure it as not been
+// --- affected by the global declaration `fact2`
 
 assert( '0 === some.name.space.fact2( 0 )' );
 assert( '1 === some.name.space.fact2( 1 )' );
 assert( '5 === some.name.space.fact2( 2 )' );
 assert( '14 === some.name.space.fact2( 3 )' );
 assert( '30 === some.name.space.fact2( 4 )' );
-assert( '10000 * 10001 * 20001 / 6 === some.name.space.fact2( 10000 )' ) // No stack issue because the code has been unrolled
+
+// No stack issue because the code has been unrolled
+assert( '10000 * 10001 * 20001 / 6 === some.name.space.fact2( 10000 )' );
 
 // ---
 
@@ -256,7 +283,11 @@ all_tests_passed = true;
 
 // ---
 
-function assert(codestring) { if (!eval( codestring )) throw new Error( 'Failed test: ' + codestring ); }
+function assert(codestring) 
+{
+    if (!eval( codestring )) 
+        throw new Error( 'Failed test: ' + codestring ); 
+}
 </script>
 </head>
 <body>
