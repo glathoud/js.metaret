@@ -36,7 +36,7 @@
              , identifierArr     : []
 
              /*dc*/// The last three are derived from `identifierArr`, for convenience.
-             , identifierReverse : []
+             , identifierArrReverse : []
              , identifierObj        : {}
              , identifierObjReverse : {}
          }
@@ -151,7 +151,7 @@
          /*dc*/// Identifiers: a few derived values, for convenience
 
          var iA = ret.identifierArr
-         ,   iR = ret.identifierReverse = reversed( iA )
+         ,   iR = ret.identifierArrReverse = reversed( iA )
          
          ,   iO  = ret.identifierObj = {}
          ;
@@ -171,6 +171,30 @@
              iOR[ str ] = reversed( iO[ str ] );
              
          }}
+         
+         /*dc*/// All elements, in both first-to-last and reverse orders.
+         /*dc*/// Also add a `type` field to each element.
+
+         var all = ret.all = [];
+         
+         for (var k in ret) {
+             
+             var mo = k.match( /*rr*//^(.+)Arr$//**/ );
+             if (mo)
+             {
+                 var arr = ret[ k ]
+                 ,  type = mo[ 1 ]
+                 ;
+                 for (var i = arr.length; i--;)
+                     arr[ i ].type = type;
+
+                 all.push.apply( all, arr );                 
+             }
+         }
+       
+         all.sort( function (a,b) { return a.begin < b.begin  ?  -1  :  +1; } )
+         
+         ret.allReverse = reversed( all );
          
          return ret;
      }
