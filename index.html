@@ -1,7 +1,11 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<title>metaret.js</title>
+<title>metaret.js: lightweight mutual tail recursion optimization without trampoline</title>
+<style type="text/css">
+body { max-width: 600px; margin: auto; }
+@media only screen { .screen-hidden, .print { display: none; } }
+</style>
 <script type="text/javascript" src="lightparse.js"></script>
 <script type="text/javascript" src="metaret.js"></script>
 <script type="text/js-metaret-decl" id="metaret-decls">
@@ -14,7 +18,12 @@ augmented with two extra keywords `metafun` and `metaret`.
 so that a full parser is not needed (./lightparse.js suffices).
 
 `metaret` is not a function call, but rather metacomposition,
-implemented here through hygienic inlining. Details: ./metaret.js
+implemented here through by inlining code in an hygienic manner:
+renaming variables to prevent collisions.
+
+This way, the number of function calls is reduced to a bare minimum.
+
+Sources: <a href="metaret.js">metaret.js</a>  and  <a href="lightparse.js">lightparse.js</a> - MIT <a href="LICENSE.TXT">license</a>
 
 */
 
@@ -22,7 +31,7 @@ metafun fact( self, k, acc )
 {
     acc  ||  (acc = 1);
     if (k > 1)
-        metaret self # k - 1 # acc * k;
+        metaret self # k - 1 # acc * k; // anonymous self-recursion
     else
         return acc;
 }
@@ -30,7 +39,7 @@ metafun fact( self, k, acc )
 metafun isEven( self, n )
 {
     if (n > 0)
-        metaret isOdd # n - 1;
+        metaret isOdd # n - 1; // mutual recursion
 
     if (n < 0)
         metaret self # -n;
@@ -292,6 +301,29 @@ function assert(codestring)
 </head>
 <body>
 
+<h2>metaret.js: lightweight mutual tail recursion optimization without trampoline</h2>
+
+<p style="text-align:right">by <a href="http://glat.info">Guillaume Lathoud</a><span class="print">&nbsp;[0]</span>, March 2013</p>
+
+
+<p>Implementing mutual tail recursion optimization <a href="http://glat.info/jscheck/tomrec.xhtml">without trampoline</a><span class="print">&nbsp;[1]</span>
+- for good performance - led me to write
+quite <a href="http://glat.info/jscheck/tool.tailopt.js">insane
+code</a><span class="print">&nbsp;[2]</span>.</p>
+
+<p>Here is a lighter approach, that extends JavaScript with two
+keywords <code class="prettyprint lang-js">metafun</code>
+and <code class="prettyprint lang-js">metaret</code>, implementing one
+tiny bit of
+Backus' <a href="http://www.stanford.edu/class/cs242/readings/backus.pdf">metacomposition</a><span class="print">&nbsp;[3]</span>.</p>
+
+<ul class="print">
+  <li>[0] http://glat.info</li>
+  <li>[1] http://glat.info/jscheck/tomrec.xhtml</li>
+  <li>[2] http://glat.info/jscheck/tool.tailopt.js</li>
+  <li>[3] http://www.stanford.edu/class/cs242/readings/backus.pdf</li>
+</ul>
+
 <h3>Metafunction declarations</h3>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
       (function () {
@@ -302,12 +334,42 @@ function assert(codestring)
       })();
 </script></code></pre>
 
-<!-- indentation not looking good yet
-<h3>Generated code</h3>
+<h3>Bonus</h3>
+
+<p>Thanks to metacomposition, you get anonymous self-recursion for free:
+no need for a Y&nbsp;combinator or <code class="prettyprint lang-js">arguments.callee</code>:
+</p>
+
+<pre class="prettyprint lang-js"><code>
+        metaret self # k - 1 # acc * k; // anonymous self-recursion
+
+</code></pre>
+
+<h3>Implementation</h3>
+
+<p>Metafunctions are implemented by generating normal JavaScript
+functions, where <code class="prettyprint lang-js">metaret</code>
+call(s) have been unrolled using a <code class="prettyprint
+lang-js">while</code> loop, and <code class="prettyprint
+lang-js">switch</code> statements for mutual recursion.
+</p>
+
+<p>Each <code class="prettyprint lang-js">case</code> contains the
+code for one <code class="prettyprint lang-js">metaret</code> call,
+where variable names have been renamed to prevent collisions. I call
+that "hygienic inlining". (I need to add an example targetted on
+this.)</p>
+
+<p>
+<button onclick="var node = document.getElementById('generated-code'); node.className = node.className  ?  ''  :  'screen-hidden';">Generated code</button>&nbsp;(Indentation not looking good yet)
+</p>
+
+<div id="generated-code" class="screen-hidden">
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
       document.write( '// fact\n\n' + fact + '\n\n\n// isOdd\n\n' + isOdd + '\n' );
 </script></code></pre>
--->
+</div>
+
 
 <h3>Tests</h3>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
@@ -319,6 +381,7 @@ function assert(codestring)
       })();
 </script></code></pre>
 
+<p>This page was made using responsive design.</p>
 
 <link href="prettify/prettify.css" type="text/css" rel="stylesheet"/>
 <script type="text/javascript" src="prettify/prettify.js"></script>
