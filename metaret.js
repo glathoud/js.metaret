@@ -407,7 +407,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
                 continue;
 
             var exprStr = body.substring( x.begin + x.str.length ).match( _RX_METARET_ARGS )[ 0 ]
-            ,   exprArr = exprStr.split( '#' )
+            ,   exprArr = exprStr.replace( /\s*;\s*$/, '' ).split( '#' )
             , n         = exprArr.length
             ;
             for (var i = n ; i-- ; ) 
