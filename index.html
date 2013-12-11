@@ -66,6 +66,115 @@ metafun isOdd( self, n )
     return false; 
 }           
 </script>
+<script type="text/js-metaret-decl" id="metaret-decls-sortedSearch">
+/*
+
+Search a sorted array e.g. [ 0, 1, 1, 2, 4, 6, 6, 6, 9, 11, 11, 12 ]
+for the first and last position of a target value e.g. 6 appears
+first at position 5 and last at position 7.
+
+Return null if the target value was not found, else:
+
+[ &lt;integer (first position)&gt;, &lt;integer (last position)&gt; ]
+
+Through the `less` and `equal` parameter, one can search any type 
+of value, not just numbers.
+
+*/
+
+metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
+{
+    // Assume `this` is a sorted array. Search for the first and
+    // last occurences of `x`.
+    //
+    // If `x` found, return `[ first_index, last_index ]`
+    // (integers).
+    //
+    // If `x` not found, return `null`.
+    
+    less  = less || function (a,b) { return a < b; };
+    equal = equal || function (a,b) { return a == b; };
+    
+    metaret sortedSearch.searchFirst # sortedArray 
+        # 0 # sortedArray.length - 1 # false # false # less # equal # x;   
+}
+  
+metafun sortedSearch.searchFirst(self, sortedArray, i, j, 
+    first_found, last_found, less, equal, x)        
+{                                                                                                      
+    first_found = first_found || 
+        sortedSearch.isFirstFound(sortedArray, i, equal, x);                               
+                                                                                                             
+    /* Termination tests */                                                                               
+                                                                                                       
+    if (i > j)                                                                                         
+        return null;    /* Done: `x` not found. */                                                        
+                                                                                                       
+    if (first_found && last_found)                                                                     
+        return [i, j];  /* Done: `x` found. */                                                            
+                                                                                                       
+    /* Update */                                                                                          
+                                                                                                       
+    if (!first_found)                                                                                  
+    {                                                                                                  
+        i++;                                                                                           
+                                                                                                       
+        var ind = i + ((j - i) >> 1)                                                                   
+        , v_ind = sortedArray[ind]                                                                     
+        ;                                                                                              
+                                                                                                       
+        if (less(v_ind, x) || isFirstFound(sortedArray, ind, equal, x))                                
+            i = ind; /* Update */                                                                      
+    }                                                                                                  
+                                                                                                        
+    metaret sortedSearch.searchLast # sortedArray 
+        # i # j # first_found # last_found # less # equal # x;             
+}
+      
+metafun sortedSearch.searchLast(self, sortedArray, i, j, 
+    first_found, last_found, less, equal, x )           
+{                                                                                                         
+    last_found = last_found || 
+        isLastFound(sortedArray, j, equal, x);                                     
+                                                                                                          
+    /* Termination tests already done in `searchFirst`, not needed here.*/                              
+                                                                                                          
+    /* Update */                                                                                             
+                                                                                                          
+    if (!last_found)                                                                                      
+    {                                                                                                     
+        j--;                                                                                              
+                                                                                                          
+        var ind = j - ((j - i) >> 1)                                                                      
+        , v_ind = sortedArray[ind]                                                                        
+        ;                                                                                                 
+                                                                                                          
+        if (less(x, v_ind) || isLastFound(sortedArray, ind, equal, x))                                    
+            j = ind; /* Update */                                                                            
+    }                                                                                                     
+                                                                                                          
+    metaret sortedSearch.searchFirst # sortedArray # i # j 
+        # first_found # last_found # less # equal # x; 
+}   
+  
+metafun sortedSearch.isFirstFound( self, sortedArray, i, equal, x )
+{
+    metaret equal(x, sortedArray[i])  &&  
+        (i < 1  ||  !equal(x, sortedArray[i - 1]));
+}
+  
+metafun sortedSearch.isLastFound( self, sortedArray, j, equal, x)
+{
+    metaret equal(x, sortedArray[j])  &&  
+        (j > sortedArray.length - 2  || !equal(x, sortedArray[j + 1]));
+}
+  
+  // __________ test it __________
+  // xxx
+//  var sortedArray = [ 0, 0, 0, 0, 1, 1, 3, 4, 6, 6, 7, 8, 9, 10, 10, 10, 11, 13, 14, 14, 15 ];
+//  console.log( sortedSearch.call( sortedArray, 3 ) );
+
+</script>
 <script type="text/javascript" id="metaret-tests">
 var all_tests_passed = false;
 
@@ -383,6 +492,19 @@ this.)</p>
       document.write( '// fact\n\n' + fact + '\n\n\n// isOdd\n\n' + isOdd + '\n' );
 </script></code></pre>
 </div>
+
+
+<h3>Mutual recursion example: Search a sorted array</h3>
+
+<p>Source:</p>
+<pre class="prettyprint lang-js"><code><script type="text/javascript">
+      (function () {
+        var s = document.getElementById('metaret-decls-sortedSearch');
+        document.write('&lt;script type="' + s.getAttribute('type') + '" id="' + s.getAttribute('id') + '"&gt;\n');
+        document.write('\x3Cspan class="prettyprint lang-js"\x3E' + s.textContent + '\x3C/span\x3E');
+        document.write('\n&lt;/script&gt;');
+      })();
+</script></code></pre>
 
 
 <h3>Tests</h3>

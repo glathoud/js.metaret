@@ -342,6 +342,9 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
 
     function _checkExtractParam( /*string*/param )  
     {
+        // Remove comments
+        param = param.replace( /\/\*.*?\*\//g, '' );
+
         if (!_RX_PARAM.test( param ))
             throw new Error('MetaFunction : _checkExtractParam : Invalid parameters string, the string must be like "self,x,y,z".')
 
