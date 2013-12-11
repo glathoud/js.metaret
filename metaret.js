@@ -368,7 +368,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
             ret.push( { text    : x.str
                         , end   : x.begin + x.str.length
                         , start : x.begin
-                        , isVarDecl : x.isVarDecl
+                        , isVardecl : x.isVardecl
                       }
                     );
             
@@ -652,9 +652,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
                 continue;
             textSeen[ text ] = 1;
 
-            var maybeDeclInd = body.search(new RegExp( text + '\\s*[,;]'));
-            
-            if (-1 < maybeDeclInd  &&  maybeDeclInd < v.end)
+            if (v.isVardecl  &&  -1 < maybeDeclInd  &&  maybeDeclInd < v.end)
             {
                 // Might well be a declaration without initialization.
                 // To guarantee the same behaviour of the unrolled

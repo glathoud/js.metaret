@@ -23,6 +23,8 @@ var result, expected;
     assert( 'arrEqual( result.dotArr, expected.dotArr )' );
     assert( 'arrEqual( result.dotcallArr, expected.dotcallArr )' );
     assert( 'arrEqual( result.identifierArr, expected.identifierArr )' );
+    assert( 'arrEqual( result.vardeclArr, expected.vardeclArr )' );
+    assert( 'arrEqual( result.vardeclArr, result.identifierArr.filter( function (x) { return x.isVardecl; } ) )' );
     
     console.log( 'Successfuly tested `lightparse`.' );
 
@@ -71,10 +73,14 @@ var result, expected;
                      } );
             begin += delimitBegin.length;
 
-
-            (ind < 2  ?  sA  :  ind < 4  ?  cA  :  ind < 5  ?  rxA  :  vdA)
-                .push( { begin : begin , str : str } )
+            var x = { begin : begin , str : str }
+            , arr = ind < 2  ?  sA  :  ind < 4  ?  cA  :  ind < 5  ?  rxA  :  vdA
             ;
+            if (arr === vdA)
+                x.name = x.str;
+
+            arr.push( x );
+            
             begin += str.length;
             
 

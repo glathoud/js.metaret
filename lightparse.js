@@ -65,7 +65,7 @@
              ,   /*vd*/begin/**/ = +Infinity
              ,   /*vd*/ind/**/  = -1
              ;
-             for (var n = four.length, i = 0; i < n; i++)
+             for (var /*vd*/n/**/ = four.length, /*vd*/i/**/ = 0; i < n; i++)
              {
                  var /*vd*/v/**/ = four[ i ];
                  if (-1 < v  &&  v < begin)
@@ -118,7 +118,7 @@
          /*dc*/// Detect identifiers and reserved words
          
          var /*vd*/reservedObj/**/ = {};
-         for (var i = reservedArr.length; i--;)  
+         for (var /*vd*/i/**/ = reservedArr.length; i--;)  
              reservedObj[ reservedArr[ i ] ] = 1;
          
          var /*vd*/resA/**/      = ret.reservedArr
@@ -134,9 +134,13 @@
          /*dc*/// statements. In particular, this RegExp "solution"
          /*dc*/// requires to close var with a ";".
          ,   /*vd*/rx_varDecl_before/**/ = /*rr*//\bvar[\s\r\n]+([^;]*,\s*)?$//**/
-         ,   /*vd*/rx_varDecl_after/**/  = /*rr*//^\s*=[^=]//**/
+         ,   /*vd*/rx_varDecl_after/**/  = /*rr*//^\s*(=[^=]|,|;)//**/
+         ,   /*vd*/rx_notVarDecl_after/**/ = /*rr*//^[^=;]*[\)\}\]]//**/
          
-         ,   mo
+         ,   /*vd*/rx_forIn_before/**/  = /*rr*//for\s*\(\s*var\s+$//**/
+         ,   /*vd*/rx_forIn_after/**/   = /*rr*//^\s+in\s+//**/
+
+         ,   /*vd*/mo/**/
          ;
          while ( mo = rx.exec( nakedCode ) )
          {
@@ -152,7 +156,7 @@
                      :                     iA
              )
              ,   /*vd*/begin/**/ = mo.index
-             ,   /*vd*/o/**/     = { str : str,  begin : begin , name : name } 
+             ,   /*vd*/x/**/     = { str : str,  begin : begin , name : name } 
              ;
              if (arr === iA)
              {
@@ -160,10 +164,18 @@
                  ,   /*vd*/codeAfter/**/  = nakedCode.substring( begin + name.length )
                  ;
                  
-                 o.isVarDecl = rx_varDecl_after.test( codeAfter)  &&  rx_varDecl_before.test( codeBefore );
+                 x.isVardecl = (
+                     rx_varDecl_after.test( codeAfter )  &&  
+                         !rx_notVarDecl_after.test( codeAfter )  &&  
+                         rx_varDecl_before.test( codeBefore )
+                 )  ||  (
+                     rx_forIn_before.test( codeBefore )  &&  
+                      rx_forIn_after.test( codeAfter )
+                 )
+                 ;
              }
              
-             arr.push( o );
+             arr.push( x );
 
          }
          
@@ -171,10 +183,11 @@
 
          var /*vd*/iA/**/ = ret.identifierArr
          ,   /*vd*/iR/**/ = ret.identifierArrReverse = reversed( iA )
+         ,  /*vd*/vdA/**/ = ret.vardeclArr = []
          
          ,   /*vd*/iO/**/  = ret.identifierObj = {}
          ;
-         for (var n = iA.length, i = 0; i < n; i++)
+         for (var /*vd*/n/**/ = iA.length, /*vd*/i/**/ = 0; i < n; i++)
          {
              var /*vd*/x/**/ = iA[ i ];
              (
@@ -182,21 +195,25 @@
              )
                  .push( x.begin )
              ;
+
+             if (x.isVardecl)
+                 vdA.push( x );
          }
          
          var /*vd*/iOR/**/ = ret.identifierObjReverse = {};
-         for (var str in iO) { if (!(str in iOR)) {
+         for (var /*vd*/str/**/ in iO) { if (!(str in iOR)) {
 
              iOR[ str ] = reversed( iO[ str ] );
              
          }}
+         
          
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
 
          var /*vd*/all/**/ = ret.all = [];
          
-         for (var k in ret) {
+         for (var /*vd*/k/**/ in ret) {
              
              var /*vd*/mo/**/ = k.match( /*rr*//^(.+)Arr$//**/ );
              if (mo)
@@ -204,7 +221,7 @@
                  var /*vd*/arr/**/ = ret[ k ]
                  ,  /*vd*/type/**/ = mo[ 1 ]
                  ;
-                 for (var i = arr.length; i--;)
+                 for (var /*vd*/i/**/ = arr.length; i--;)
                      arr[ i ].type = type;
 
                  all.push.apply( all, arr );                 
