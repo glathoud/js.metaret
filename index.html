@@ -96,8 +96,8 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
     //
     // If `x` not found, return `null`.
     
-    less  = less || function (a,b) { return a < b; };
-    equal = equal || function (a,b) { return a == b; };
+    (less  ||  (less = function (a,b) { return a < b; });
+    (equal ||  (equal = function (a,b) { return a == b; });
     
     metaret sortedSearch.searchFirst # sortedArray 
         # 0 # sortedArray.length - 1 # false # false # less # equal # x;   
