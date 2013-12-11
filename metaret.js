@@ -172,6 +172,8 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
             ret = info.impl;
         }
         
+        ret.getImpl = ret_getImpl;
+
         return ret;
 
         // Solve later (e.g. mutual recursion case where some of the
@@ -183,6 +185,16 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
                 solve();
             
             return info.impl.apply( null, arguments );
+        }
+
+        // For convenience : to see the generated code from outside.
+
+        function ret_getImpl()
+        {
+            if (!info.impl)
+                solve();
+
+            return info.impl;
         }
 
     }
