@@ -269,7 +269,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
             // rather than expanding recursively (faster than switch,
             // but code duplication).
             
-            var nameArr  = [ name ].concat( metaretArr.hasOther() )
+            var nameArr  = [ name ].concat( metaretArr.hasAll() )
             , infoArr    = nameArr.map( function (n) { return name2info[ n ]; } )
             , against    = infoArr.map( function (info) { return info.paramArr.concat( info.origBody ); } )
             , switch_ind_name = nameArr.switch_ind_name = _generateAddName( 'switch_ind', against )
