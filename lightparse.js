@@ -24,8 +24,8 @@
 
      function lightparse( /*sc*//*string*//**/code, /*sc*//*?object?*//**/opt )
      {
-         var reservedArr = ((opt  &&  opt.reservedArr)  ||  RESERVED_ARR).concat( (opt  &&  opt.extraReservedArr)  ||  [] )
-         ,   ret = {
+         var /*vd*/reservedArr/**/ = ((opt  &&  opt.reservedArr)  ||  RESERVED_ARR).concat( (opt  &&  opt.extraReservedArr)  ||  [] )
+         ,   /*vd*/ret/**/ = {
              strArr : []
              , commentArr  : []
              , regexpArr   : []
@@ -45,29 +45,29 @@
          /*dc*/// Detect comments and strings, and produce a "nakedCode"
          /*dc*/// string where they've all been replaced with spaces.
 
-         var sA = ret.strArr
-         ,   cA = ret.commentArr
-         ,  rxA = ret.regexpArr
-         , nakedCodeArr   = []
-         , searchPosition = 0
+         var /*vd*/sA/**/ = ret.strArr
+         ,   /*vd*/cA/**/ = ret.commentArr
+         ,  /*vd*/rxA/**/ = ret.regexpArr
+         , /*vd*/nakedCodeArr/**/   = []
+         , /*vd*/searchPosition/**/ = 0
          ;
          while (true)
          {
              /*dc*/// Search for a string or comment, whichever comes first
 
-             var sq = code.indexOf( /*dq*/"'"/**/ , searchPosition )
-             ,   dq = code.indexOf( /*sq*/'"'/**/ , searchPosition )
-             ,   sc = code.indexOf( /*sq*/'/*'/**/, searchPosition )
-             ,   dc = code.indexOf( /*sq*/'//'/**/, searchPosition )
-             ,   rr = code.indexOf( /*sq*/'/'/**/,  searchPosition )
+             var /*vd*/sq/**/ = code.indexOf( /*dq*/"'"/**/ , searchPosition )
+             ,   /*vd*/dq/**/ = code.indexOf( /*sq*/'"'/**/ , searchPosition )
+             ,   /*vd*/sc/**/ = code.indexOf( /*sq*/'/*'/**/, searchPosition )
+             ,   /*vd*/dc/**/ = code.indexOf( /*sq*/'//'/**/, searchPosition )
+             ,   /*vd*/rr/**/ = code.indexOf( /*sq*/'/'/**/,  searchPosition )
 
-             ,   four = [ sq, dq, sc, dc, rr ]
-             ,   begin = +Infinity
-             ,   ind  = -1
+             ,   /*vd*/four/**/ = [ sq, dq, sc, dc, rr ]
+             ,   /*vd*/begin/**/ = +Infinity
+             ,   /*vd*/ind/**/  = -1
              ;
              for (var n = four.length, i = 0; i < n; i++)
              {
-                 var v = four[ i ];
+                 var /*vd*/v/**/ = four[ i ];
                  if (-1 < v  &&  v < begin)
                  {
                      begin = v;
@@ -85,17 +85,17 @@
 
              /*dc*/// Found: find its end
 
-             var rest  = code.substring( begin )
+             var /*vd*/rest/**/  = code.substring( begin )
 
-             , rx =   ind === 0  ?  /*rr*//^[\s\S]*?[^\\]\'//**/
+             , /*vd*/rx/**/ =   ind === 0  ?  /*rr*//^[\s\S]*?[^\\]\'//**/
                  :    ind === 1  ?  /*rr*//^[\s\S]*?[^\\]\"//**/
                  :    ind === 2  ?  /*rr*//^\/\*[\s\S]*?\*\///**/
                  :    ind === 3  ?  /*rr*//^\/\/([^\r\n])*//**/
                  :                  /*rr*//^\/.*?[^\\]\/[gmi]?//**/
 
-             , mo    = rx.exec( rest )
-             , delta = mo  ?  mo.index + mo[ 0 ].length  :  rest.length
-             , end   = begin + delta
+             , /*vd*/mo/**/    = rx.exec( rest )
+             , /*vd*/delta/**/ = mo  ?  mo.index + mo[ 0 ].length  :  rest.length
+             , /*vd*/end/**/   = begin + delta
              ;
              
              /*dc*/// Store
@@ -117,49 +117,50 @@
          
          /*dc*/// Detect identifiers and reserved words
          
-         var reservedObj = {};
+         var /*vd*/reservedObj/**/ = {};
          for (var i = reservedArr.length; i--;)  
              reservedObj[ reservedArr[ i ] ] = 1;
          
-         var resA      = ret.reservedArr
-         ,   caA       = ret.callArr
-         ,   dA        = ret.dotArr
-         ,   dcaA      = ret.dotcallArr
-         ,   iA        = ret.identifierArr
-         ,   nakedCode = nakedCodeArr.join( /*sq*/''/**/ )
-         ,   rx        = /*rr*//(\.\s*)?(\b[_a-zA-Z]\w*\b)(\s*\()?/g/**/
+         var /*vd*/resA/**/      = ret.reservedArr
+         ,   /*vd*/caA/**/       = ret.callArr
+         ,   /*vd*/dA/**/        = ret.dotArr
+         ,   /*vd*/dcaA/**/      = ret.dotcallArr
+         ,   /*vd*/iA/**/        = ret.identifierArr
+         ,   /*vd*/nakedCode/**/ = nakedCodeArr.join( /*sq*/''/**/ )
+         ,   /*vd*/rx/**/        = /*rr*//(\.\s*)?(\b[_a-zA-Z]\w*\b)(\s*\()?/g/**/
 
          /*dc*/// rx_varDecl_*: Good but not 100% sure -> xxx at some
          /*dc*/// point we need to parse a bit more the var
-         /*dc*/// statements.
-         ,   rx_varDecl_before = /*rr*//\bvar[\s\r\n]+([^;]*,\s*)?$//**/
-         ,   rx_varDecl_after  = /*rr*//^\s*=[^=]//**/
+         /*dc*/// statements. In particular, this RegExp "solution"
+         /*dc*/// requires to close var with a ";".
+         ,   /*vd*/rx_varDecl_before/**/ = /*rr*//\bvar[\s\r\n]+([^;]*,\s*)?$//**/
+         ,   /*vd*/rx_varDecl_after/**/  = /*rr*//^\s*=[^=]//**/
          
          ,   mo
          ;
          while ( mo = rx.exec( nakedCode ) )
          {
-             var  str = mo[ 0 ]
-             ,    dot = mo[ 1 ]
-             ,   name = mo[ 2 ]
-             ,   call = mo[ 3 ]
-             ,   arr  = (
+             var  /*vd*/str/**/ = mo[ 0 ]
+             ,    /*vd*/dot/**/ = mo[ 1 ]
+             ,   /*vd*/name/**/ = mo[ 2 ]
+             ,   /*vd*/call/**/ = mo[ 3 ]
+             ,   /*vd*/arr/**/  = (
                  name in reservedObj  ?  resA  
                      : dot && call    ?  dcaA
                      : dot            ?    dA
                      : call           ?   caA
                      :                     iA
              )
-             ,   begin = mo.index
-             ,   o     = { str : str,  begin : begin , name : name } 
+             ,   /*vd*/begin/**/ = mo.index
+             ,   /*vd*/o/**/     = { str : str,  begin : begin , name : name } 
              ;
              if (arr === iA)
              {
-                 var codeBefore = nakedCode.substring( 0, begin )
-                 ,   codeAfter  = nakedCode.substring( begin + name.length )
+                 var /*vd*/codeBefore/**/ = nakedCode.substring( 0, begin )
+                 ,   /*vd*/codeAfter/**/  = nakedCode.substring( begin + name.length )
                  ;
                  
-                 o.withinVarDecl = rx_varDecl_after.test( codeAfter)  &&  rx_varDecl_before.test( codeBefore );
+                 o.isVarDecl = rx_varDecl_after.test( codeAfter)  &&  rx_varDecl_before.test( codeBefore );
              }
              
              arr.push( o );
@@ -168,14 +169,14 @@
          
          /*dc*/// Identifiers: a few derived values, for convenience
 
-         var iA = ret.identifierArr
-         ,   iR = ret.identifierArrReverse = reversed( iA )
+         var /*vd*/iA/**/ = ret.identifierArr
+         ,   /*vd*/iR/**/ = ret.identifierArrReverse = reversed( iA )
          
-         ,   iO  = ret.identifierObj = {}
+         ,   /*vd*/iO/**/  = ret.identifierObj = {}
          ;
          for (var n = iA.length, i = 0; i < n; i++)
          {
-             var x = iA[ i ];
+             var /*vd*/x/**/ = iA[ i ];
              (
                  iO[ x.str ]  ||  (iO[ x.str ] = [])
              )
@@ -183,7 +184,7 @@
              ;
          }
          
-         var iOR = ret.identifierObjReverse = {};
+         var /*vd*/iOR/**/ = ret.identifierObjReverse = {};
          for (var str in iO) { if (!(str in iOR)) {
 
              iOR[ str ] = reversed( iO[ str ] );
@@ -193,15 +194,15 @@
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
 
-         var all = ret.all = [];
+         var /*vd*/all/**/ = ret.all = [];
          
          for (var k in ret) {
              
-             var mo = k.match( /*rr*//^(.+)Arr$//**/ );
+             var /*vd*/mo/**/ = k.match( /*rr*//^(.+)Arr$//**/ );
              if (mo)
              {
-                 var arr = ret[ k ]
-                 ,  type = mo[ 1 ]
+                 var /*vd*/arr/**/ = ret[ k ]
+                 ,  /*vd*/type/**/ = mo[ 1 ]
                  ;
                  for (var i = arr.length; i--;)
                      arr[ i ].type = type;

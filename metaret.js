@@ -368,6 +368,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
             ret.push( { text    : x.str
                         , end   : x.begin + x.str.length
                         , start : x.begin
+                        , isVarDecl : x.isVarDecl
                       }
                     );
             

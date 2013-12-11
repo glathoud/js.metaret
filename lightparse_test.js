@@ -36,6 +36,7 @@ var result, expected;
         var sA = []
         ,   cA = []
         ,  rxA = []
+        ,  vdA = []
         , resA = []
         ,  caA = []
         ,   dA = []
@@ -44,13 +45,14 @@ var result, expected;
         ,  ret = { strArr       : sA 
                    , commentArr : cA
                    , regexpArr  : rxA
+                   , vardeclArr : vdA
                    , reservedArr : resA
                    , callArr       : caA
                    , dotArr        : dA
                    , dotcallArr    : dcaA
                    , identifierArr : iA
                  }
-        ,   rx  = /((\/\*sq\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*dq\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*sc\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*dc\*\/)([^\r\n]*)())|((\/\*rr\*\/)([\s\S]*?)(\/\*\*\/))/g
+        ,   rx  = /((\/\*sq\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*dq\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*sc\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*dc\*\/)([^\r\n]*)())|((\/\*rr\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*vd\*\/)([\s\S]*?)(\/\*\*\/))/g
         ,   mo
         ;
 
@@ -70,7 +72,7 @@ var result, expected;
             begin += delimitBegin.length;
 
 
-            (ind < 2  ?  sA  :  ind < 4  ?  cA  :  rxA)
+            (ind < 2  ?  sA  :  ind < 4  ?  cA  :  ind < 5  ?  rxA  :  vdA)
                 .push( { begin : begin , str : str } )
             ;
             begin += str.length;
