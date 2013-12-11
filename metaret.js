@@ -595,14 +595,19 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
             }
             else
             {
-                for (var i = 0, end = paramArr.length; i < end; i++)
+                for (var j = 0, i = 0, end = paramArr.length; i < end; i++)
                 {
-                    var varname  = paramArr[ i ]
-                    , newVarname = _generateName( varname, against )
-                    ;
+                    var varname  = paramArr[ i ];
+
+                    // Special case: spare us the identity (no transformation)
+                    if (varname === exprArr[ i ])
+                        continue;
+
+                    // General case                    
+                    var newVarname = _generateName( varname, against );
                     against.push( newVarname );  // Prevent future collisions on this new name
                     
-                    code.splice( i, 0, 'var ' + newVarname + ' = ' + exprArr[ i ] + ';' );
+                    code.splice( j++, 0, 'var ' + newVarname + ' = ' + exprArr[ i ] + ';' );
                     code.push( varname + ' = ' + newVarname + ';' );
                 }
             }
