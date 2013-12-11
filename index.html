@@ -71,14 +71,18 @@ metafun isOdd( self, n )
 
 Search a sorted array e.g. [ 0, 1, 1, 2, 4, 6, 6, 6, 9, 11, 11, 12 ]
 for the first and last position of a target value e.g. 6 appears
-first at position 5 and last at position 7.
+first at position 5 and last at position 7 -> return `[ 5, 7 ]`.
 
-Return null if the target value was not found, else:
+If the target value was found, return:
 
 [ &lt;integer (first position)&gt;, &lt;integer (last position)&gt; ]
 
-Through the `less` and `equal` parameter, one can search any type 
-of value, not just numbers.
+else return:
+
+null
+
+Using the optional `less` and `equal` parameters, one can search any
+type of value, not just numbers.
 
 */
 
@@ -100,7 +104,8 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
 }
   
 metafun sortedSearch.searchFirst(self, sortedArray, i, j, 
-    first_found, last_found, less, equal, x)        
+    first_found, last_found, less, equal, x
+)        
 {                                                                                                      
     first_found = first_found || 
         sortedSearch.isFirstFound(sortedArray, i, equal, x);                               
@@ -123,7 +128,9 @@ metafun sortedSearch.searchFirst(self, sortedArray, i, j,
         , v_ind = sortedArray[ind]                                                                     
         ;                                                                                              
                                                                                                        
-        if (less(v_ind, x) || isFirstFound(sortedArray, ind, equal, x))                                
+        if (less(v_ind, x) || 
+            sortedSearch.isFirstFound(sortedArray, ind, equal, x)
+        )
             i = ind; /* Update */                                                                      
     }                                                                                                  
                                                                                                         
@@ -132,10 +139,11 @@ metafun sortedSearch.searchFirst(self, sortedArray, i, j,
 }
       
 metafun sortedSearch.searchLast(self, sortedArray, i, j, 
-    first_found, last_found, less, equal, x )           
+    first_found, last_found, less, equal, x 
+)           
 {                                                                                                         
     last_found = last_found || 
-        isLastFound(sortedArray, j, equal, x);                                     
+        sortedSearch.isLastFound(sortedArray, j, equal, x);                                     
                                                                                                           
     /* Termination tests already done in `searchFirst`, not needed here.*/                              
                                                                                                           
@@ -149,7 +157,9 @@ metafun sortedSearch.searchLast(self, sortedArray, i, j,
         , v_ind = sortedArray[ind]                                                                        
         ;                                                                                                 
                                                                                                           
-        if (less(x, v_ind) || isLastFound(sortedArray, ind, equal, x))                                    
+        if (less(x, v_ind) || 
+            sortedSearch.isLastFound(sortedArray, ind, equal, x)
+        )
             j = ind; /* Update */                                                                            
     }                                                                                                     
                                                                                                           

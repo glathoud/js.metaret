@@ -128,6 +128,13 @@
          ,   iA        = ret.identifierArr
          ,   nakedCode = nakedCodeArr.join( /*sq*/''/**/ )
          ,   rx        = /*rr*//(\.\s*)?(\b[_a-zA-Z]\w*\b)(\s*\()?/g/**/
+
+         /*dc*/// rx_varDecl_*: Good but not 100% sure -> xxx at some
+         /*dc*/// point we need to parse a bit more the var
+         /*dc*/// statements.
+         ,   rx_varDecl_before = /*rr*//\bvar[\s\r\n]+([^;]*,\s*)?$//**/
+         ,   rx_varDecl_after  = /*rr*//^\s*=[^=]//**/
+         
          ,   mo
          ;
          while ( mo = rx.exec( nakedCode ) )
@@ -136,16 +143,27 @@
              ,    dot = mo[ 1 ]
              ,   name = mo[ 2 ]
              ,   call = mo[ 3 ]
-             ;
-             (
+             ,   arr  = (
                  name in reservedObj  ?  resA  
                      : dot && call    ?  dcaA
                      : dot            ?    dA
                      : call           ?   caA
                      :                     iA
              )
-                 .push( { str : str,  begin : mo.index , name : name } )
+             ,   begin = mo.index
+             ,   o     = { str : str,  begin : begin , name : name } 
              ;
+             if (arr === iA)
+             {
+                 var codeBefore = nakedCode.substring( 0, begin )
+                 ,   codeAfter  = nakedCode.substring( begin + name.length )
+                 ;
+                 
+                 o.withinVarDecl = rx_varDecl_after.test( codeAfter)  &&  rx_varDecl_before.test( codeBefore );
+             }
+             
+             arr.push( o );
+
          }
          
          /*dc*/// Identifiers: a few derived values, for convenience

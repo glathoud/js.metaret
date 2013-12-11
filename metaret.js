@@ -300,6 +300,9 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
 
             function info2code( info, ind )
             {
+                if (/^sorted/.test(info.name))
+                    'xxx';
+
                 var code = [ 
                     ''
                     , '/* ' + info.name + ' */'
