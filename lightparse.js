@@ -171,8 +171,7 @@
                  )  ||  (
                      rx_forIn_before.test( codeBefore )  &&  
                       rx_forIn_after.test( codeAfter )
-                 )
-                 ;
+                 );
              }
              
              arr.push( x );

@@ -652,6 +652,8 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
                 continue;
             textSeen[ text ] = 1;
 
+            var maybeDeclInd = body.search(new RegExp( text + '\\s*[,;]'));
+            
             if (v.isVardecl  &&  -1 < maybeDeclInd  &&  maybeDeclInd < v.end)
             {
                 // Might well be a declaration without initialization.
