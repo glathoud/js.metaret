@@ -143,7 +143,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
         // Now we are ready to create the metafunction
         
         var remember = ( 
-            '\n' + (is_fun  ?  'function'  :  'metafun' ) + ' ' + name + '( ' + param + ')'
+            '\n' + (is_fun  ?  'function'  :  'metafun' ) + ' ' + name + '\n( ' + param + ')'
         ).replace( /([\r\n])/g, '$1// --- ' )
             + '\n\n'
         ;
