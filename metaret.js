@@ -612,14 +612,30 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
         for (var i = metaretArr.length; i--; )   // Downward order important
         {
             var metaret = metaretArr[ i ]
-            , code      = prepareCode( metaret )
+
+            , before    = ret.slice( 0, metaret.start )
+            , after     = ret.slice( metaret.end )
             ;
-            ret = ret.slice( 0, metaret.start ) + code + ret.slice( metaret.end );
+
+            // If there was a comment right on the metaret line,
+            // make sure it appears at a readable position.
+            var after_comment = ''
+            ,   after_comment_mo = after.match( /^\s*(?:\/\/[^\r\n]*[\r\n]+|\/\*((?!\*\/)[\s\S]*)\*\/)/ )
+            ;
+            if (after_comment_mo)
+            {
+                after_comment = after_comment_mo[ 0 ];
+                after         =  after.substring( after_comment.length );
+            }
+            
+            var code = prepareCode( metaret, after_comment );
+            
+            ret = before + code + after;
         }
         
         return ret;
 
-        function prepareCode( metaret )
+        function prepareCode( metaret, after_comment )
         {
             var code   = []
             , info     = name2info[ metaret.action ]
@@ -671,7 +687,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
                 if (metaret.action === metaretArr.selfName)
                 {
                     // Actually a self-recursion (switch style)
-                    code.push( 'continue ' + nameArr.switchLabel + '; /* stay in: ' + metaret.action + ' */' );
+                    code.push( 'continue ' + nameArr.switchLabel + '; // --- stay in: ' + metaret.action );
                 }
                 else
                 {
@@ -684,11 +700,14 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
                                        );
                     }
                     
-                    code.push( nameArr.switch_ind_name + ' = ' + switch_ind + '; /* go to: ' + metaret.action + ' */' );
+                    code.push( nameArr.switch_ind_name + ' = ' + switch_ind + '; // --- go to: ' + metaret.action );
                     code.push( 'continue ' + nameArr.switchLabel + ';' );
                 }
             }   
             
+            if (after_comment)
+                code.unshift( after_comment );
+
             code.unshift( '{' );
             code.push( '}' );
 
