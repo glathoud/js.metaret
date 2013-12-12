@@ -9,7 +9,8 @@ p, h1, h2, h3, h4 {
     line-height: 150%;
     text-align: justify;
 }
-
+h1, h2, h3 { margin-top: 3em; }
+.anchor { margin-left: 0.5em; }
 @media only screen { .screen-hidden, .print { display: none; } }
 </style>
 <script type="text/javascript" src="lightparse.js"></script>
@@ -468,7 +469,7 @@ Backus' <a href="http://www.stanford.edu/class/cs242/readings/backus.pdf">metaco
   <li>[3] http://www.stanford.edu/class/cs242/readings/backus.pdf</li>
 </ul>
 
-<h3 id="sec-metadecls">Metafunction declarations</h3>
+<h3 id="sec-metadecls" class="auto-anchor">Metafunction declarations</h3>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
       (function () {
         var s = document.getElementById('metaret-decls');
@@ -478,7 +479,7 @@ Backus' <a href="http://www.stanford.edu/class/cs242/readings/backus.pdf">metaco
       })();
 </script></code></pre>
 
-<h3 id="sec-bonus">Bonus</h3>
+<h3 id="sec-bonus" class="auto-anchor">Bonus</h3>
 
 <p>Thanks to metacomposition, you get anonymous self-recursion for free:
 no need for a Y&nbsp;combinator or <code class="prettyprint lang-js">arguments.callee</code>:
@@ -489,7 +490,7 @@ no need for a Y&nbsp;combinator or <code class="prettyprint lang-js">arguments.c
 
 </code></pre>
 
-<h3 id="sec-impl">Implementation</h3>
+<h3 id="sec-impl" class="auto-anchor">Implementation</h3>
 
 <p>Metafunctions are implemented by generating normal JavaScript
 functions, where <code class="prettyprint lang-js">metaret</code>
@@ -504,8 +505,9 @@ where variable names have been renamed to prevent collisions. I call
 that "hygienic inlining". (I need to add an example targetted on
 this.)</p>
 
+<h4 id="sec-impl-gencode" class="auto-anchor">Generated code</h4>
 <p>
-<button onclick="var node = document.getElementById('generated-code'); node.className = node.className  ?  ''  :  'screen-hidden';">Generated code</button>&nbsp;(Indentation can be improved.)
+<button onclick="var node = document.getElementById('generated-code'); node.className = node.className  ?  ''  :  'screen-hidden';">Show it!</button>&nbsp;(Indentation can be improved.)
 </p>
 
 <div id="generated-code" class="screen-hidden">
@@ -515,7 +517,7 @@ this.)</p>
 </div>
 
 
-<h3 id="sec-sorted-search">Longer example: Search a sorted array</h3>
+<h3 id="sec-sorted-search" class="auto-anchor">Longer example: Search a sorted array</h3>
 
 <p>Source:</p>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
@@ -527,9 +529,9 @@ this.)</p>
       })();
 </script></code></pre>
 
-
+<h4 id="sec-sorted-search-gencode" class="auto-anchor">Generated code</h4>
 <p>
-<button onclick="var node = document.getElementById('generated-code-sortedSearch'); node.className = node.className  ?  ''  :  'screen-hidden';">Generated code</button>&nbsp;(Indentation can be improved.)
+<button onclick="var node = document.getElementById('generated-code-sortedSearch'); node.className = node.className  ?  ''  :  'screen-hidden';">Show it!</button>&nbsp;(Indentation can be improved.)
 </p>
 
 <div id="generated-code-sortedSearch" class="screen-hidden">
@@ -539,7 +541,7 @@ this.)</p>
 </div>
 
 
-<h3 id="sec-tests">Tests</h3>
+<h3 id="sec-tests" class="auto-anchor">Tests</h3>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
       (function () {
         var s = document.getElementById('metaret-tests');
@@ -548,6 +550,23 @@ this.)</p>
         document.write('\n&lt;/script&gt;');
       })();
 </script></code></pre>
+
+<script type="text/javascript">
+(function () {
+    var noli = document.getElementsByClassName( "auto-anchor" );
+    for (var n = noli.length, i = 0; i < n; i++)
+    {
+        var node = noli[ i ]
+        ,     id = node.id
+        , anchor = document.createElement( 'a' )
+        ;
+        anchor.innerHTML = '#';
+        anchor.setAttribute( 'href', '#' + id );
+        anchor.setAttribute( 'class', 'anchor' );
+        node.appendChild( anchor );
+    }
+})();
+</script>
 
 <link href="prettify/prettify.css" type="text/css" rel="stylesheet"/>
 <script type="text/javascript" src="prettify/prettify.js"></script>
