@@ -1,4 +1,4 @@
-/*global document console*/
+/*global document console load lightparse*/
 
 // Guillaume Lathoud, 2011, 2013, MIT License, see ./LICENSE.TXT
 // 
@@ -64,9 +64,11 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
 
     // ---------- Public API implementation
     
-    var _metaparse_rx     = /\s*metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)((?!metafun)[\s\S])*/g
-    ,   _metaparse_one_rx = /^\s*metafun\s*(\S+)\s*\(\s*([^\)]+?)\s*\)\s*\{\s*(((?!metafun)[\s\S])*)\s*\}\s*$/
-    ;
+    var _metaparse_rx     = /\s*(metafun|function)\s*(\S+)\s*\(\s*([^\)]+?)\s*\)((?![\r\n]\s*(metafun|function))[\s\S])*/g
+    ,   _metaparse_one_rx = /^\s*(metafun|function)\s*(\S+)\s*\(\s*([^\)]+?)\s*\)\s*\{\s*(((?![\r\n]\s*(metafun|function))[\s\S])*)\s*\}\s*$/
+        , _metaparse_one_start_rx = /^\s*(metafun|function)\s/
+        , _metaparse_one_start_function_rx = /^\s*function\s/
+        ;
     function metaparse()
     {
         var noli = document.getElementsByTagName( 'script' );
@@ -80,31 +82,49 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
             ,   arr      = metacode.match( _metaparse_rx )
             ;
             for (var p = arr.length, j = 0; j < p; j++)
-                MetaDecl( arr[ j ] );
+                Decl( arr[ j ] );
         }
     }
 
     var _global_name2info = {};    
+
     function MetaDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body )
     {
-        if (arguments.length < 2)
-        {
-            // --- Single argument: code string
+        Decl( code_or_name, param, body, false );
+    }
 
-            // For convenience, prepend metafun automatically.
-            var code  = /^\s*metafun\s/.test( code_or_name )  ?  code_or_name  :  'metafun' + code_or_name
-            
+    function FunDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body )
+    {
+        Decl( code_or_name, param, body, true );
+    }
+
+    function Decl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?boolean?*/is_fun )
+    {
+        is_fun != null  ||  (is_fun = _metaparse_one_start_function_rx.test( code_or_name ));
+        
+        var param_null = param == null
+        ,    body_null = body  == null
+        ;
+        if (param_null ^ body_null)
+            throw new Error( 'Decl: invalid usage. Give either both `param` and `body`, or none of them.' )
+
+        if (param_null)
+        {
+            // --- Single code string
+
+            // For convenience, prepend metafun|function automatically.
+            var code  = _metaparse_one_start_rx.test( code_or_name )  ?  code_or_name  :  (is_fun  ?  'function'  :  'metafun') + ' ' + code_or_name
             ,   mo    = _metaparse_one_rx.exec( code )
-            ,   name  = mo[ 1 ]
+            ,   name  = mo[ 2 ]
             ;
-            param = mo[ 2 ];
-            body  = mo[ 3 ];
+            param = mo[ 3 ];
+            body  = mo[ 4 ];
             
-            MetaDecl( name, param, body );
+            Decl( name, param, body, is_fun );
             return;
         }
         
-        // --- Three arguments
+        // --- All three strings: name, param, body.
 
         var name = code_or_name;
 
@@ -122,9 +142,10 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
         
         // Now we are ready to create the metafunction
         
-        g[ dot_arr[ 0 ] ] = MetaFunction( name, param, body, _global_name2info );
-    }
+        g[ dot_arr[ 0 ] ] = (is_fun  ?  NormalFunction  :  MetaFunction)( name, param, body, _global_name2info );
 
+    }
+    
     function MetaFunction(
         /*string*/name
         , /* string like "self,a,b,c" */param

@@ -465,7 +465,7 @@ Backus' <a href="http://www.stanford.edu/class/cs242/readings/backus.pdf">metaco
   <li>[3] http://www.stanford.edu/class/cs242/readings/backus.pdf</li>
 </ul>
 
-<h3>Metafunction declarations</h3>
+<h3 id="sec-metadecls">Metafunction declarations</h3>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
       (function () {
         var s = document.getElementById('metaret-decls');
@@ -475,7 +475,7 @@ Backus' <a href="http://www.stanford.edu/class/cs242/readings/backus.pdf">metaco
       })();
 </script></code></pre>
 
-<h3>Bonus</h3>
+<h3 id="sec-bonus">Bonus</h3>
 
 <p>Thanks to metacomposition, you get anonymous self-recursion for free:
 no need for a Y&nbsp;combinator or <code class="prettyprint lang-js">arguments.callee</code>:
@@ -486,7 +486,7 @@ no need for a Y&nbsp;combinator or <code class="prettyprint lang-js">arguments.c
 
 </code></pre>
 
-<h3>Implementation</h3>
+<h3 id="sec-impl">Implementation</h3>
 
 <p>Metafunctions are implemented by generating normal JavaScript
 functions, where <code class="prettyprint lang-js">metaret</code>
@@ -512,7 +512,7 @@ this.)</p>
 </div>
 
 
-<h3>Mutual recursion example: Search a sorted array</h3>
+<h3 id="sec-sorted-search">Mutual recursion example: Search a sorted array</h3>
 
 <p>Source:</p>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
@@ -536,7 +536,7 @@ this.)</p>
 </div>
 
 
-<h3>Tests</h3>
+<h3 id="sec-tests">Tests</h3>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
       (function () {
         var s = document.getElementById('metaret-tests');
