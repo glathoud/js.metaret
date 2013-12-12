@@ -142,10 +142,35 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
         
         // Now we are ready to create the metafunction
         
-        g[ dot_arr[ 0 ] ] = (is_fun  ?  NormalFunction  :  MetaFunction)( name, param, body, _global_name2info );
+        var remember = ( 
+            '\n' + (is_fun  ?  'function'  :  'metafun' ) + ' ' + name + '( ' + param + ')'
+        ).replace( /([\r\n])/g, '$1// --- ' )
+            + '\n\n'
+        ;
+
+        g[ dot_arr[ 0 ] ] = (is_fun  ?  NormalFunction  :  MetaFunction)( name, param, remember + body, _global_name2info );
 
     }
     
+    function NormalFunction( name, param, body, name2info )
+    {
+        _checkNameNotUsedYet( name2info, name );
+
+        var impl = new Function( param, body )
+
+        ,   info = name2info[ name ] = 
+            { 
+                name        : name  
+                , origParam : param  
+                , origBody  : body  
+                , impl      : impl
+                , name2info : name2info 
+            }
+        ;
+
+        return impl;
+    }
+
     function MetaFunction(
         /*string*/name
         , /* string like "self,a,b,c" */param
@@ -335,7 +360,6 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
             {
                 var code = [ 
                     ''
-                    , '/* ' + info.name + ' */'
                     , 'case ' + ind + ':' 
                 ]
                 

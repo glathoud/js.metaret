@@ -167,13 +167,13 @@ metafun sortedSearch.searchLast(self, sortedArray, i, j,
         # first_found # last_found # less # equal # x; 
 }   
   
-metafun sortedSearch.isFirstFound( self, sortedArray, i, equal, x )
+function sortedSearch.isFirstFound( sortedArray, i, equal, x )
 {
     return equal(x, sortedArray[i])  &&  
         (i < 1  ||  !equal(x, sortedArray[i - 1]));
 }
   
-metafun sortedSearch.isLastFound( self, sortedArray, j, equal, x)
+function sortedSearch.isLastFound( sortedArray, j, equal, x)
 {
     return equal(x, sortedArray[j])  &&  
         (j > sortedArray.length - 2  || !equal(x, sortedArray[j + 1]));
