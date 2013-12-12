@@ -84,6 +84,9 @@ null
 Using the optional `less` and `equal` parameters, one can search any
 type of value, not just numbers.
 
+Implementation: joint bisection: alternatively improve `first` and
+`last`.
+
 */
 
 metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
@@ -110,15 +113,15 @@ metafun sortedSearch.searchFirst(self, sortedArray, i, j,
     first_found = first_found || 
         sortedSearch.isFirstFound(sortedArray, i, equal, x);                               
                                                                                                              
-    /* Termination tests */                                                                               
+    // Termination tests
                                                                                                        
     if (i > j)                                                                                         
-        return null;    /* Done: `x` not found. */                                                        
+        return null;    // Done: `x` not found.
                                                                                                        
     if (first_found && last_found)                                                                     
-        return [i, j];  /* Done: `x` found. */                                                            
+        return [i, j];  // Done: `x` found.
                                                                                                        
-    /* Update */                                                                                          
+    // Update
                                                                                                        
     if (!first_found)                                                                                  
     {                                                                                                  
@@ -131,7 +134,7 @@ metafun sortedSearch.searchFirst(self, sortedArray, i, j,
         if (less(v_ind, x) || 
             sortedSearch.isFirstFound(sortedArray, ind, equal, x)
         )
-            i = ind; /* Update */                                                                      
+            i = ind; // Update
     }                                                                                                  
                                                                                                         
     metaret sortedSearch.searchLast # sortedArray 
@@ -145,9 +148,9 @@ metafun sortedSearch.searchLast(self, sortedArray, i, j,
     last_found = last_found || 
         sortedSearch.isLastFound(sortedArray, j, equal, x);                                     
                                                                                                           
-    /* Termination tests already done in `searchFirst`, not needed here.*/                              
+    // Termination tests already done in `searchFirst`, not needed here.
                                                                                                           
-    /* Update */                                                                                             
+    // Update
                                                                                                           
     if (!last_found)                                                                                      
     {                                                                                                     
@@ -160,7 +163,7 @@ metafun sortedSearch.searchLast(self, sortedArray, i, j,
         if (less(x, v_ind) || 
             sortedSearch.isLastFound(sortedArray, ind, equal, x)
         )
-            j = ind; /* Update */                                                                            
+            j = ind; // Update
     }                                                                                                     
                                                                                                           
     metaret sortedSearch.searchFirst # sortedArray # i # j 
@@ -512,7 +515,7 @@ this.)</p>
 </div>
 
 
-<h3 id="sec-sorted-search">Mutual recursion example: Search a sorted array</h3>
+<h3 id="sec-sorted-search">Longer example: Search a sorted array</h3>
 
 <p>Source:</p>
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
