@@ -251,6 +251,7 @@
          bA.sort( compare_begin );
          
          build_bracket_tree( bA, ret.bracketTree );
+         build_bracket_sep_split( bA, nakedCodeNoRx, code );
 
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
@@ -311,6 +312,59 @@
              pile.push( x );
          }
      }
+
+
+     function build_bracket_sep_split( /*array*/bA, /*string*/nakedCodeNoRx, /*string*/code )
+     {
+         for (var i = bA.length; i--;)
+         {
+             var      x = bA[ i ]
+             ,     kids = x.bracketchildren
+             , nakedOne = nakedCodeNoRx.substring( x.begin, x.end )
+             ,   offset = x.begin;
+             ;
+             // Whitespace all brackedchildren
+             for (var j = kids.length; j--;)
+             {
+                 var  kid = kids[ j ];
+                 nakedOne = nakedOne.substring( 0, kid.begin - offset ) + 
+                     str_repli( ' ', kid.end - kid.begin ) 
+                     + nakedOne.substring( kid.end - offset )
+                 ;
+             }
+             // Now we can look for comma/semicolon splits without risking to
+             // match any comma/semicolon within a kid.
+
+             var rx = /[,;]/g
+             ,   sA = x.sepArr = []
+             ,   mo
+             ;
+             while (mo = rx.exec( nakedOne ))
+                 sA.push( { index : offset + mo.index, type : mo[ 0 ] } );
+
+             var arr = [ { index : offset, type : 'first' } ].concat( sA ).concat( [ { index : offset + nakedOne.length - 1, type : 'last' } ] )
+             ,   sS  = x.sepSplit = []
+             ;
+             for (var n = -1 + arr.length, j = 0; j < n; j++)
+             {
+                 var before = arr[ j ]
+                 ,   after  = arr[ j + 1 ]
+                 ,   begin  = before.index + 1
+                 ,   end    = after .index
+                 ,   str    = code.substring( begin, end )
+                 ;
+                 sS.push( { 
+                     begin : begin
+                     , end : end
+                     , str : str
+                     , sep_begin : before
+                     , sep_end   : after
+                 } );
+             }
+             
+         }
+     }
+
 
      function find_bracket( /*array*/outArr, /*string*/open, /*string*/close, /*string*/nakedCodeNoRx, code, typebracket )
      {
