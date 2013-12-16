@@ -301,6 +301,9 @@
              
              // Append
 
+             x.bracketparent   = last  ?  last  :  null;
+             x.bracketdepth    = pile.length;
+             
              if (last  &&  x.begin < last.end)
                  last.bracketchildren.push( x );
 
