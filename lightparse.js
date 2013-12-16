@@ -44,7 +44,11 @@
              , bracketcurlyArr          : []
              , bracketroundArr          : []
              , bracketsquareArr         : []
-             
+
+             /*dc*/// Brackets: derived values
+             , bracketArr               : []
+             , bracketTree              : []
+
          }/*}1*/
          ;
 
@@ -233,11 +237,20 @@
          var /*vd*/bcA/**/ = ret.bracketcurlyArr
          ,   /*vd*/brA/**/ = ret.bracketroundArr
          ,   /*vd*/bsA/**/ = ret.bracketsquareArr
+
+         ,    /*vd*/bA/**/ = ret.bracketArr
          ;
 
-         find_bracket( bcA, /*sq*/'{'/**/, /*sq*/'}'/**/, nakedCodeNoRx, code );
-         find_bracket( brA, /*sq*/'('/**/, /*sq*/')'/**/, nakedCodeNoRx, code );
-         find_bracket( bsA, /*sq*/'['/**/, /*sq*/']'/**/, nakedCodeNoRx, code );
+         find_bracket( bcA, /*sq*/'{'/**/, /*sq*/'}'/**/, nakedCodeNoRx, code, /*sq*/'curly'/**/ );
+         find_bracket( brA, /*sq*/'('/**/, /*sq*/')'/**/, nakedCodeNoRx, code, /*sq*/'round'/**/ );
+         find_bracket( bsA, /*sq*/'['/**/, /*sq*/']'/**/, nakedCodeNoRx, code, /*sq*/'square'/**/ );
+
+         bA.push.apply( bA, bcA );
+         bA.push.apply( bA, brA );
+         bA.push.apply( bA, bsA );
+         bA.sort( compare_begin );
+         
+         build_bracket_tree( bA, ret.bracketTree );
 
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
@@ -259,7 +272,7 @@
              }/*}8.1*/
          }/*}8*/
        
-         all.sort( function (a,b) /*{9*/{ return a.begin < b.begin  ?  -1  :  +1; }/*}9*/ )
+         all.sort( compare_begin );
          
          ret.allReverse = reversed( all );
          
@@ -269,7 +282,37 @@
 
      // --- Detail
 
-     function find_bracket( /*array*/outArr, /*string*/open, /*string*/close, /*string*/nakedCodeNoRx, code )
+     function compare_begin (a,b) { return a.begin < b.begin  ?  -1  :  +1; }
+
+     function build_bracket_tree( /*array*/inArr, /*array*/outTree )
+     {
+         var pile = [];
+         for (var n = inArr.length, i = 0; i < n; i++)
+         {
+             var x = inArr[ i ];
+             x.bracketchildren = [];
+
+             // Close
+             
+             var last;
+             while ((last = pile[ pile.length - 1])  &&  last.end < x.begin)
+                 pile.pop();
+             
+             // Append
+
+             if (last  &&  x.begin < last.end)
+                 last.bracketchildren.push( x );
+
+             else
+                 outTree.push( x );
+             
+             // Open
+
+             pile.push( x );
+         }
+     }
+
+     function find_bracket( /*array*/outArr, /*string*/open, /*string*/close, /*string*/nakedCodeNoRx, code, typebracket )
      {
          var pos = 0
          ,  pile = []
@@ -284,7 +327,7 @@
      
              if (pos_open < pos_close)
              {
-                 var x = { begin : pos_open };
+                 var x = { begin : pos_open, typebracket : typebracket };
                  outArr.push( x );
                  pile  .push( x );                     
                  
