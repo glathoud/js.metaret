@@ -25,7 +25,7 @@ var result, expected;
     assert( 'arrEqual( result.identifierArr, expected.identifierArr )' );
     assert( 'arrEqual( result.vardeclArr, expected.vardeclArr )' );
     assert( 'arrEqual( result.vardeclArr, result.identifierArr.filter( function (x) { return x.isVardecl; } ) )' );
-    assert( 'arrEqual( result.curlybracketArr, expected.curlybracketArr )' );
+    assert( 'arrEqual( result.bracketcurlyArr, expected.bracketcurlyArr )' );
     
     console.log( 'Successfuly tested `lightparse`.' );
 
@@ -55,7 +55,7 @@ var result, expected;
                    , dotArr        : dA
                    , dotcallArr    : dcaA
                    , identifierArr : iA
-                   , curlybracketArr : cbA
+                   , bracketcurlyArr : cbA
                  }
         ,   rx  = /((\/\*sq\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*dq\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*sc\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*dc\*\/)([^\r\n]*)())|((\/\*rr\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*vd\*\/)([\s\S]*?)(\/\*\*\/))/g
         ,   mo

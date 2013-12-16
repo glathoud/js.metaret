@@ -40,8 +40,10 @@
              , identifierObj        : /*{1.1*/{}/*}1.1*/
              , identifierObjReverse : /*{1.2*/{}/*}1.2*/
 
-             /*dc*/// Curly brackets pairs (blocks of code or objects).
-             , curlybracketArr          : []
+             /*dc*/// Bracket pairs
+             , bracketcurlyArr          : []
+             , bracketroundArr          : []
+             , bracketsquareArr         : []
              
          }/*}1*/
          ;
@@ -226,30 +228,17 @@
              ;
          }/*}6*/
          
-         /*dc*/// - Second, find curly bracket pairs and classify them as
-         /*dc*///   either block or object.
+         /*dc*/// - Second, find bracket pairs.
 
-         var /*vd*/cbA/**/ = ret.curlybracketArr
-         , /*vd*/cbRx/**/  = /*rr*//\{|\}/g/**/
-         , /*vd*/mo/**/
-         , /*vd*/cbPairPile/**/ = []
+         var /*vd*/bcA/**/ = ret.bracketcurlyArr
+         ,   /*vd*/brA/**/ = ret.bracketroundArr
+         ,   /*vd*/bsA/**/ = ret.bracketsquareArr
          ;
-         while (mo = cbRx.exec( nakedCodeNoRx ))
-         /*{7*/{
-             if (mo[ 0 ] === /*sq*/'{'/**/) /*dc*///open
-             /*{7.1*/{
-                 var /*vd*/x/**/ = /*{7.1.1*/{ begin : mo.index }/*}7.1.1*/;
-                 cbPairPile.push( x );
-                 cbA.push( x );
-             }/*}7.1*/
-             else /*dc*///close
-             /*{7.2*/{
-                 var /*vd*/cb/**/ = cbPairPile.pop();
-                 cb.end = 1 + mo.index;
-                 cb.str = code.substring( cb.begin, cb.end );
-             }/*}7.2*/
-         }/*}7*/
-         
+
+         find_bracket( bcA, /*sq*/'{'/**/, /*sq*/'}'/**/, nakedCodeNoRx, code );
+         find_bracket( brA, /*sq*/'('/**/, /*sq*/')'/**/, nakedCodeNoRx, code );
+         find_bracket( bsA, /*sq*/'['/**/, /*sq*/']'/**/, nakedCodeNoRx, code );
+
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
 
@@ -279,6 +268,49 @@
      }/*}0*/
 
      // --- Detail
+
+     function find_bracket( /*array*/outArr, /*string*/open, /*string*/close, /*string*/nakedCodeNoRx, code )
+     {
+         var pos = 0
+         ,  pile = []
+         ;
+         while (true)
+         {
+             var pos_open  = nakedCodeNoRx.indexOf( open,  pos )
+             ,   pos_close = nakedCodeNoRx.indexOf( close, pos )
+             ;
+             if (0 > pos_open)  pos_open  = +Infinity;
+             if (0 > pos_close) pos_close = +Infinity;
+     
+             if (pos_open < pos_close)
+             {
+                 var x = { begin : pos_open };
+                 outArr.push( x );
+                 pile  .push( x );                     
+                 
+                 pos = 1 + pos_open;
+             }
+             else if (pos_close < pos_open)
+             {
+                 if (!pile.length)
+                     throw new Error( 'Unbalanced brackets: missing an opening "' + open + '".' );
+                 
+                 var x = pile.pop();
+                 x.end = 1 + pos_close;
+                 x.str = code.substring( x.begin, x.end );
+                 
+                 pos = 1 + pos_close;
+             }
+             else
+             {
+                 break;
+             }
+         }
+
+         if (pile.length !== 0)
+             throw new Error( 'Unbalanced brackets: missing a closing "' + close + '".' );
+     }
+          
 
      function reversed( arr )
      {
