@@ -25,6 +25,7 @@ var result, expected;
     assert( 'arrEqual( result.identifierArr, expected.identifierArr )' );
     assert( 'arrEqual( result.vardeclArr, expected.vardeclArr )' );
     assert( 'arrEqual( result.vardeclArr, result.identifierArr.filter( function (x) { return x.isVardecl; } ) )' );
+    assert( 'arrEqual( result.curlybracketArr, expected.curlybracketArr )' );
     
     console.log( 'Successfuly tested `lightparse`.' );
 
@@ -44,6 +45,7 @@ var result, expected;
         ,   dA = []
         , dcaA = []
         ,   iA = []
+        ,  cbA = []
         ,  ret = { strArr       : sA 
                    , commentArr : cA
                    , regexpArr  : rxA
@@ -53,6 +55,7 @@ var result, expected;
                    , dotArr        : dA
                    , dotcallArr    : dcaA
                    , identifierArr : iA
+                   , curlybracketArr : cbA
                  }
         ,   rx  = /((\/\*sq\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*dq\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*sc\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*dc\*\/)([^\r\n]*)())|((\/\*rr\*\/)([\s\S]*?)(\/\*\*\/))|((\/\*vd\*\/)([\s\S]*?)(\/\*\*\/))/g
         ,   mo
@@ -93,6 +96,34 @@ var result, expected;
             
         }
         
+        // Similar action for curly bracket delimiter test comments
+        
+        var cb_open_rx = /\/\*\{([^\*]+?)\*\//g
+        , mo
+        ;
+        while (mo = cb_open_rx.exec( code ))
+        {
+            var delimitBegin = mo[ 0 ]
+            ,   begin        = mo.index + delimitBegin.length
+            ,   delimitEnd   = '/*}' + mo[ 1 ] + '*/'
+            ,   end          = code.indexOf( delimitEnd, begin )
+            ,   error
+            ;
+            if (cbA.length  &&  !(-1 < end))
+                error.bug;
+
+            var str = code.substring( begin, -1 < end  ?  end  :  code.length );  // code.length: special case of the top-level function
+
+            cbA.push( { begin : begin, str : str, end : end } );
+
+            // For the whiteout below
+            cA.push( { begin : mo.index, str : delimitBegin } );
+
+            if (-1 < end)
+                cA.push( { begin : end,      str : delimitEnd } );
+        }
+        
+        
         // White space the above things, so that we can then extract
         // reserved keywords and identifiers.
 
@@ -125,6 +156,11 @@ var result, expected;
             ;
         }
         
+
+        // Make sure that commentArr is sorted
+
+        cA.sort( function (a,b) { return a.begin > b.begin ? +1 : -1; } );
+
         return ret;
 
         function do_whitespace( arr )

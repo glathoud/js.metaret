@@ -23,9 +23,9 @@
      // comments and regexps, for unit testing: ./lightparse_test.js
 
      function lightparse( /*sc*//*string*//**/code, /*sc*//*?object?*//**/opt )
-     {
+     /*{0*/{
          var /*vd*/reservedArr/**/ = ((opt  &&  opt.reservedArr)  ||  RESERVED_ARR).concat( (opt  &&  opt.extraReservedArr)  ||  [] )
-         ,   /*vd*/ret/**/ = {
+         ,   /*vd*/ret/**/ = /*{1*/{
              strArr : []
              , commentArr  : []
              , regexpArr   : []
@@ -37,13 +37,13 @@
 
              /*dc*/// The last three are derived from `identifierArr`, for convenience.
              , identifierArrReverse : []
-             , identifierObj        : {}
-             , identifierObjReverse : {}
+             , identifierObj        : /*{1.1*/{}/*}1.1*/
+             , identifierObjReverse : /*{1.2*/{}/*}1.2*/
 
              /*dc*/// Curly brackets pairs (blocks of code or objects).
              , curlybracketArr          : []
              
-         }
+         }/*}1*/
          ;
 
          /*dc*/// Detect comments and strings, and produce a "nakedCode"
@@ -56,7 +56,7 @@
          , /*vd*/searchPosition/**/ = 0
          ;
          while (true)
-         {
+         /*{2*/{
              /*dc*/// Search for a string or comment, whichever comes first
 
              var /*vd*/sq/**/ = code.indexOf( /*dq*/"'"/**/ , searchPosition )
@@ -70,22 +70,22 @@
              ,   /*vd*/ind/**/  = -1
              ;
              for (var /*vd*/n/**/ = four.length, /*vd*/i/**/ = 0; i < n; i++)
-             {
+             /*{2.1*/{
                  var /*vd*/v/**/ = four[ i ];
                  if (-1 < v  &&  v < begin)
-                 {
+                 /*{2.1.1*/{
                      begin = v;
                      ind   = i;
-                 }
-             }
+                 }/*}2.1.1*/
+             }/*}2.1*/
 
              if (ind < 0)
-             {
+             /*{2.2*/{
                  /*dc*/// Not found
 
                  nakedCodeArr.push( code.substring( searchPosition ) );
                  break;
-             }
+             }/*}2.2*/
 
              /*dc*/// Found: find its end
 
@@ -104,7 +104,7 @@
              
              /*dc*/// Store
 
-             (ind < 2  ?  sA  :  ind < 4  ?  cA  :  rxA).push( { begin : begin,  str : code.substring( begin, end ) } );
+             (ind < 2  ?  sA  :  ind < 4  ?  cA  :  rxA).push( /*{2.3*/{ begin : begin,  str : code.substring( begin, end ) }/*}2.3*/ );
 
              /*dc*/// Prepare for identifier search
 
@@ -117,11 +117,11 @@
 
              searchPosition = end;
 
-         }
+         }/*}2*/
          
          /*dc*/// Detect identifiers and reserved words
          
-         var /*vd*/reservedObj/**/ = {};
+         var /*vd*/reservedObj/**/ = /*{2a*/{}/*}2a*/;
          for (var /*vd*/i/**/ = reservedArr.length; i--;)  
              reservedObj[ reservedArr[ i ] ] = 1;
          
@@ -147,7 +147,7 @@
          ,   /*vd*/mo/**/
          ;
          while (mo = rx.exec( nakedCode ))
-         {
+         /*{3*/{
              var  /*vd*/str/**/ = mo[ 0 ]
              ,    /*vd*/dot/**/ = mo[ 1 ]
              ,   /*vd*/name/**/ = mo[ 2 ]
@@ -160,10 +160,10 @@
                      :                     iA
              )
              ,   /*vd*/begin/**/ = mo.index
-             ,   /*vd*/x/**/     = { str : str,  begin : begin , name : name } 
+             ,   /*vd*/x/**/     = /*{3.a1*/{ str : str,  begin : begin , name : name }/*}3.a1*/ 
              ;
              if (arr === iA)
-             {
+             /*{3.1*/{
                  var /*vd*/codeBefore/**/ = nakedCode.substring( 0, begin )
                  ,   /*vd*/codeAfter/**/  = nakedCode.substring( begin + name.length )
                  ;
@@ -176,11 +176,11 @@
                      rx_forIn_before.test( codeBefore )  &&  
                       rx_forIn_after.test( codeAfter )
                  );
-             }
+             }/*}3.1*/
              
              arr.push( x );
 
-         }
+         }/*}3*/
          
          /*dc*/// Identifiers: a few derived values, for convenience
 
@@ -188,10 +188,10 @@
          ,   /*vd*/iR/**/ = ret.identifierArrReverse = reversed( iA )
          ,  /*vd*/vdA/**/ = ret.vardeclArr = []
          
-         ,   /*vd*/iO/**/  = ret.identifierObj = {}
+         ,   /*vd*/iO/**/  = ret.identifierObj = /*{3a*/{}/*}3a*/
          ;
          for (var /*vd*/n/**/ = iA.length, /*vd*/i/**/ = 0; i < n; i++)
-         {
+         /*{4*/{
              var /*vd*/x/**/ = iA[ i ];
              (
                  iO[ x.str ]  ||  (iO[ x.str ] = [])
@@ -201,14 +201,14 @@
 
              if (x.isVardecl)
                  vdA.push( x );
-         }
+         }/*}4*/
          
-         var /*vd*/iOR/**/ = ret.identifierObjReverse = {};
-         for (var /*vd*/str/**/ in iO) { if (!(str in iOR)) {
+         var /*vd*/iOR/**/ = ret.identifierObjReverse = /*{a5*/{}/*}a5*/;
+         for (var /*vd*/str/**/ in iO) /*{5*/{ if (!(str in iOR)) /*{5.1*/{
 
              iOR[ str ] = reversed( iO[ str ] );
              
-         }}
+         }/*}5.1*/}/*}5*/
          
          
          /*dc*/// Curly brackets (blocks of code or objects).
@@ -216,7 +216,7 @@
          /*dc*/// - First, white out each regexp.
          var /*vd*/nakedCodeNoRx/**/ = nakedCode;
          for (var /*vd*/i/**/ = rxA.length; i--;)
-         {
+         /*{6*/{
              var /*vd*/x/**/ = rxA[ i ]
              , /*vd*/len/**/ = x.str.length
              ;
@@ -224,7 +224,7 @@
                  str_repli( /*sq*/' '/**/, len ) + 
                  nakedCodeNoRx.substring( x.begin + len )
              ;
-         }
+         }/*}6*/
          
          /*dc*/// - Second, find curly bracket pairs and classify them as
          /*dc*///   either block or object.
@@ -235,31 +235,31 @@
          , /*vd*/cbPairPile/**/ = []
          ;
          while (mo = cbRx.exec( nakedCodeNoRx ))
-         {
+         /*{7*/{
              if (mo[ 0 ] === /*sq*/'{'/**/) /*dc*///open
-             {
-                 var /*vd*/x/**/ = { begin : mo.index };
+             /*{7.1*/{
+                 var /*vd*/x/**/ = /*{7.1.1*/{ begin : mo.index }/*}7.1.1*/;
                  cbPairPile.push( x );
                  cbA.push( x );
-             }
+             }/*}7.1*/
              else /*dc*///close
-             {
+             /*{7.2*/{
                  var /*vd*/cb/**/ = cbPairPile.pop();
                  cb.end = 1 + mo.index;
-                 cb.str = nakedCodeNoRx.substring( cb.begin, cb.end );
-             }
-         }
+                 cb.str = code.substring( cb.begin, cb.end );
+             }/*}7.2*/
+         }/*}7*/
          
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
 
          var /*vd*/all/**/ = ret.all = [];
          
-         for (var /*vd*/k/**/ in ret) {
+         for (var /*vd*/k/**/ in ret) /*{8*/{
              
              var /*vd*/mo/**/ = k.match( /*rr*//^(.+)Arr$//**/ );
              if (mo)
-             {
+             /*{8.1*/{
                  var /*vd*/arr/**/ = ret[ k ]
                  ,  /*vd*/type/**/ = mo[ 1 ]
                  ;
@@ -267,15 +267,16 @@
                      arr[ i ].type = type;
 
                  all.push.apply( all, arr );                 
-             }
-         }
+             }/*}8.1*/
+         }/*}8*/
        
-         all.sort( function (a,b) { return a.begin < b.begin  ?  -1  :  +1; } )
+         all.sort( function (a,b) /*{9*/{ return a.begin < b.begin  ?  -1  :  +1; }/*}9*/ )
          
          ret.allReverse = reversed( all );
          
          return ret;
-     }
+             
+     }/*}0*/
 
      // --- Detail
 
