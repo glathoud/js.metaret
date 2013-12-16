@@ -251,7 +251,7 @@
          bA.sort( compare_begin );
          
          build_bracket_tree( bA, ret.bracketTree );
-         build_bracket_sep_split( bA, nakedCodeNoRx, code );
+         build_bracket_sep_split( bA, nakedCodeNoRx, code, reservedArr );
 
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
@@ -314,7 +314,7 @@
      }
 
 
-     function build_bracket_sep_split( /*array*/bA, /*string*/nakedCodeNoRx, /*string*/code )
+         function build_bracket_sep_split( /*array*/bA, /*string*/nakedCodeNoRx, /*string*/code, /*array of string*/reservedArr )
      {
          for (var i = bA.length; i--;)
          {
@@ -335,21 +335,27 @@
              // Now we can look for comma/semicolon splits without risking to
              // match any comma/semicolon within a kid.
 
-             var rx = /[,;]/g
+             var rx = new RegExp(
+                 [ ',', ';' ].concat( reservedArr.map( function (w) { return '\\b' + w + '\\b' } ) )
+                     .join( '|' )
+                 , 'g' 
+             )
              ,   sA = x.sepArr = []
              ,   mo
              ;
              while (mo = rx.exec( nakedOne ))
                  sA.push( { index : offset + mo.index, type : mo[ 0 ] } );
 
-             var arr = [ { index : offset, type : 'first' } ].concat( sA ).concat( [ { index : offset + nakedOne.length - 1, type : 'last' } ] )
+             var FIRST = '<first>'
+             ,   LAST  = '<last>'
+             ,   arr = [ { index : offset, type : FIRST } ].concat( sA ).concat( [ { index : offset + nakedOne.length - 1, type : LAST } ] )
              ,   sS  = x.sepSplit = []
              ;
              for (var n = -1 + arr.length, j = 0; j < n; j++)
              {
                  var before = arr[ j ]
                  ,   after  = arr[ j + 1 ]
-                 ,   begin  = before.index + 1
+                 ,   begin  = before.index + (before.type !== FIRST  &&  before.type !== LAST  ?  before.type.length  :  1)
                  ,   end    = after .index
                  ,   str    = code.substring( begin, end )
                  ;
