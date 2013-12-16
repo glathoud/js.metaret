@@ -39,6 +39,10 @@
              , identifierArrReverse : []
              , identifierObj        : {}
              , identifierObjReverse : {}
+
+             /*dc*/// Curly brackets pairs (blocks of code or objects).
+             , curlybracketArr          : []
+             
          }
          ;
 
@@ -142,7 +146,7 @@
 
          ,   /*vd*/mo/**/
          ;
-         while ( mo = rx.exec( nakedCode ) )
+         while (mo = rx.exec( nakedCode ))
          {
              var  /*vd*/str/**/ = mo[ 0 ]
              ,    /*vd*/dot/**/ = mo[ 1 ]
@@ -206,6 +210,45 @@
              
          }}
          
+         
+         /*dc*/// Curly brackets (blocks of code or objects).
+         
+         /*dc*/// - First, white out each regexp.
+         var /*vd*/nakedCodeNoRx/**/ = nakedCode;
+         for (var /*vd*/i/**/ = rxA.length; i--;)
+         {
+             var /*vd*/x/**/ = rxA[ i ]
+             , /*vd*/len/**/ = x.str.length
+             ;
+             nakedCodeNoRx = nakedCodeNoRx.substring( 0, x.begin ) + 
+                 str_repli( /*sq*/' '/**/, len ) + 
+                 nakedCodeNoRx.substring( x.begin + len )
+             ;
+         }
+         
+         /*dc*/// - Second, find curly bracket pairs and classify them as
+         /*dc*///   either block or object.
+
+         var /*vd*/cbA/**/ = ret.curlybracketArr
+         , /*vd*/cbRx/**/  = /*rr*//\{|\}/g/**/
+         , /*vd*/mo/**/
+         , /*vd*/cbPairPile/**/ = []
+         ;
+         while (mo = cbRx.exec( nakedCodeNoRx ))
+         {
+             if (mo[ 0 ] === /*sq*/'{'/**/) /*dc*///open
+             {
+                 var /*vd*/x/**/ = { begin : mo.index };
+                 cbPairPile.push( x );
+                 cbA.push( x );
+             }
+             else /*dc*///close
+             {
+                 var /*vd*/cb/**/ = cbPairPile.pop();
+                 cb.end = 1 + mo.index;
+                 cb.str = nakedCodeNoRx.substring( cb.begin, cb.end );
+             }
+         }
          
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
