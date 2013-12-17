@@ -21,19 +21,7 @@
 //
 // Mutual recursion is also supported, as shown in ./metaret_test.html
 //
-// To avoid having to parse the whole code, and traverse complex
-// syntax trees [tomrec], I decided to use a simple "flat" parser
-// (./lightparse.js), and use "#" as separator in metaret calls:
-//
-//     metafun fact( self, k, acc )
-//     {
-//         acc  ||  (acc = 1);
-//         if (k > 1)
-//             metaret self # k - 1 # acc * k;
-//         else
-//             return acc;
-//     }
-//
+// 
 // References
 //
 // [Backus78] "Can Programming Be Liberated from the von Neumann
@@ -54,6 +42,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
     , METAFUN        = 'metafun'
     , METARET        = 'metaret'
     , EXTRA_RESERVED_ARR = [ METAFUN, METARET ]
+    , EXTRA_BRACKET_ARR  = [ { open : METARET, close : ';', name : METARET, ignore_unbalanced : true } ]
     ;
 
     // ---------- Public API
@@ -185,11 +174,11 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
       var fact = MetaFunction
       ( 
       'fact'            // <- same name string as the variable name `fact`
-      , 'self,k,acc'     // hashes in all identifiers to make parsing easy without a full-fledged JS parser
+      , 'self,k,acc'     
       , [ 
       'acc  ||  (acc = 1);'
       , 'if (k > 1)'
-      , '    metaret self # k - 1 # acc * k;'       // double comma to make parsing easy without a full-fledged JS parser
+      , '    metaret self, k - 1, acc * k;' 
       , 'else'
       , '    return acc;'
       ].join( '\n' )
@@ -250,7 +239,6 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
     var _RX_NAME      = /^[a-zA-Z_][\w\.]*$/
         , _RX_PARAM   = /^((?:^\s*|\s*,\s*)[a-zA-Z_]\w*(?:\s*))+$/
         , _RX_ACTION  = /^[a-zA-Z_]\w*?(\.[a-zA-Z_]\w*?)*$/
-        , _RX_METARET_ARGS = '^\\s+((\\S[\\S\\s]*?\\s*)(#\\s*\\S[\\S\\s]*?)*);'
     , _Aps            = Array.prototype.slice
     ;
 
@@ -427,7 +415,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
 
     function _extractVar( /*string*/body )
     {
-        var lp = lightparse( body, { extraReservedArr : EXTRA_RESERVED_ARR } )
+        var lp = lightparse( body, { extraReservedArr : EXTRA_RESERVED_ARR, extraBracketArr : EXTRA_BRACKET_ARR } )
         ,   iA = lp.identifierArr
         , ret = []
         ;
@@ -447,7 +435,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
 
     function _checkExtractMetaret( /*string*/body, /*string*/self, /*string*/selfName )
     {
-        var lp = lightparse( body, { extraReservedArr : EXTRA_RESERVED_ARR } )
+        var lp = lightparse( body, { extraReservedArr : EXTRA_RESERVED_ARR, extraBracketArr : EXTRA_BRACKET_ARR } )
         , resA = lp.reservedArr
         , ret  = []
         ;

@@ -25,6 +25,7 @@
      function lightparse( /*sc*//*string*//**/code, /*sc*//*?object?*//**/opt )
      /*{0*/{
          var /*vd*/reservedArr/**/ = ((opt  &&  opt.reservedArr)  ||  RESERVED_ARR).concat( (opt  &&  opt.extraReservedArr)  ||  [] )
+         ,   /*vd*/extraBracketArr/**/ = (opt  &&  opt.extraBracketArr)  ||  []
          ,   /*vd*/ret/**/ = /*{1*/{
              strArr : []
              , commentArr  : []
@@ -44,6 +45,7 @@
              , bracketcurlyArr          : []
              , bracketroundArr          : []
              , bracketsquareArr         : []
+             , bracketextraArr          : []
 
              /*dc*/// Brackets: derived values
              , bracketArr               : []
@@ -237,6 +239,7 @@
          var /*vd*/bcA/**/ = ret.bracketcurlyArr
          ,   /*vd*/brA/**/ = ret.bracketroundArr
          ,   /*vd*/bsA/**/ = ret.bracketsquareArr
+         ,   /*vd*/beA/**/ = ret.bracketextraArr
 
          ,    /*vd*/bA/**/ = ret.bracketArr
          ;
@@ -245,9 +248,19 @@
          find_bracket( brA, /*sq*/'('/**/, /*sq*/')'/**/, nakedCodeNoRx, code, /*sq*/'round'/**/ );
          find_bracket( bsA, /*sq*/'['/**/, /*sq*/']'/**/, nakedCodeNoRx, code, /*sq*/'square'/**/ );
 
+         for (var /*vd*/n/**/ = extraBracketArr.length, /*vd*/i/**/ = 0; i < n; i++)
+         /*{7*/{
+             var /*vd*/eb/**/ = extraBracketArr[ i ];
+             find_bracket( beA, eb.open, eb.close, nakedCodeNoRx, code, eb.name, eb.ignore_unbalanced );
+         }/*}7*/
+         if (n)
+             beA.sort( compare_begin );
+         
+
          bA.push.apply( bA, bcA );
          bA.push.apply( bA, brA );
          bA.push.apply( bA, bsA );
+         bA.push.apply( bA, beA );
          bA.sort( compare_begin );
          
          build_bracket_tree( bA, ret.bracketTree );
@@ -317,7 +330,7 @@
      }
 
 
-         function build_bracket_sep_split( /*array*/bA, /*string*/nakedCodeNoRx, /*string*/code, /*array of string*/reservedArr )
+     function build_bracket_sep_split( /*array*/bA, /*string*/nakedCodeNoRx, /*string*/code, /*array of string*/reservedArr )
      {
          for (var i = bA.length; i--;)
          {
@@ -326,6 +339,12 @@
              , nakedOne = nakedCodeNoRx.substring( x.begin, x.end )
              ,   offset = x.begin;
              ;
+             // Whitespace open and close
+             nakedOne = str_repli( ' ', x.open.length ) + 
+                 nakedOne.substring( x.open.length, nakedOne.length - x.close.length ) + 
+                 str_repli( ' ', x.close.length )
+             ;
+
              // Whitespace all brackedchildren
              for (var j = kids.length; j--;)
              {
@@ -339,7 +358,8 @@
              // match any comma/semicolon within a kid.
 
              var rx = new RegExp(
-                 [ ',', ';' ].concat( reservedArr.map( function (w) { return '\\b' + w + '\\b' } ) )
+                 [ ',', ';' ]
+                     .concat( reservedArr.map( function (w) { return '\\b' + w + '\\b' } ) )
                      .join( '|' )
                  , 'g' 
              )
@@ -351,7 +371,9 @@
 
              var FIRST = '<first>'
              ,   LAST  = '<last>'
-             ,   arr = [ { index : offset, type : FIRST } ].concat( sA ).concat( [ { index : offset + nakedOne.length - 1, type : LAST } ] )
+             ,   arr = [ { index : offset + x.open.length, type : FIRST } ]
+                 .concat( sA )
+                 .concat( [ { index : offset + nakedOne.length - x.close.length, type : LAST } ] )
              ,   sS  = x.sepSplit = []
              ;
              for (var n = -1 + arr.length, j = 0; j < n; j++)
@@ -375,7 +397,7 @@
      }
 
 
-     function find_bracket( /*array*/outArr, /*string*/open, /*string*/close, /*string*/nakedCodeNoRx, code, typebracket )
+     function find_bracket( /*array*/outArr, /*string*/open, /*string*/close, /*string*/nakedCodeNoRx, code, typebracket, /*?boolean?*/ignore_unbalanced )
      {
          var pos = 0
          ,  pile = []
@@ -390,7 +412,7 @@
      
              if (pos_open < pos_close)
              {
-                 var x = { begin : pos_open, typebracket : typebracket };
+                 var x = { begin : pos_open, typebracket : typebracket, open : open, close : close };
                  outArr.push( x );
                  pile  .push( x );                     
                  
@@ -399,11 +421,16 @@
              else if (pos_close < pos_open)
              {
                  if (!pile.length)
-                     throw new Error( 'Unbalanced brackets: missing an opening "' + open + '".' );
-                 
-                 var x = pile.pop();
-                 x.end = 1 + pos_close;
-                 x.str = code.substring( x.begin, x.end );
+                 {
+                     if (!ignore_unbalanced)
+                         throw new Error( 'Unbalanced brackets: missing an opening "' + open + '".' );
+                 }
+                 else
+                 {
+                     var x = pile.pop();
+                     x.end = 1 + pos_close;
+                     x.str = code.substring( x.begin, x.end );
+                 }
                  
                  pos = 1 + pos_close;
              }

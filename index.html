@@ -21,12 +21,11 @@ h1, h2, h3 { margin-top: 3em; }
 type="js-metaret-decl": meta-function declarations, using JavaScript
 augmented with two extra keywords `metafun` and `metaret`.
 
-`metaret` uses the hash symbol "#" as separator instead of comma ","
-so that a full parser is not needed (./lightparse.js suffices).
+`metaret` is NOT a function call, hence the absence of brackets.
 
-`metaret` is not a function call, but rather metacomposition,
-implemented here through by inlining code in an hygienic manner:
-renaming variables to prevent collisions.
+`metaret` rather means metacomposition, implemented here through by
+inlining code in an hygienic manner: renaming variables to prevent
+collisions.
 
 This way, the number of function calls is reduced to a bare minimum.
 
@@ -40,7 +39,7 @@ metafun fact( self, k, acc )
 {
     acc  ||  (acc = 1);
     if (k > 1)
-        metaret self # k - 1 # acc * k; // anonymous self-recursion
+        metaret self, k - 1, acc * k; // anonymous self-recursion
     else
         return acc;
 }
@@ -48,10 +47,10 @@ metafun fact( self, k, acc )
 metafun isEven( self, n )
 {
     if (n > 0)
-        metaret isOdd # n - 1; // mutual recursion
+        metaret isOdd, n - 1; // mutual recursion
 
     if (n < 0)
-        metaret self # -n;
+        metaret self, -n;
 
     return true;
 }
@@ -59,10 +58,10 @@ metafun isEven( self, n )
 metafun isOdd( self, n )
 {
     if (n > 0)
-        metaret isEven # n - 1;
+        metaret isEven, n - 1;
 
     if (n < 0)
-        metaret self # -n;
+        metaret self, -n;
 
     return false; 
 }           
@@ -103,8 +102,8 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
     less  ||  (less = function (a,b) { return a < b; });
     equal ||  (equal = function (a,b) { return a == b; });
     
-    metaret sortedSearch.searchFirst # sortedArray 
-        # 0 # sortedArray.length - 1 # false # false # less # equal # x;   
+    metaret sortedSearch.searchFirst, sortedArray,
+        , 0 , sortedArray.length - 1 , false , false , less , equal , x;   
 }
   
 metafun sortedSearch.searchFirst(self, sortedArray, i, j, 
@@ -138,8 +137,8 @@ metafun sortedSearch.searchFirst(self, sortedArray, i, j,
             i = ind; // Update
     }                                                                                                  
                                                                                                         
-    metaret sortedSearch.searchLast # sortedArray 
-        # i # j # first_found # last_found # less # equal # x;             
+    metaret sortedSearch.searchLast , sortedArray 
+        , i , j , first_found , last_found , less , equal , x;             
 }
       
 metafun sortedSearch.searchLast(self, sortedArray, i, j, 
@@ -167,8 +166,8 @@ metafun sortedSearch.searchLast(self, sortedArray, i, j,
             j = ind; // Update
     }                                                                                                     
                                                                                                           
-    metaret sortedSearch.searchFirst # sortedArray # i # j 
-        # first_found # last_found # less # equal # x; 
+    metaret sortedSearch.searchFirst , sortedArray , i , j 
+        , first_found , last_found , less , equal , x; 
 }   
   
 function sortedSearch.isFirstFound( sortedArray, i, equal, x )
@@ -255,7 +254,7 @@ var local_name2info = {}
         , 'self,k,acc'
 
         , 'acc ||  (acc = 0);  '
-          + 'if (k > 0)  metaret  self # k-1 # acc + k;'  // sum
+          + 'if (k > 0)  metaret  self , k-1 , acc + k;'  // sum
           + 'else        return acc;'
 
         , local_name2info
@@ -285,7 +284,7 @@ MetaDecl( 'some.name.space.fact2'
           , 'acc  ||  (acc = 0);'
 
           // sum of squares
-          + 'if (k > 0)  metaret  self # k-1 # acc + k * k;' 
+          + 'if (k > 0)  metaret  self , k-1 , acc + k * k;' 
           
           + 'else        return acc;'
         );
@@ -312,7 +311,7 @@ MetaDecl
         , 'if (k > 1)'
 
         // factorial
-        , '    metaret self # k - 1 # acc * k;'  
+        , '    metaret self , k - 1 , acc * k;'  
         
         , 'else'
         , '    return acc;'
@@ -330,9 +329,9 @@ MetaDecl
 (
       'metafun isEven2 ( self, n ) {'
       + ' if (n > 0)'
-      + '    metaret isOdd2 # n - 1;'
+      + '    metaret isOdd2 , n - 1;'
       + 'if (n < 0)'
-      + '    metaret self # -n;'
+      + '    metaret self , -n;'
       + 'return true;'
       + '}'
 );
@@ -342,9 +341,9 @@ MetaDecl
 (
       'isOdd2(self,n) {'
       + 'if (n > 0)'
-      + '    metaret isEven2 # n - 1;'
+      + '    metaret isEven2 , n - 1;'
       + 'if (n < 0)'
-      + '    metaret self # -n;'
+      + '    metaret self , -n;'
       + 'return false;'
       + '}'
 );
@@ -486,7 +485,7 @@ no need for a Y&nbsp;combinator or <code class="prettyprint lang-js">arguments.c
 </p>
 
 <pre class="prettyprint lang-js"><code>
-        metaret self # k - 1 # acc * k; // anonymous self-recursion
+        metaret self , k - 1 , acc * k; // anonymous self-recursion
 
 </code></pre>
 
