@@ -436,8 +436,8 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
     function _checkExtractMetaret( /*string*/body, /*string*/self, /*string*/selfName )
     {
         var lp = lightparse( body, { extraReservedArr : EXTRA_RESERVED_ARR, extraBracketArr : EXTRA_BRACKET_ARR } )
-        , resA = lp.reservedArr
-        , ret  = []
+        ,  beA = lp.bracketextraArr
+        ,  ret = []
         ;
 
         // Remember
@@ -448,20 +448,15 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
 
         // Parse
 
-        for (var resN = resA.length, resI = 0; resI < resN; resI++)
+        for (var beA_n = beA.length, beA_i = 0; beA_i < beA_n; beA_i++)
         {
-            var x = resA[ resI ];
-            if (x.str !== METARET)
+            var x = beA[ beA_i ];
+            if (x.typebracket !== METARET)
                 continue;
 
-            var exprStr = body.substring( x.begin + x.str.length ).match( _RX_METARET_ARGS )[ 0 ]
-            ,   exprArr = exprStr.replace( /\s*;\s*$/, '' ).split( '#' )
-            , n         = exprArr.length
+            var exprArr = x.sepSplit.map( function (o) { return o.str.replace( /^\s+/, '' ).replace( /\s+$/, '' ); } )
+            ,    action = exprArr.length > 1  &&  exprArr.splice( ACTION_PARAM, 1 )[ 0 ]
             ;
-            for (var i = n ; i-- ; ) 
-                exprArr[ i ] = exprArr[ i ].replace( /^\s+/, '' ).replace( /\s+$/, '' );
-            
-            var action = n > 1  &&  exprArr.splice( ACTION_PARAM, 1 )[ 0 ];
             if (!action)
                 throw new Error('MetaFunction : _checkExtractMetaret() : A `metaret` needs at least an action.');
             
@@ -477,7 +472,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
             ret.push( { exprArr  : exprArr  // array of string
                         , isSelf : isSelf
                         , action : isSelf ? selfName : action   // string
-                        , end    : x.begin + x.str.length + exprStr.length
+                        , end    : x.end
                         , start  : x.begin
                       }
                     );
