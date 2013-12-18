@@ -1,17 +1,19 @@
 (function (global)
  {
-     var RESERVED_ARR = [     // ECMAScript 5, Section 7.6
+     var RETURN = 'return'
+     ,   VAR    = 'var'
+     ,   RESERVED_ARR = [     // ECMAScript 5, Section 7.6
          
          "break", "case", "catch", "continue", "debugger", "default", "delete", "do", "else", "finally", "for", "function", "if", "in", "instanceof"
-         , "new", "return", "switch", "this", "throw", "try", "typeof", "var", "void", "while", "with"
+         , "new", RETURN, "switch", "this", "throw", "try", "typeof", VAR, "void", "while", "with"
          
          , "class", "const", "enum", "export", "extends", "import", "super"
          
          , "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield"
      ]
      , EXTRA_BRACKET_ARR = [
-         { open : 'return', close : ';', typebracket : 'return', ignore_unbalanced : true }
-         , { open : 'var',  close : [ ';', 'in' ], typebracket : 'var', ignore_unbalanced : true }
+         { open : RETURN, close : ';', typebracket : RETURN, ignore_unbalanced : true }
+         , { open : VAR,  close : [ ';', 'in' ], typebracket : VAR, ignore_unbalanced : true }
      ]
      ;
      
@@ -145,18 +147,7 @@
          ,   /*vd*/iA/**/        = ret.identifierArr
          ,   /*vd*/nakedCode/**/ = nakedCodeArr.join( /*sq*/''/**/ )
          ,   /*vd*/rx/**/        = /*rr*//(\.\s*)?(\b[_a-zA-Z]\w*\b)(\s*\()?/g/**/
-
-         /*dc*/// rx_varDecl_*: Good but not 100% sure -> xxx at some
-         /*dc*/// point we need to parse a bit more the var
-         /*dc*/// statements. In particular, this RegExp "solution"
-         /*dc*/// requires to close var with a ";".
-         ,   /*vd*/rx_varDecl_before/**/ = /*rr*//\bvar[\s\r\n]+([^;]*,\s*)?$//**/
-         ,   /*vd*/rx_varDecl_after/**/  = /*rr*//^\s*(=[^=]|,|;)//**/
-         ,   /*vd*/rx_notVarDecl_after/**/ = /*rr*//^[^=;]*[\)\}\]]//**/
          
-         ,   /*vd*/rx_forIn_before/**/  = /*rr*//for\s*\(\s*var\s+$//**/
-         ,   /*vd*/rx_forIn_after/**/   = /*rr*//^\s+in\s+//**/
-
          ,   /*vd*/mo/**/
          ;
          while (mo = rx.exec( nakedCode ))
@@ -174,54 +165,10 @@
              )
              ,   /*vd*/begin/**/ = mo.index
              ,   /*vd*/x/**/     = /*{3.a1*/{ str : str,  begin : begin , name : name }/*}3.a1*/ 
-             ;
-             if (arr === iA)
-             /*{3.1*/{
-                 var /*vd*/codeBefore/**/ = nakedCode.substring( 0, begin )
-                 ,   /*vd*/codeAfter/**/  = nakedCode.substring( begin + name.length )
-                 ;
-                 
-                 x.isVardecl = (
-                     rx_varDecl_after.test( codeAfter )  &&  
-                         !rx_notVarDecl_after.test( codeAfter )  &&  
-                         rx_varDecl_before.test( codeBefore )
-                 )  ||  (
-                     rx_forIn_before.test( codeBefore )  &&  
-                      rx_forIn_after.test( codeAfter )
-                 );
-             }/*}3.1*/
-             
+             ;             
              arr.push( x );
 
          }/*}3*/
-         
-         /*dc*/// Identifiers: a few derived values, for convenience
-
-         var /*vd*/iA/**/ = ret.identifierArr
-         ,   /*vd*/iR/**/ = ret.identifierArrReverse = reversed( iA )
-         ,  /*vd*/vdA/**/ = ret.vardeclArr = []
-         
-         ,   /*vd*/iO/**/  = ret.identifierObj = /*{3a*/{}/*}3a*/
-         ;
-         for (var /*vd*/n/**/ = iA.length, /*vd*/i/**/ = 0; i < n; i++)
-         /*{4*/{
-             var /*vd*/x/**/ = iA[ i ];
-             (
-                 iO[ x.str ]  ||  (iO[ x.str ] = [])
-             )
-                 .push( x.begin )
-             ;
-
-             if (x.isVardecl)
-                 vdA.push( x );
-         }/*}4*/
-         
-         var /*vd*/iOR/**/ = ret.identifierObjReverse = /*{a5*/{}/*}a5*/;
-         for (var /*vd*/str/**/ in iO) /*{5*/{ if (!(str in iOR)) /*{5.1*/{
-
-             iOR[ str ] = reversed( iO[ str ] );
-             
-         }/*}5.1*/}/*}5*/
          
          
          /*dc*/// Curly brackets (blocks of code or objects).
@@ -280,6 +227,61 @@
                  
          build_bracket_tree( bA, ret.bracketTree );
          build_bracket_sep_split( bA, nakedCodeNoRx, code, reservedArr );
+
+
+         /*dc*/// Mark which identifier instances are var declarations.
+         
+         var /*vd*/tmp/**/ = bA
+             .filter( function (x) /*{c8*/{ return x.typebracket === VAR; }/*}c8*/ )
+             .reduce( function (a,b) /*{b8*/{ return a.concat( b.sepSplit ); }/*}b8*/
+                      , [] 
+                    )
+         ;
+         for (var /*vd*/iA_i/**/ = 0
+              , /*vd*/n/**/ = tmp.length
+              , /*vd*/i/**/ = 0; i < n; i++)
+         /*{a8*/{
+             var /*vd*/x/**/ = tmp[ i ]
+             ,  /*vd*/id/**/
+             ;
+             while ((id = iA[ iA_i ]).begin < x.begin)
+             /*{a8.1*/{
+                 id.isVardecl = false;
+                 iA_i++;
+             }/*}a8.1*/
+             id.isVardecl = true;
+             iA_i++;
+         }/*}a8*/
+         
+
+         /*dc*/// Identifiers: a few derived values, for convenience
+
+         var /*vd*/iA/**/ = ret.identifierArr
+         ,   /*vd*/iR/**/ = ret.identifierArrReverse = reversed( iA )
+         ,  /*vd*/vdA/**/ = ret.vardeclArr = []
+         
+         ,   /*vd*/iO/**/  = ret.identifierObj = /*{3a*/{}/*}3a*/
+         ;
+         for (var /*vd*/n/**/ = iA.length, /*vd*/i/**/ = 0; i < n; i++)
+         /*{4*/{
+             var /*vd*/x/**/ = iA[ i ];
+             (
+                 iO[ x.str ]  ||  (iO[ x.str ] = [])
+             )
+                 .push( x.begin )
+             ;
+
+             if (x.isVardecl)
+                 vdA.push( x );
+         }/*}4*/
+         
+         var /*vd*/iOR/**/ = ret.identifierObjReverse = /*{a5*/{}/*}a5*/;
+         for (var /*vd*/str/**/ in iO) /*{5*/{ if (!(str in iOR)) /*{5.1*/{
+
+             iOR[ str ] = reversed( iO[ str ] );
+             
+         }/*}5.1*/}/*}5*/
+         
 
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
@@ -487,6 +489,9 @@
          for (var n = arr.length, i = 0; i < n; i++)
          {
              var one = arr[ i ];
+
+             if (i === 297)
+                 'xxx';
 
              if (one.open)
              {
