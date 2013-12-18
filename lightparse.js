@@ -11,6 +11,7 @@
      ]
      , EXTRA_BRACKET_ARR = [
          { open : 'return', close : ';', typebracket : 'return', ignore_unbalanced : true }
+         , { open : 'var',  close : [ ';', 'in' ], typebracket : 'var', ignore_unbalanced : true }
      ]
      ;
      
@@ -394,7 +395,7 @@
              {
                  var before = arr[ j ]
                  ,   after  = arr[ j + 1 ]
-                 ,   begin  = before.index + (before.type !== FIRST  &&  before.type !== LAST  ?  before.type.length  :  1)
+                 ,   begin  = before.index + (before.type !== FIRST  &&  before.type !== LAST  ?  before.type.length  :  0)
                  ,   end    = after .index
                  ,   str    = code.substring( begin, end )
                  ;
@@ -414,14 +415,24 @@
      function find_bracket( /*array*/cfgA, /*string*/nakedCodeNoRx, /*string*/code, /*array*/bA )
      {
          // First, find all open & close occurences, in a single pass
-         // to keep the order they appear from in `nakedCodeNoRx`.
+         // to keep the order they appear in `nakedCodeNoRx`.
          
          var rx = new RegExp(
              cfgA.map( function (o) { 
-                 return '(' + o.open.replace( /(\W)/g, '\\$1' ) + ')' + 
+                 var open  = fix( o.open )
+                 ,   close = fix( o.close )
+                 ;
+                 return '(' + open + ')' + 
                      '|' + 
-                     '(' + o.close.replace( /(\W)/g, '\\$1' ) + ')'
+                     '(' + close + ')'
                  ; 
+
+                 function fix( x )
+                 {
+                     return 'string' === typeof x  ?  x.replace( /(\W)/g, '\\$1' ).replace( /^(\w)/, '\\b$1' ).replace( /(\w)$/, '$1\\b' )
+                         : x.map( fix ).join( '|' )  // For a bracket with multiple possibilities e.g. var...; or var...in
+                     ;
+                 }
              } )
                  .join( '|' )
              , 'g'
@@ -449,13 +460,14 @@
              ,   cfgA_ind = ind2 >> 1
              ;
              
-             if (mo[0] !== cfgA[ cfgA_ind ][ is_close  ?  'close'  :  'open' ])
+             var sanity = cfgA[ cfgA_ind ][ is_close  ?  'close'  :  'open' ];
+             if (!('string' === typeof sanity  ?  mo[0] === sanity  :  -1 < sanity.indexOf( mo[ 0 ] )))
                  error.bug;  // Sanity check
-
+             
              var one = {
                  begin : mo.index
                  , end : mo.index + mo[ 0 ].length
-                 , cfg      : cfgA[ cfgA_ind ]
+                 , cfg : cfgA[ cfgA_ind ]
              };
 
              one[ is_close  ?  'close'  :  'open' ] = mo[ 0 ];
@@ -485,7 +497,8 @@
                          };
                  one.cfg.out_arr.push( x ); // Specific to this typebracket.
                  bA             .push( x ); // All types together, in order.
-                 pile           .push( x ); // Used below to close.
+
+                 pile           .push( { i : i, x : x } ); // Used below to close.
              }
              else
              {
@@ -495,27 +508,28 @@
                      if (!one.cfg.ignore_unbalanced)
                          throw new Error( 'Unbalanced brackets: missing an opening "' + one.cfg.open + '".' );
                  }
-                 else if (last.close !== one.cfg.close)
+                 else if ('string' === typeof last.x.close  ?  last.x.close !== one.close  :  0 > last.x.close.indexOf( one.close ))
                  {
-                     if (!one.cfg.ignore_unbalanced)
+                     if (!(arr[ last.i ].cfg.ignore_unbalanced  ||  one.cfg.ignore_unbalanced))
                      {
                          throw new Error( 
-                             'Unbalanced brackets: opening typebracket "' + last.typebracket + '" (' + last.begin + ')' + 
+                             'Unbalanced brackets: opening typebracket "' + last.x.typebracket + '" (' + last.x.begin + ')' + 
                                  ' does not match closing typebracket "' + one.cfg.typebracket + '" (' + one.begin + ').' 
                          );
                      }
                  }
                  else
                  {                 
-                     var x = pile.pop();
-                     x.end = one.end;
-                     x.str = code.substring( x.begin, x.end );
+                     var   x = pile.pop().x;
+                     x.close = one.close;
+                     x.end   = one.end;
+                     x.str   = code.substring( x.begin, x.end );
                  }
              }
          }
          
          if (pile.length !== 0)
-             throw new Error( 'Unbalanced brackets: missing a closing "' + pile[ pile.length - 1 ].close + '".' );
+             throw new Error( 'Unbalanced brackets: missing a closing "' + pile[ pile.length - 1 ].x.close + '".' );
      }
           
 
