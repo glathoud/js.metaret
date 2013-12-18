@@ -42,7 +42,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
     , METAFUN        = 'metafun'
     , METARET        = 'metaret'
     , EXTRA_RESERVED_ARR = [ METAFUN, METARET ]
-    , EXTRA_BRACKET_ARR  = [ { open : METARET, close : ';', name : METARET, ignore_unbalanced : true } ]
+    , EXTRA_BRACKET_ARR  = [ { open : METARET, close : ';', typebracket : METARET, ignore_unbalanced : true } ]
     ;
 
     // ---------- Public API

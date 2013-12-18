@@ -8,7 +8,11 @@
          , "class", "const", "enum", "export", "extends", "import", "super"
          
          , "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield"
-     ];
+     ]
+     , EXTRA_BRACKET_ARR = [
+         { open : 'return', close : ';', typebracket : 'return', ignore_unbalanced : true }
+     ]
+     ;
      
      global.lightparse = lightparse;
      
@@ -25,7 +29,7 @@
      function lightparse( /*sc*//*string*//**/code, /*sc*//*?object?*//**/opt )
      /*{0*/{
          var /*vd*/reservedArr/**/ = ((opt  &&  opt.reservedArr)  ||  RESERVED_ARR).concat( (opt  &&  opt.extraReservedArr)  ||  [] )
-         ,   /*vd*/extraBracketArr/**/ = (opt  &&  opt.extraBracketArr)  ||  []
+         ,   /*vd*/extraBracketArr/**/ = EXTRA_BRACKET_ARR.concat( (opt  &&  opt.extraBracketArr)  ||  [] )
          ,   /*vd*/ret/**/ = /*{1*/{
              strArr : []
              , commentArr  : []
@@ -242,27 +246,37 @@
          ,   /*vd*/beA/**/ = ret.bracketextraArr
 
          ,    /*vd*/bA/**/ = ret.bracketArr
+
+         , /*vd*/find_bracket_cfg/**/ = [
+             /*{7a*/{
+                 out_arr : bcA
+                 , open  : /*sq*/'{'/**/
+                 , close : /*sq*/'}'/**/
+                 , typebracket  : /*sq*/'curly'/**/
+             }/*}7a*/
+             , /*{7b*/{
+                 out_arr : brA
+                 , open  : /*sq*/'('/**/
+                 , close : /*sq*/')'/**/
+                 , typebracket  : /*sq*/'round'/**/
+             }/*}7b*/
+             , /*{7c*/{
+                 out_arr : bsA
+                 , open  : /*sq*/'['/**/
+                 , close : /*sq*/']'/**/
+                 , typebracket  : /*sq*/'square'/**/
+             }/*}7c*/
+         ].concat( extraBracketArr.map( function (x) /*{7d*/{
+             
+             var /*vd*/ret/**/ = Object.create( x ); 
+             ret.out_arr = beA; 
+             return ret; 
+             
+         }/*}7d*/ ) )
          ;
-
-         find_bracket( bcA, /*sq*/'{'/**/, /*sq*/'}'/**/, nakedCodeNoRx, code, /*sq*/'curly'/**/ );
-         find_bracket( brA, /*sq*/'('/**/, /*sq*/')'/**/, nakedCodeNoRx, code, /*sq*/'round'/**/ );
-         find_bracket( bsA, /*sq*/'['/**/, /*sq*/']'/**/, nakedCodeNoRx, code, /*sq*/'square'/**/ );
-
-         for (var /*vd*/n/**/ = extraBracketArr.length, /*vd*/i/**/ = 0; i < n; i++)
-         /*{7*/{
-             var /*vd*/eb/**/ = extraBracketArr[ i ];
-             find_bracket( beA, eb.open, eb.close, nakedCodeNoRx, code, eb.name, eb.ignore_unbalanced );
-         }/*}7*/
-         if (n)
-             beA.sort( compare_begin );
          
-
-         bA.push.apply( bA, bcA );
-         bA.push.apply( bA, brA );
-         bA.push.apply( bA, bsA );
-         bA.push.apply( bA, beA );
-         bA.sort( compare_begin );
-         
+         find_bracket( find_bracket_cfg, nakedCodeNoRx, code, bA );
+                 
          build_bracket_tree( bA, ret.bracketTree );
          build_bracket_sep_split( bA, nakedCodeNoRx, code, reservedArr );
 
@@ -397,51 +411,111 @@
      }
 
 
-     function find_bracket( /*array*/outArr, /*string*/open, /*string*/close, /*string*/nakedCodeNoRx, code, typebracket, /*?boolean?*/ignore_unbalanced )
+     function find_bracket( /*array*/cfgA, /*string*/nakedCodeNoRx, /*string*/code, /*array*/bA )
      {
-         var pos = 0
-         ,  pile = []
+         // First, find all open & close occurences, in a single pass
+         // to keep the order they appear from in `nakedCodeNoRx`.
+         
+         var rx = new RegExp(
+             cfgA.map( function (o) { 
+                 return '(' + o.open.replace( /(\W)/g, '\\$1' ) + ')' + 
+                     '|' + 
+                     '(' + o.close.replace( /(\W)/g, '\\$1' ) + ')'
+                 ; 
+             } )
+                 .join( '|' )
+             , 'g'
+         )
+         ,   arr = []
+         ,   mo
+         ,   error
          ;
-         while (true)
+         while (mo = rx.exec( nakedCodeNoRx ))
          {
-             var pos_open  = nakedCodeNoRx.indexOf( open,  pos )
-             ,   pos_close = nakedCodeNoRx.indexOf( close, pos )
-             ;
-             if (0 > pos_open)  pos_open  = +Infinity;
-             if (0 > pos_close) pos_close = +Infinity;
-     
-             if (pos_open < pos_close)
+             var ind2 = -1;
+             for (var i = mo.length; i--;)
              {
-                 var x = { begin : pos_open, typebracket : typebracket, open : open, close : close };
-                 outArr.push( x );
-                 pile  .push( x );                     
-                 
-                 pos = 1 + pos_open;
+                 if (mo[ i ])
+                 {
+                     ind2 = i-1;
+                     break;
+                 }
              }
-             else if (pos_close < pos_open)
+             
+             if (!(-1 < ind2))
+                 error.bug;  // Sanity check
+             
+             var is_close = 1 & ind2
+             ,   cfgA_ind = ind2 >> 1
+             ;
+             
+             if (mo[0] !== cfgA[ cfgA_ind ][ is_close  ?  'close'  :  'open' ])
+                 error.bug;  // Sanity check
+
+             var one = {
+                 begin : mo.index
+                 , end : mo.index + mo[ 0 ].length
+                 , cfg      : cfgA[ cfgA_ind ]
+             };
+
+             one[ is_close  ?  'close'  :  'open' ] = mo[ 0 ];
+
+             arr.push( one );
+         }
+
+         // Second, walk through open/close instances and pair them,
+         // using a pile to take care of encapsulation
+         //
+         // Store (1) into the array specific to each `typebracket`
+         // and (2) into the global array of all brackets: `bA`.
+         //
+         // Here too, we do a single pass to preserve order.
+
+         var pile = [];
+         for (var n = arr.length, i = 0; i < n; i++)
+         {
+             var one = arr[ i ];
+
+             if (one.open)
              {
-                 if (!pile.length)
-                 {
-                     if (!ignore_unbalanced)
-                         throw new Error( 'Unbalanced brackets: missing an opening "' + open + '".' );
-                 }
-                 else
-                 {
-                     var x = pile.pop();
-                     x.end = 1 + pos_close;
-                     x.str = code.substring( x.begin, x.end );
-                 }
-                 
-                 pos = 1 + pos_close;
+                 var x = { begin         : one.begin
+                           , typebracket : one.cfg.typebracket
+                           , open        : one.cfg.open
+                           , close       : one.cfg.close 
+                         };
+                 one.cfg.out_arr.push( x ); // Specific to this typebracket.
+                 bA             .push( x ); // All types together, in order.
+                 pile           .push( x ); // Used below to close.
              }
              else
              {
-                 break;
+                 var last = pile[ pile.length - 1 ];
+                 if (!last)
+                 {
+                     if (!one.cfg.ignore_unbalanced)
+                         throw new Error( 'Unbalanced brackets: missing an opening "' + one.cfg.open + '".' );
+                 }
+                 else if (last.close !== one.cfg.close)
+                 {
+                     if (!one.cfg.ignore_unbalanced)
+                     {
+                         throw new Error( 
+                             'Unbalanced brackets: opening typebracket "' + last.typebracket + '" (' + last.begin + ')' + 
+                                 ' does not match closing typebracket "' + one.cfg.typebracket + '" (' + one.begin + ').' 
+                         );
+                     }
+                 }
+                 else
+                 {                 
+                     var x = pile.pop();
+                     x.end = one.end;
+                     x.str = code.substring( x.begin, x.end );
+                 }
              }
          }
-
+         
          if (pile.length !== 0)
-             throw new Error( 'Unbalanced brackets: missing a closing "' + close + '".' );
+             throw new Error( 'Unbalanced brackets: missing a closing "' + pile[ pile.length - 1 ].close + '".' );
      }
           
 
