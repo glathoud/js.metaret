@@ -303,9 +303,53 @@
              }/*}8.1*/
          }/*}8*/
        
-         all.sort( compare_begin );
+         /*dc*/// Guarantee all have "end", guarantee unicity
+         for (var /*vd*/i/**/ = all.length; --i;)
+         /*{9*/{
+             var /*vd*/xi/**/ = all[ i ];
+             if (!(/*sq*/'end'/**/ in xi))
+                 xi.end = xi.begin + xi.str.length;
+         }/*}9*/
+
+         all.sort( compare_begin_end ); /*dc*/// This sort prepares to build a tree
          
+         /*dc*/// Guarantee unicity
+         for (var /*vd*/i/**/ = all.length; --i;)
+         /*{10*/{
+             var /*vd*/xi/**/ = all[ i ]
+             , /*vd*/xim1/**/ = all[ i - 1 ]
+             ;
+             if (xi.begin === xim1.begin  &&  xi.end === xim1.end)
+             /*{10.1*/{
+                 if (xi.type !== xim1.type) /*dc*/// Sanity check
+                     throw new Error( /*dq*/"Internal bug."/**/ );
+                 all.splice( i, 1 );
+             }/*}10.1*/
+         }/*}10*/
+
          ret.allReverse = reversed( all );
+
+         /*dc*/// Build a tree
+         var /*dc*/allTree/**/ = [].concat( all )
+         ,   /*dc*/i/**/ = 0
+         ;
+         while (i < allTree.length - 1)
+         /*{11*/{
+             var /*vd*/xi/**/ = allTree[ i ]
+             , /*vd*/xip1/**/ = allTree[ i + 1 ]
+             ;
+             if (xi.begin <= xip1.begin  &&  xip1.end <= xi.end)
+             /*{11.1*/{
+                 (xi.children  ||  (xi.children = []))
+                     .push( allTree.splice( i+1, 1 )[ 0 ] )
+                 ;
+             }/*}11.1*/
+             else
+             /*{11.2*/{
+                 i++;
+             }/*}11.2*/
+         }/*}11*/
+         ret.allTree = allTree;
          
          return ret;
              
@@ -314,6 +358,8 @@
      // --- Detail
 
      function compare_begin (a,b) { return a.begin < b.begin  ?  -1  :  +1; }
+
+     function compare_begin_end (a,b) { return a.begin < b.begin  ?  -1  :  a.begin > b.begin  ?  +1  :  a.end > b.end  ?  -1  :  +1; }
 
      function build_bracket_tree( /*array*/inArr, /*array*/outTree )
      {
