@@ -44,6 +44,17 @@ metafun fact( self, k, acc )
         return acc;
 }
 
+metafun gcd( self, a, b )
+{
+    if (a > b)
+        metaret self, a-b, b;
+    
+    if (b > a)
+        metaret self, b-a, a;
+    
+    return a; 
+}
+
 metafun isEven( self, n )
 {
     if (n > 0)
@@ -323,6 +334,9 @@ assert( '1 == fact2(1)' );
 assert( '2 == fact2(2)' );
 assert( '6 == fact2(3)' );
 assert( '24 == fact2(4)' );
+
+assert( '1 == gcd( 7, 5 )' );
+assert( '5*13 == gcd( 2 * 5 * 7 * 13, 5 * 13 * 19 )' );
 
 // Let us try the "one string" variant
 MetaDecl
