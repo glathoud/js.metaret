@@ -455,7 +455,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
                 continue;
 
             var exprArr = x.sepSplit.map( function (o) { return o.str.replace( /^\s+/, '' ).replace( /\s+$/, '' ); } )
-            ,    action = exprArr.length > 1  &&  exprArr.splice( ACTION_PARAM, 1 )[ 0 ]
+            ,    action = exprArr.length > ACTION_PARAM  &&  exprArr.splice( ACTION_PARAM, 1 )[ 0 ]
             ;
             if (!action)
                 throw new Error('MetaFunction : _checkExtractMetaret() : A `metaret` needs at least an action.');

@@ -114,13 +114,18 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
     less  ||  (less = function (a,b) { return a < b; });
     equal ||  (equal = function (a,b) { return a == b; });
     
-    metaret sortedSearch.improveFirst, sortedArray,
-        0, sortedArray.length - 1, false, false, less, equal, x;   
+    var first_found = false
+    ,    last_found = false
+    ,             i = 0
+    ,             j = sortedArray.length - 1
+    ,          imax = j
+    ,          jmin = i
+    ;
+
+    metaret sortedSearch.improveFirst;
 }
   
-metafun sortedSearch.improveFirst(self, sortedArray, i, j, 
-    first_found, last_found, less, equal, x
-)        
+metafun sortedSearch.improveFirst(self)
 {                                                                                                      
     first_found = first_found || 
         sortedSearch.isFirstFound(sortedArray, i, equal, x);                               
@@ -139,23 +144,22 @@ metafun sortedSearch.improveFirst(self, sortedArray, i, j,
     {                                                                                                  
         i++;                                                                                           
                                                                                                        
-        var ind = i + ((j - i) >> 1)                                                                   
+        var ind = i + ((imax - i) >> 1)                                                                   
         , v_ind = sortedArray[ind]                                                                     
         ;                                                                                              
                                                                                                        
         if (less(v_ind, x) || 
             sortedSearch.isFirstFound(sortedArray, ind, equal, x)
         )
-            i = ind; // Update
+            i = ind;
+        else
+            imax = ind;
     }                                                                                                  
                                                                                                         
-    metaret sortedSearch.improveLast, sortedArray,
-        i, j, first_found, last_found, less, equal, x;             
+    metaret sortedSearch.improveLast;
 }
       
-metafun sortedSearch.improveLast(self, sortedArray, i, j, 
-    first_found, last_found, less, equal, x 
-)           
+metafun sortedSearch.improveLast(self)
 {                                                                                                         
     last_found = last_found || 
         sortedSearch.isLastFound(sortedArray, j, equal, x);                                     
@@ -168,18 +172,19 @@ metafun sortedSearch.improveLast(self, sortedArray, i, j,
     {                                                                                                     
         j--;                                                                                              
                                                                                                           
-        var ind = j - ((j - i) >> 1)                                                                      
+        var ind = j - ((j - jmin) >> 1)                                                                      
         , v_ind = sortedArray[ind]                                                                        
         ;                                                                                                 
                                                                                                           
         if (less(x, v_ind) || 
             sortedSearch.isLastFound(sortedArray, ind, equal, x)
         )
-            j = ind; // Update
+            j = ind;
+        else
+            jmin = ind;
     }                                                                                                     
                                                                                                           
-    metaret sortedSearch.improveFirst, sortedArray, i, j,
-        first_found, last_found, less, equal, x; 
+    metaret sortedSearch.improveFirst;
 }   
   
 function sortedSearch.isFirstFound( sortedArray, i, equal, x )
