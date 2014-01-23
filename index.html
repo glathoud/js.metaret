@@ -23,10 +23,12 @@ h1, h2, h3 { margin-top: 3em; }
 type="js-metaret-decl": meta-function declarations, using JavaScript
 augmented with two extra keywords `metafun` and `metaret`.
 
+`metaret` is a sort of sanitized `goto`:
+
 `metaret` is NOT a function call, hence the absence of brackets.
 
 `metaret` rather means metacomposition, here implemented by inlining
-code in an hygienic manner: renaming variables to prevent collisions.
+code in an hygienic manner (renaming variables to avoid collisions).
 
 Inlining also reduces the number of function calls to a bare minimum,
 which improves runtime performance in many cases.

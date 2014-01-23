@@ -321,7 +321,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
             console.warn( 'MetaFunction : _createSolver:solveNoMetaret() no #metaret in body of metafunction "' + name + '".' );
             
             var newParam = info.newParam = paramArr
-            , newBody    = info.newBody  = origBody
+            , newBody    = info.newBody  = origBody.replace( /^\s+$/mg, '' )
             ;
             info.impl = new Function( newParam.join( ',' ), newBody );
         }
@@ -347,7 +347,9 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
                     
                 (children  &&  children.length  ?  '\n\n' + childrenCode( name2info, children ) + '\n'  :  '')
             )
+                .replace( /^\s+$/mg, '' )
             ;
+            
             info.impl = new Function( newParam.join( ',' ), newBody );
 
             // Store also for childrenCode
@@ -410,7 +412,9 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
 
                          :  []
 
-            ))).join( '\n' )
+            )))
+                .join( '\n' )
+                .replace( /^\s+$/mg, '' )
             ;
             
             info.impl = new Function( newParam.join( ',' ), newBody );
