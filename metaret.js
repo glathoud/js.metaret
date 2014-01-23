@@ -71,7 +71,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
                 continue;
             
             var metacode = s.textContent  ||  s.innerText
-            ,   lp       = lightparse( metacode, LIGHTPARSE_OPT );
+            ,   lp       = lightparse( metacode, LIGHTPARSE_OPT )
             ,   fmtree   = lp2fmtree( lp )
             ;
             rec_decl( fmtree );
@@ -91,7 +91,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
         if (fmtree.children)
             rec_decl( fmtree.children );
 
-        Decl( fmtree.fullname, fmtree.param, fmtree.body );
+        Decl( fmtree.fullname, fmtree.param_str, fmtree.body );
     }
     
     var _global_name2info = {};    
@@ -272,6 +272,8 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
         , origBody   = info.origBody
 
         , name2info  = info.name2info
+
+        , namespace_arr = name.split( '.' )
         ;
 
         return solve;
@@ -334,24 +336,15 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
             // rather than expanding recursively (faster than switch,
             // but code duplication).
             
-            var tmpArr  = [ name ].concat( metaretArr.hasAll() );
+            var  maha = metaretArr.hasAll()
+            
+            // Preserve order and prevent duplicate code
+            , infoArr = [ info ].concat( maha.infoArr.filter( function (other) { return other !== info; } ) )
 
-            // Prevent duplicate code, and keep the order.
-            var nameSet = {}
-            ,   nameArr = []
-            ;
-            for (var n = tmpArr.length, i = 0; i < n; i++)
-            {
-                var someName = tmpArr[ i ];
-                if (!(someName in nameSet))
-                {
-                    nameSet[ someName ] = 1;
-                    nameArr.push( someName );
-                }
-            }
- 
-            var infoArr  = nameArr.map( function (n) { return name2info[ n ]; } )
-            , against    = infoArr.map( function (info) { return info.paramArr.concat( info.origBody ); } )
+            // Fullnames (including namespace)
+            , nameArr = infoArr.map( function (info) { return info.name; } )
+
+            , against = infoArr.map( function (info) { return info.paramArr.concat( info.origBody ); } )
             , switch_ind_name = nameArr.switch_ind_name = _generateAddName( 'switch_ind', against )
             , switchLabel     = nameArr.switchLabel     = _generateAddName( 'L_switch', against )
             , undefName       = _generateAddName( 'undef', against )  // Avoid collision   
@@ -411,7 +404,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
                 'MetaFunction : _checkNameNotUsedYet : Invalid function name "' + name + '". The function name must match [a-zA-Z_][a-zA-Z_0-9]*'
             );
 
-        if (name in name2info)
+        if (name2info_has( name2info, name, [] ))
             throw new Error(
                 'MetaFunction : _checkNameNotUsedYet : Duplicate function name "' + name + '". The function name must be unique: ' + 
                     'MetaFunction can be called one time only with a given name.' 
@@ -493,6 +486,8 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
                         , action : isSelf ? selfName : action   // string
                         , end    : x.end
                         , start  : x.begin
+                        , namespace : selfName
+                        , namespace_arr : selfName.split( '.' )
                       }
                     );
         }
@@ -522,7 +517,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
         return this[ cache ] = arr.length  &&  arr;
     }
 
-    function hasAll(/*object*/name2info, /*?object?*/visited, /*?array of string?*/visitedArr)
+    function hasAll(/*object*/name2info, /*?object?*/visited, /*?object?*/visitedObj, /*?array of string?*/visitedArr)
     {
         // Returns  false | array of strings
      
@@ -532,12 +527,14 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
             var cache = 'hasAllResult';
             if (cache in this)  
                 return this[ cache ];
+
+            // Init
+
+            visitedObj = {};
+            visitedArr = [];
         }
 
         // Do the (possibly recursive) search
-        
-        visited     ||  (visited = {});
-        visitedArr  ||  (visitedArr = []);
 
         for (var i = this.length; i--; )
         {
@@ -549,23 +546,32 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
             if (!action)
                 throw new Error('MetaFunction : hasAll : Found a bug: empty metaret action (not permitted).');
 
-            if (action in visited)  // Prevent infinite cycles
+            if (action in visitedObj)  // Prevent infinite cycles
                 continue;
-
-            if (!(action in name2info))
+            
+            var info = name2info_get( name2info, action, x.namespace_arr );
+            if (!info)
                 return false;       // Failure
 
-            visited[ action ] = 1;
-            visitedArr.push( action );
+            if (info.name in visitedObj)
+                continue;
 
-            if (!name2info[ action ].metaretArr.hasAll( name2info, visited, visitedArr ))
+            visitedObj[ action ] = visitedObj[ info.name ] = info;
+            visitedArr.push( info );
+            
+            if (!info.metaretArr.hasAll( name2info, visited, visitedObj, visitedArr ))
                 return false;       // Failure
         }
 
         if (topLevel)
-            return this[ cache ] = visitedArr;   // Success
+            // Finished
+            return this[ cache ] = { 
+                vObj : visitedObj
+                , infoArr : visitedArr
+            };  
         else
-            return visitedArr;   // Not finished yet
+            // Not finished yet
+            return true;
     }
     
     function _dropAction( /*array of string*/paramArr )
@@ -655,7 +661,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
         function prepareCode( metaret, after_comment )
         {
             var code   = []
-            , info     = name2info[ metaret.action ]
+            , info     = name2info_get( name2info, metaret.action, metaret.namespace_arr )
             , paramArr = info.paramArr
             , exprArr  = metaret.exprArr
             ;
@@ -709,7 +715,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
                 else
                 {
                     // Moving to the body of another metafunction (switch style)
-                    var switch_ind = nameArr.indexOf( metaret.action );
+                    var switch_ind = nameArr.indexOf( info.name );
                     if (0 > switch_ind)
                     {
                         throw new Error('MetaFunction : _replaceMetaretWithContinue : prepareCode : Found a bug! Could not find the switch index of action "' +
@@ -797,4 +803,26 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
         }
     }
 
+    function name2info_has( /*object <fullname> -> info*/name2info, /*string*/name, /*array of string*/namespace_arr )
+    {
+        return !!name2info_get( name2info, name, namespace_arr );
+    }
+    
+    function name2info_get( /*object <fullname> -> info*/name2info, /*string*/name, /*array of string*/namespace_arr )
+    {
+        // Search first in the local namespace
+
+        var fullname = namespace_arr.concat( name ).join( '.' );
+        if (fullname in name2info)
+            return name2info[ fullname ];
+
+        // Else step up
+
+        if (namespace_arr.length)
+            return name2info_get( name2info, name, namespace_arr.slice( 0, -1 ) );
+
+        // Else not found
+        return false;
+    }
+    
 })(this);
