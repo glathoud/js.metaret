@@ -8,6 +8,9 @@
 
     ,   CALL    = 'call'
     ,   DOTCALL = 'dotcall'
+
+    ,   TYPE_BRACKET      = 'bracket'
+    ,   TYPEBRACKET_CURLY = 'curly'
     ;
 
     // ---------- Public API
@@ -52,7 +55,10 @@
             var one  = at[ i ];
             if (one.name === METAFUN  ||  one.name === FUNCTION)
             {
-                var dot_arr = []
+                var begin = one.begin
+                ,   end
+
+                ,   dot_arr = []
                 ,   next 
                 ;
                 do {
@@ -62,9 +68,13 @@
                     next.type !== DOTCALL  &&  next.type !== CALL
                 )
                 
-                var param = (next = at[ ++i ]).sepSplit.map( strip_comment_and_space )
+                var param = (next = at[ ++i ]).sepSplit.map( strip_comment_and_space );
 
-                ,   body_node = next = at[ ++i ]
+                while (next.type !== TYPE_BRACKET  ||  next.typebracket !== TYPEBRACKET_CURLY)
+                    next = at[ ++i ];
+
+                var body_node = next 
+                ,   end       = body_node.end
                 ,   body      = body_node.str
 
                 ,   fullname_arr = namespace.concat( dot_arr )
@@ -80,14 +90,21 @@
                 
                 for (var j = children.length; j--;)
                 {
-                    var kid = children[ j ];
-                    body = body.substring( 0, kid.body_node.begin ) + kid.body.replace( /[\s\S]/g, ' ' ) + body.substring( kid.body_node.end );
+                    var kid = children[ j ]
+                    ,     a = kid.begin - body_node.begin
+                    ,     b = kid.end   - body_node.begin
+                    ;
+                    body = body.substring( 0, a ) + body.substring( a, b ).replace( /[\s\S]/g, ' ' ) + body.substring( b );
                 }
                                 
-                var out = { fullname_arr : fullname_arr
+                var out = { begin : begin
+                            , end : end
+                            , fullname_arr : fullname_arr
                             , body_node : body_node
+                            , fm_node : one
                             , fullname : fullname
                             , param : param
+                            , param_str = param.join( ',' )  // e.g. for debugging
                             , body : body 
                             , children : children
                           };
@@ -105,4 +122,3 @@
     }
 
 }(this));
-

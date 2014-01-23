@@ -304,7 +304,7 @@
          }/*}8*/
        
          /*dc*/// Guarantee all have "end", guarantee unicity
-         for (var /*vd*/i/**/ = all.length; --i;)
+         for (var /*vd*/i/**/ = all.length; i--;)
          /*{9*/{
              var /*vd*/xi/**/ = all[ i ];
              if (!(/*sq*/'end'/**/ in xi))

@@ -144,6 +144,8 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
         {
             i++;
 
+            imax = Math.min( imax, j );
+
             var ind = i + ((imax - i) >> 1)
             , v_ind = sortedArray[ind]
             ;
@@ -172,6 +174,8 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
         if (!last_found)
         {
             j--;
+
+            jmin = Math.max( jmin, i );
 
             var ind = j - ((j - jmin) >> 1)
             , v_ind = sortedArray[ind]
