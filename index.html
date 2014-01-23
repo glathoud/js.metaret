@@ -128,7 +128,7 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
     metafun improveFirst(self)
     {
         first_found = first_found ||
-            sortedSearch.isFirstFound(sortedArray, i, equal, x);
+            isFirstFound(sortedArray, i, equal, x);
 
         // Termination tests
 
@@ -151,7 +151,7 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
             ;
 
             if (less(v_ind, x) ||
-                sortedSearch.isFirstFound(sortedArray, ind, equal, x)
+                isFirstFound(sortedArray, ind, equal, x)
                )
                 i = ind;
             else
@@ -165,9 +165,10 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
     metafun improveLast(self)
     {
         last_found = last_found ||
-            sortedSearch.isLastFound(sortedArray, j, equal, x);
+            isLastFound(sortedArray, j, equal, x);
 
-        // Termination tests already done in `improveFirst`, not needed here.
+        // Termination tests already done in `improveFirst`, 
+        // not needed here.
 
         // Update
 
@@ -182,7 +183,7 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
             ;
 
             if (less(x, v_ind) ||
-                sortedSearch.isLastFound(sortedArray, ind, equal, x)
+                isLastFound(sortedArray, ind, equal, x)
                )
                 j = ind;
             else
@@ -192,20 +193,21 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
         metaret improveFirst;
     }
 
+    function isFirstFound( sortedArray, i, equal, x )
+    {
+        return equal(x, sortedArray[i])  &&
+            (i < 1  ||  !equal(x, sortedArray[i - 1]));
+    }
+
+    function isLastFound( sortedArray, j, equal, x)
+    {
+        return equal(x, sortedArray[j])  &&
+            (j > sortedArray.length - 2  || !equal(x, sortedArray[j + 1]));
+    }
+
 }
 
 
-function sortedSearch.isFirstFound( sortedArray, i, equal, x )
-{
-    return equal(x, sortedArray[i])  &&
-        (i < 1  ||  !equal(x, sortedArray[i - 1]));
-}
-
-function sortedSearch.isLastFound( sortedArray, j, equal, x)
-{
-    return equal(x, sortedArray[j])  &&
-        (j > sortedArray.length - 2  || !equal(x, sortedArray[j + 1]));
-}
 </script>
 <script type="text/javascript" id="metaret-tests">
 var all_tests_passed = false;
@@ -564,9 +566,7 @@ this.)</p>
 
 <div id="generated-code-sortedSearch" class="screen-hidden">
 <pre class="prettyprint lang-js"><code><script type="text/javascript">
-      document.write( '' + sortedSearch.getImpl() );
-      document.write( '\n\n' + sortedSearch.isFirstFound );
-      document.write( '\n\n' + sortedSearch.isLastFound );
+document.write( '' + sortedSearch.getImpl() );
 </script></code></pre>
 </div>
 

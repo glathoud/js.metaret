@@ -56,9 +56,11 @@
 
             // Detect a named function/metafunction declaration,
             // ignore anonymous functions.
-            if ((one.name === METAFUN  ||  one.name === FUNCTION)  &&
-                at[ i+1 ].type !== TYPE_BRACKET
-               )
+
+            var isFunction     = one.name === FUNCTION
+            ,   isMetafunction = one.name === METAFUN
+            ;
+            if ((isFunction  ||  isMetafunction)  &&  at[ i+1 ].type !== TYPE_BRACKET )
             {
                 var begin = one.begin
                 ,   end
@@ -91,20 +93,26 @@
                 
                 var children = next.children  ?  lp2fmtree( next.children, fullname_arr )  :  [];
                 
-                // Remove children code from the body
+                // Remove metafun children code from the body
+                // (leave normal functions unchanged)
                 
                 for (var j = children.length; j--;)
                 {
-                    var kid = children[ j ]
-                    ,     a = kid.begin - body_node.begin
-                    ,     b = kid.end   - body_node.begin
-                    ;
-                    body = body.substring( 0, a ) + body.substring( a, b ).replace( /[\s\S]/g, ' ' ) + body.substring( b );
+                    var kid = children[ j ];
+                    if (kid.isMetafunction)
+                    {
+                        var a = kid.begin - body_node.begin
+                        ,   b = kid.end   - body_node.begin
+                        ;
+                        body = body.substring( 0, a ) + body.substring( a, b ).replace( /[\s\S]/g, ' ' ) + body.substring( b );
+                    }
                 }
                                 
                 var out = { begin : begin
                             , end : end
                             , fullname_arr : fullname_arr
+                            , isFunction     : isFunction
+                            , isMetafunction : isMetafunction
                             , body_node : body_node
                             , fm_node : one
                             , fullname : fullname

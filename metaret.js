@@ -74,24 +74,26 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
             ,   lp       = lightparse( metacode, LIGHTPARSE_OPT )
             ,   fmtree   = lp2fmtree( lp )
             ;
-            rec_decl( fmtree );
+            rec_decl( fmtree, /*isGlobal:*/true );
         }
     }
 
-    function rec_decl( fmtree )
+    function rec_decl( fmtree, /*?boolean?*/isGlobal )
     {
         if (fmtree instanceof Array)
         {
             for (var n = fmtree.length, i = 0; i < n; i++)
-                rec_decl( fmtree[ i ] );
+                rec_decl( fmtree[ i ], isGlobal );
             
             return;
         }
         
         if (fmtree.children)
-            rec_decl( fmtree.children );
+            rec_decl( fmtree.children, /*isGlobal*/false );
+        
 
-        Decl( fmtree.fullname, fmtree.param_str, fmtree.body );
+        if (fmtree.isMetafunction  ||  (fmtree.isFunction  &&  isGlobal))
+            Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.isFunction );
     }
     
     var _global_name2info = {};    
