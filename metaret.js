@@ -33,6 +33,8 @@
 if ('function' === typeof load  &&  'undefined' === typeof lightparse)
     load( 'lightparse.js' );  // V8, Rhino
 
+if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
+    load( 'lp2fmtree.js' );   // V8, Rhino
 
 ;(function (global) {
 
@@ -42,7 +44,8 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
     , METAFUN        = 'metafun'
     , METARET        = 'metaret'
     , EXTRA_RESERVED_ARR = [ METAFUN, METARET ]
-    , EXTRA_BRACKET_ARR  = [ { open : METARET, close : ';', typebracket : METARET, ignore_unbalanced : true } ]
+    ,  EXTRA_BRACKET_ARR  = [ { open : METARET, close : ';', typebracket : METARET, ignore_unbalanced : true } ]
+    ,     LIGHTPARSE_OPT = { extraReservedArr : EXTRA_RESERVED_ARR, extraBracketArr : EXTRA_BRACKET_ARR }
     ;
 
     // ---------- Public API
@@ -68,13 +71,29 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
                 continue;
             
             var metacode = s.textContent  ||  s.innerText
-            ,   arr      = metacode.match( _metaparse_rx )
+            ,   lp       = lightparse( metacode, LIGHTPARSE_OPT );
+            ,   fmtree   = lp2fmtree( lp )
             ;
-            for (var p = arr.length, j = 0; j < p; j++)
-                Decl( arr[ j ] );
+            rec_decl( fmtree );
         }
     }
 
+    function rec_decl( fmtree )
+    {
+        if (fmtree instanceof Array)
+        {
+            for (var n = fmtree.length, i = 0; i < n; i++)
+                rec_decl( fmtree[ i ] );
+            
+            return;
+        }
+        
+        if (fmtree.children)
+            rec_decl( fmtree.children );
+
+        Decl( fmtree.fullname, fmtree.param, fmtree.body );
+    }
+    
     var _global_name2info = {};    
 
     function MetaDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body )
@@ -415,7 +434,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
 
     function _extractVar( /*string*/body )
     {
-        var lp = lightparse( body, { extraReservedArr : EXTRA_RESERVED_ARR, extraBracketArr : EXTRA_BRACKET_ARR } )
+        var lp = lightparse( body, LIGHTPARSE_OPT )
         ,   iA = lp.identifierArr
         , ret = []
         ;
@@ -435,7 +454,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lightparse)
 
     function _checkExtractMetaret( /*string*/body, /*string*/self, /*string*/selfName )
     {
-        var lp = lightparse( body, { extraReservedArr : EXTRA_RESERVED_ARR, extraBracketArr : EXTRA_BRACKET_ARR } )
+        var lp = lightparse( body, LIGHTPARSE_OPT )
         ,  beA = lp.bracketextraArr
         ,  ret = []
         ;

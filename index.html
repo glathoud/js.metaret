@@ -15,6 +15,7 @@ h1, h2, h3 { margin-top: 3em; }
 @media only screen { .screen-hidden, .print { display: none; } }
 </style>
 <script type="text/javascript" src="lightparse.js"></script>
+<script type="text/javascript" src="lp2fmtree.js"></script>
 <script type="text/javascript" src="metaret.js"></script>
 <script type="text/js-metaret-decl" id="metaret-decls">
 /* 
@@ -121,70 +122,74 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
     ,          jmin = i
     ;
 
-    metaret sortedSearch.improveFirst;
-}
+    metaret improveFirst;
 
-metafun sortedSearch.improveFirst(self)
-{
-    first_found = first_found ||
-        sortedSearch.isFirstFound(sortedArray, i, equal, x);
 
-    // Termination tests
-
-    if (i > j)
-        return null;    // Done: `x` not found.
-
-    if (first_found && last_found)
-        return [i, j];  // Done: `x` found.
-
-    // Update
-
-    if (!first_found)
+    metafun improveFirst(self)
     {
-        i++;
+        first_found = first_found ||
+            sortedSearch.isFirstFound(sortedArray, i, equal, x);
 
-        var ind = i + ((imax - i) >> 1)
-        , v_ind = sortedArray[ind]
-        ;
+        // Termination tests
 
-        if (less(v_ind, x) ||
-            sortedSearch.isFirstFound(sortedArray, ind, equal, x)
-        )
-            i = ind;
-        else
-            imax = ind;
+        if (i > j)
+            return null;    // Done: `x` not found.
+
+        if (first_found && last_found)
+            return [i, j];  // Done: `x` found.
+
+        // Update
+
+        if (!first_found)
+        {
+            i++;
+
+            var ind = i + ((imax - i) >> 1)
+            , v_ind = sortedArray[ind]
+            ;
+
+            if (less(v_ind, x) ||
+                sortedSearch.isFirstFound(sortedArray, ind, equal, x)
+               )
+                i = ind;
+            else
+                imax = ind;
+        }
+
+        metaret improveLast;
     }
 
-    metaret sortedSearch.improveLast;
-}
 
-metafun sortedSearch.improveLast(self)
-{
-    last_found = last_found ||
-        sortedSearch.isLastFound(sortedArray, j, equal, x);
-
-    // Termination tests already done in `improveFirst`, not needed here.
-
-    // Update
-
-    if (!last_found)
+    metafun improveLast(self)
     {
-        j--;
+        last_found = last_found ||
+            sortedSearch.isLastFound(sortedArray, j, equal, x);
 
-        var ind = j - ((j - jmin) >> 1)
-        , v_ind = sortedArray[ind]
-        ;
+        // Termination tests already done in `improveFirst`, not needed here.
 
-        if (less(x, v_ind) ||
-            sortedSearch.isLastFound(sortedArray, ind, equal, x)
-        )
-            j = ind;
-        else
-            jmin = ind;
+        // Update
+
+        if (!last_found)
+        {
+            j--;
+
+            var ind = j - ((j - jmin) >> 1)
+            , v_ind = sortedArray[ind]
+            ;
+
+            if (less(x, v_ind) ||
+                sortedSearch.isLastFound(sortedArray, ind, equal, x)
+               )
+                j = ind;
+            else
+                jmin = ind;
+        }
+
+        metaret improveFirst;
     }
 
-    metaret sortedSearch.improveFirst;
 }
+
 
 function sortedSearch.isFirstFound( sortedArray, i, equal, x )
 {
