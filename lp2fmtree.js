@@ -104,7 +104,7 @@
                             , fm_node : one
                             , fullname : fullname
                             , param : param
-                            , param_str = param.join( ',' )  // e.g. for debugging
+                            , param_str : param.join( ',' )  // e.g. for debugging
                             , body : body 
                             , children : children
                           };

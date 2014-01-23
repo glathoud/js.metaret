@@ -330,8 +330,8 @@
          ret.allReverse = reversed( all );
 
          /*dc*/// Build a tree
-         var /*dc*/allTree/**/ = [].concat( all )
-         ,   /*dc*/i/**/ = 0
+         var /*vd*/allTree/**/ = [].concat( all )
+         ,   /*vd*/i/**/ = 0
          ;
          while (i < allTree.length - 1)
          /*{11*/{
