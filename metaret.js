@@ -92,24 +92,25 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
             rec_decl( fmtree.children, /*isGlobal*/false );
         
 
-        if (fmtree.isMetafunction  ||  (fmtree.isFunction  &&  isGlobal))
-            Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.isFunction );
+        Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.children, fmtree.isFunction );
     }
     
     var _global_name2info = {};    
 
-    function MetaDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body )
+    function MetaDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children )
     {
-        Decl( code_or_name, param, body, false );
+        Decl( code_or_name, param, body, children, false );
     }
 
-    function FunDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body )
+    function FunDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children )
     {
-        Decl( code_or_name, param, body, true );
+        Decl( code_or_name, param, body, children, true );
     }
 
-    function Decl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?boolean?*/is_fun )
+    function Decl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children, /*?boolean?*/is_fun )
     {
+        children  ||  (children = []);
+
         is_fun != null  ||  (is_fun = _metaparse_one_start_function_rx.test( code_or_name ));
         
         var param_null = param == null
@@ -130,7 +131,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
             param = mo[ 3 ];
             body  = mo[ 4 ];
             
-            Decl( name, param, body, is_fun );
+            Decl( name, param, body, children, is_fun );
             return;
         }
         
@@ -158,25 +159,40 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
             + '\n\n'
         ;
 
-        g[ dot_arr[ 0 ] ] = (is_fun  ?  NormalFunction  :  MetaFunction)( name, param, remember + body, _global_name2info );
+        g[ dot_arr[ 0 ] ] = (is_fun  ?  NormalFunction  :  MetaFunction)( name, param, remember + body, _global_name2info, children );
 
     }
     
-    function NormalFunction( name, param, body, name2info )
+    function NormalFunction( name, param, body, name2info, /*?array?*/children )
     {
         _checkNameNotUsedYet( name2info, name );
 
+        if (children  &&  children.length)
+        {
+            var rx = /\}\s*/
+            ,   ok = rx.test( body )
+            ;
+            body = ok  &&  body.replace( rx, '\n\n' + childrenCode( name2info, children ) + '\n\n}' )
+        }
+        
         var impl = new Function( param, body )
 
         ,   info = name2info[ name ] = 
             { 
                 name        : name  
+                , lastname  : name.replace( /^.*\./, '' )
                 , origParam : param  
                 , origBody  : body  
                 , impl      : impl
                 , name2info : name2info 
+
+                // Store also for childrenCode
+                , param : param
+                , body  : body
+
             }
         ;
+
 
         return impl;
     }
@@ -186,6 +202,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
         , /* string like "self,a,b,c" */param
         , /*string: code*/body
         , /*object*/name2info
+        , /*array*/children
     ) 
     // Returns a function `ret`. So it does not matter whether you
     // use `new MetaFunction(...)`, or just `MetaFunction(...)`.
@@ -209,6 +226,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
         _checkNameNotUsedYet( name2info, name );
 
         var info     = name2info[ name ]  = { name        : name  
+                                              , lastname  : name.replace( /^.*\./, '' )
                                               , origParam : param  
                                               , origBody  : body  
                                               , impl      : null         // Where we'll store the resulting unwrapped implementation, as soon as we need it.
@@ -217,7 +235,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
         , paramArr   = info.paramArr      = _checkExtractParam( param )  
         , varArr     = info.varArr        = _extractVar( body )
         , metaretArr = info.metaretArr    = _checkExtractMetaret( body, paramArr.self, name )
-        , solve      = info.solve         = _createSolver( info )
+        , solve      = info.solve         = _createSolver( info, children )
         ;
         
         if (metaretArr.hasAll( name2info ))
@@ -265,7 +283,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
 
     // ---------- Private function
 
-    function _createSolver( info )
+    function _createSolver( info, children )
     {
         var name     = info.name
         , metaretArr = info.metaretArr
@@ -325,10 +343,16 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
                         + '\n'
                       ) +
                     '  return;\n' +
-                    '}\n'
+                    '}\n' +
+                    
+                (children  &&  children.length  ?  '\n\n' + childrenCode( name2info, children ) + '\n'  :  '')
             )
             ;
             info.impl = new Function( newParam.join( ',' ), newBody );
+
+            // Store also for childrenCode
+            info.param = newParam;
+            info.body  = newBody;
         }
 
         function solveMulti()
@@ -368,7 +392,25 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
                 , i4( 'return;' )
                 , '}'
                 , ''
-            ])).join( '\n' )
+            ].concat( 
+
+                children  &&  children.length
+
+                    ?  [ ''
+                         , ''
+                         , childrenCode(
+                             name2info
+                             , children
+                                 .filter( function (kid) { 
+                                     (kid.fullname || 0).substring.call.a; 
+                                             return 0 > nameArr.lastIndexOf( kid.fullname ); 
+                                 } )
+                         )
+                       ] 
+
+                         :  []
+
+            ))).join( '\n' )
             ;
             
             info.impl = new Function( newParam.join( ',' ), newBody );
@@ -396,6 +438,27 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
         }
 
     }  // end of function _createSolver
+
+    function childrenCode( /*object*/name2info, /*?array?*/children )
+    {
+        var arr = []
+        
+        for (var n = children.length, i = 0; i < n; i++)
+        {
+            var kid = children[ i ]
+            ,  info = name2info[ kid.fullname ]
+            ;
+            arr.push( '\n' );
+            arr.push( 'function ' + info.lastname + '(' + 
+                      ('string' === typeof info.param  ?  info.param  :  info.param.join( ',' ))
+                      + ')\n'
+                      + info.body
+                    );
+        }
+        
+        return arr.join( '\n' );
+    }
+
 
     // ---------- Private implementation: deeper
 

@@ -37,10 +37,11 @@
     //
     // It would be equivalent to write at the top level:
     // {{{
-    // metafun a.b(self) {return 1;}
+    // metafun a(self) { metaret a.b; }
+    // metafun a.b(self) { return 1; }
     // }}}
     // 
-    // For a longer example see `sortedSearch` in ./metaret.js
+    // For a longer example see `sortedSearch` in ./index.html
     //
     // Guillaume Lathoud
     // glathoud@yahoo.fr
@@ -93,19 +94,15 @@
                 
                 var children = next.children  ?  lp2fmtree( next.children, fullname_arr )  :  [];
                 
-                // Remove metafun children code from the body
-                // (leave normal functions unchanged)
+                // Remove children code from the body.
                 
                 for (var j = children.length; j--;)
                 {
-                    var kid = children[ j ];
-                    if (kid.isMetafunction)
-                    {
-                        var a = kid.begin - body_node.begin
-                        ,   b = kid.end   - body_node.begin
-                        ;
-                        body = body.substring( 0, a ) + body.substring( a, b ).replace( /[\s\S]/g, ' ' ) + body.substring( b );
-                    }
+                    var kid = children[ j ]
+                    ,     a = kid.begin - body_node.begin
+                    ,     b = kid.end   - body_node.begin
+                    ;
+                    body = body.substring( 0, a ) + body.substring( a, b ).replace( /[\s\S]/g, ' ' ) + body.substring( b );
                 }
                                 
                 var out = { begin : begin
