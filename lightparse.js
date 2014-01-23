@@ -239,7 +239,8 @@
          ;
          for (var /*vd*/iA_i/**/ = 0
               , /*vd*/n/**/ = tmp.length
-              , /*vd*/i/**/ = 0; i < n; i++)
+              , /*vd*/niA/**/ = iA.length
+              , /*vd*/i/**/ = 0; i < n  &&  iA_i < niA ; i++)
          /*{a8*/{
              var /*vd*/x/**/ = tmp[ i ]
              ,  /*vd*/id/**/

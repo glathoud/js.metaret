@@ -53,7 +53,12 @@
         for (var n = at.length, i = 0; i < n; i++)
         {
             var one  = at[ i ];
-            if (one.name === METAFUN  ||  one.name === FUNCTION)
+
+            // Detect a named function/metafunction declaration,
+            // ignore anonymous functions.
+            if ((one.name === METAFUN  ||  one.name === FUNCTION)  &&
+                at[ i+1 ].type !== TYPE_BRACKET
+               )
             {
                 var begin = one.begin
                 ,   end
@@ -104,7 +109,7 @@
                             , fm_node : one
                             , fullname : fullname
                             , param : param
-                            , param_str : param.join( ',' )  // e.g. for debugging
+                            , param_str : param.join( ',' )
                             , body : body 
                             , children : children
                           };
