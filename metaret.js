@@ -61,58 +61,64 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
         , _metaparse_one_start_rx = /^\s*(metafun|function)\s/
         , _metaparse_one_start_function_rx = /^\s*function\s/
         ;
-    function metaparse()
+    function metaparse( /*?string?*/code, /*?object?*/name2info )
     {
-        var noli = document.getElementsByTagName( 'script' );
+        name2info  ||  (name2info = _global_name2info);
+
+        var noli = code  ?  [ code ]  :  document.getElementsByTagName( 'script' );
         for (var n = noli.length, i = 0; i < n; i++)
         {
-            var s = noli[ i ];
-            if ('text/js-metaret-decl' !== s.getAttribute( 'type' ))
+            var     s = noli[ i ]
+            , sString = 'string' === typeof s
+            ;
+            if (!sString  &&  'text/js-metaret-decl' !== s.getAttribute( 'type' ))
                 continue;
             
-            var metacode = s.textContent  ||  s.innerText
+            var metacode = sString  ?  sString  :  s.textContent  ||  s.innerText
             ,   lp       = lightparse( metacode, LIGHTPARSE_OPT )
             ,   fmtree   = lp2fmtree( lp )
             ;
-            rec_decl( fmtree, /*isGlobal:*/true );
+            rec_decl( fmtree, /*isGlobal:*/true, name2info );
         }
     }
 
-    function rec_decl( fmtree, /*?boolean?*/isGlobal )
+    function rec_decl( fmtree, /*boolean*/isGlobal, /*object*/name2info )
     {
         if (fmtree instanceof Array)
         {
             for (var n = fmtree.length, i = 0; i < n; i++)
-                rec_decl( fmtree[ i ], isGlobal );
+                rec_decl( fmtree[ i ], isGlobal, name2info );
             
             return;
         }
         
         if (fmtree.children)
-            rec_decl( fmtree.children, /*isGlobal*/false );
+            rec_decl( fmtree.children, /*isGlobal*/false, name2info );
         
 
-        Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.children, fmtree.isFunction );
+        Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.children, fmtree.isFunction, name2info );
     }
     
     var _global_name2info = {};    
 
-    function MetaDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children )
+    function MetaDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children, /*?object?*/name2info )
     {
-        Decl( code_or_name, param, body, children, false );
+        Decl( code_or_name, param, body, children, false, name2info  ||  _global_name2info );
     }
 
-    function FunDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children )
+    function FunDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children, /*?object?*/name2info )
     {
-        Decl( code_or_name, param, body, children, true );
+        Decl( code_or_name, param, body, children, true, name2info  ||  _global_name2info );
     }
 
-    function Decl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children, /*?boolean?*/is_fun )
+    function Decl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children, /*?boolean?*/is_fun, /*?object?*/name2info )
     {
         children  ||  (children = []);
 
         is_fun != null  ||  (is_fun = _metaparse_one_start_function_rx.test( code_or_name ));
-        
+
+        name2info  ||  (name2info = _global_name2info);
+                
         var param_null = param == null
         ,    body_null = body  == null
         ;
@@ -131,7 +137,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
             param = mo[ 3 ];
             body  = mo[ 4 ];
             
-            Decl( name, param, body, children, is_fun );
+            Decl( name, param, body, children, is_fun, name2info );
             return;
         }
         
@@ -159,7 +165,7 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
             + '\n\n'
         ;
 
-        g[ dot_arr[ 0 ] ] = (is_fun  ?  NormalFunction  :  MetaFunction)( name, param, remember + body, _global_name2info, children );
+        g[ dot_arr[ 0 ] ] = (is_fun  ?  NormalFunction  :  MetaFunction)( name, param, remember + body, name2info, children );
 
     }
     
