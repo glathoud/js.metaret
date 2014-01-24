@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>js.metaret: development examples</title>
+<meta charset="utf-8">
+<style type="text/css">
+body { max-width: 600px; margin: auto;  }
+p, h1, h2, h3, h4 {
+    font-family: Verdana,Arial,'Lucida Grande',Sans-Serif;
+    line-height: 150%;
+    text-align: justify;
+}
+h1, h2, h3 { margin-top: 3em; }
+.anchor { margin-left: 0.5em; }
+@media only screen { .screen-hidden, .print { display: none; } }
+</style>
+<script type="text/javascript" src="need$.js"></script>
+</head>
+<body>
+
+<a href="https://github.com/glathoud/js.metaret">
+  <img style="position: fixed; top: 0; right: 0; border: 0; margin: 0; padding: 0;"
+       src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"
+       alt="Fork me on GitHub">
+</a>
+
+<h2>js.metaret: developement examples</h2>
+
+<p>Individual <code>.js</code> and <code>.jsm</code> are loaded and
+executed recursively through <code>need$</code> (<code>.jsm</code> are
+transformed into standard JavaScript before execution).</p>
+
+<p>
+<script type="text/javascript">
+  need$( "jsm_dev/all.js" );
+  need$( "jsm_dev/test.js" );
+
+  var result = test();
+
+  document.write( result ? "All tests passed." : "Some tests failed." );
+</script>
+</p>
+
+</body>
+</html>
+

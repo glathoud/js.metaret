@@ -30,11 +30,11 @@
 //
 // [tomrec] http://glat.info/jscheck/tomrec_prod.html
 
-if ('function' === typeof load  &&  'undefined' === typeof lightparse)
-    load( 'lightparse.js' );  // V8, Rhino
+if (typeof lightparse === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lightparse.js" );
 
-if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
-    load( 'lp2fmtree.js' );   // V8, Rhino
+if (typeof lp2fmtree === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lp2fmtree.js" );
 
 ;(function (global) {
 

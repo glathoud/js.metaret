@@ -3,3 +3,5 @@ DIRECTIONS.TXT
 DIRECTIONS.ORG
 OLD
 _notes.org
+*.ps
+*/*.ps
