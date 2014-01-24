@@ -65,7 +65,9 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
     {
         name2info  ||  (name2info = _global_name2info);
 
-        var noli = code  ?  [ code ]  :  document.getElementsByTagName( 'script' );
+        var noli = code  ?  [ code ]  :  document.getElementsByTagName( 'script' )
+        ,   ret  = []
+        ;
         for (var n = noli.length, i = 0; i < n; i++)
         {
             var     s = noli[ i ]
@@ -78,25 +80,32 @@ if ('function' === typeof load  &&  'undefined' === typeof lp2fmtree)
             ,   lp       = lightparse( metacode, LIGHTPARSE_OPT )
             ,   fmtree   = lp2fmtree( lp )
             ;
-            rec_decl( fmtree, /*isGlobal:*/true, name2info );
+            rec_decl( fmtree, /*isGlobal:*/true, name2info, ret );
         }
+
+        return ret;
     }
 
-    function rec_decl( fmtree, /*boolean*/isGlobal, /*object*/name2info )
+    function rec_decl( fmtree, /*boolean*/isGlobal, /*object*/name2info, /*?array?*/output )
     {
+        output  ||  (output = []);
+
         if (fmtree instanceof Array)
         {
             for (var n = fmtree.length, i = 0; i < n; i++)
-                rec_decl( fmtree[ i ], isGlobal, name2info );
-            
-            return;
+                rec_decl( fmtree[ i ], isGlobal, name2info, output );
         }
-        
-        if (fmtree.children)
-            rec_decl( fmtree.children, /*isGlobal*/false, name2info );
-        
+        else
+        {
+            if (fmtree.children)
+                rec_decl( fmtree.children, /*isGlobal*/false, name2info, output );
+            
+            
+            Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.children, fmtree.isFunction, name2info );
 
-        Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.children, fmtree.isFunction, name2info );
+            output.push( { fullname : fmtree.fullname, fmtree : fmtree, info : name2info[ fmtree.fullname ] } );
+        }
+        return output;
     }
     
     var _global_name2info = {};    
