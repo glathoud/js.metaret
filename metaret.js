@@ -76,7 +76,7 @@ if (typeof lp2fmtree === 'undefined')
             if (!sString  &&  'text/js-metaret-decl' !== s.getAttribute( 'type' ))
                 continue;
             
-            var metacode = sString  ?  sString  :  s.textContent  ||  s.innerText
+            var metacode = sString  ?  s  :  s.textContent  ||  s.innerText
             ,   lp       = lightparse( metacode, LIGHTPARSE_OPT )
             ,   fmtree   = lp2fmtree( lp )
             ;

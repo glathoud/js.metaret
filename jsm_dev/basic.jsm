@@ -50,19 +50,13 @@ metafun isEven( self, n )
     return true;
 }
 
-(function (global) {
+metafun isOdd( self, n )
+{
+    if (n > 0)
+        metaret isEven, n - 1;
 
-    global.isOdd = isOdd;
+    if (n < 0)
+        metaret self, -n;
 
-    metafun isOdd( self, n )
-    {
-        if (n > 0)
-            metaret isEven, n - 1;
-
-        if (n < 0)
-            metaret self, -n;
-
-        return false; 
-    }
-
-})(this);
+    return false; 
+}

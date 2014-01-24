@@ -9,7 +9,7 @@ if (typeof metaparse === 'undefined')
 
     global.jsm2js = jsm2js;
 
-    function jsm2js( /*string*/code )
+    function jsm2js( /*string*/jsm_code )
     // Convert .jsm code to .js code.
     // Returns a string.
     // 
@@ -19,10 +19,35 @@ if (typeof metaparse === 'undefined')
     // glathoud@yahoo.fr
     {
         var local_name2info = {}
-        ,   arr = metaparse( code, local_name2info )
+        ,   arr = metaparse( jsm_code, local_name2info )
+
+        ,   ret_js = jsm_code
         ;
         
         console.log( 'xxx jsm2js arr:', arr );
+
+        for (var i = arr.length; i--;)
+        {
+            var one = arr[ i ]
+            
+            , fmtree = one.fmtree
+            , info   = one.info
+            
+            , begin    = fmtree.begin
+            , end      = fmtree.end
+            , lastname = info.lastname
+
+            ;
+            ret_js = ret_js.substring( 0, begin ) +
+                '\nfunction ' + info.lastname + '(' + info.paramArr.join( ',' ) + ')\n{\n' + 
+                (info.newBody  ||  (info.solve(), info.newBody)) + '\n}\n' +
+                ret_js.substring( end );
+        }
+        
+        console.log('xxx jsm2js ret_js')
+        console.log(ret_js)
+
+        return ret_js;
     }
 
 })( this );
