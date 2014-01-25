@@ -38,10 +38,13 @@ if (typeof metaparse === 'undefined')
             , lastname = info.lastname
 
             ;
-            ret_js = ret_js.substring( 0, begin ) +
-                '\nfunction ' + info.lastname + '(' + info.paramArr.join( ',' ) + ')\n{\n' + 
-                (info.newBody  ||  (info.solve(), info.newBody)) + '\n}\n' +
-                ret_js.substring( end );
+            if (fmtree.isMetafunction)
+            {
+                ret_js = ret_js.substring( 0, begin ) +
+                    '\nfunction ' + info.lastname + '(' + info.paramArr.join( ',' ) + ')\n{\n' + 
+                    (info.newBody  ||  (info.solve(), info.newBody)) + '\n}\n' +
+                    ret_js.substring( end );
+            }
         }
         
         console.log('xxx jsm2js ret_js')
