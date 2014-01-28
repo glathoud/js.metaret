@@ -92,9 +92,6 @@ if (typeof lp2fmtree === 'undefined')
     {
         output  ||  (output = []);
 
-        // FIFO: conserve order per .begin
-        var i = output.length;
-        
         if (fmtree instanceof Array)
         {
             for (var n = fmtree.length, i = 0; i < n; i++)
@@ -108,8 +105,8 @@ if (typeof lp2fmtree === 'undefined')
             
             Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.children, fmtree.isFunction, name2info );
 
-            // conserve order per .begin
-            output.splice( i, 0, { fullname : fmtree.fullname, fmtree : fmtree, info : name2info[ fmtree.fullname ] } );
+            if (isGlobal)
+                output.push( { fullname : fmtree.fullname, fmtree : fmtree, info : name2info[ fmtree.fullname ] } );
         }
         return output;
     }

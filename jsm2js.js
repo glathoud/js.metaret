@@ -24,8 +24,6 @@ if (typeof metaparse === 'undefined')
         ,   ret_js = jsm_code
         ;
         
-        console.log( 'xxx jsm2js arr:', arr );
-
         for (var i = arr.length; i--;)
         {
             var one = arr[ i ]
@@ -38,6 +36,10 @@ if (typeof metaparse === 'undefined')
             , lastname = info.lastname
 
             ;
+
+            begin.toPrecision.call.a;
+            (end || null).toPrecision.call.a;
+
             if (fmtree.isMetafunction)
             {
                 ret_js = ret_js.substring( 0, begin ) +
@@ -47,9 +49,6 @@ if (typeof metaparse === 'undefined')
             }
         }
         
-        console.log('xxx jsm2js ret_js')
-        console.log(ret_js)
-
         return ret_js;
     }
 

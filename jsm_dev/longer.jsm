@@ -1,10 +1,3 @@
-
-// ---------- Public API
-
-global.sortedSearch = sortedSearch;
-
-// ---------- Public API implementation
-
 metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
 //  Search a sorted array e.g. [ 0, 1, 1, 2, 4, 6, 6, 6, 9, 11, 11, 12 ]
 //  for the first and last position of a target value e.g. 6 appears
