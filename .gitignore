@@ -5,3 +5,6 @@ OLD
 _notes.org
 *.ps
 */*.ps
+jsm_out
+jsm_out*/*
+__pycache__
