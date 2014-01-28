@@ -46,8 +46,6 @@ var need$, read;
     //
     // Returns a string, contents of the file at `path`.
     {
-        console.log('xxx xhrGetSync ' + path)
-
         var xhr = new XMLHttpRequest();
         xhr.open( "GET", path, /*async:*/false );
         xhr.send();

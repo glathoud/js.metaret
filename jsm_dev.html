@@ -13,6 +13,8 @@ p, h1, h2, h3, h4 {
 h1, h2, h3 { margin-top: 3em; }
 .anchor { margin-left: 0.5em; }
 @media only screen { .screen-hidden, .print { display: none; } }
+.happy { color: darkgreen; }
+.sad { color: darkred; }
 </style>
 <script type="text/javascript" src="need$.js"></script>
 </head>
@@ -28,16 +30,22 @@ h1, h2, h3 { margin-top: 3em; }
 
 <p>Individual <code>.js</code> and <code>.jsm</code> are loaded and
 executed recursively through <code>need$</code> (<code>.jsm</code> are
-transformed into standard JavaScript before execution).</p>
+first transformed into standard JavaScript, then executed).</p>
 
 <p>
 <script type="text/javascript">
-  need$( "jsm_dev/all.js" );
-  need$( "jsm_dev/test.js" );
+  need$( "jsm_dev/expl.js" );
+  need$( "jsm_dev/expl.test.js" );
 
-  var result = test();
+  var result;
+  try {
+      result = test();
+  } catch (e) {
+      console.log( "jsm_dev.html: caught error: " + e, e )
+      result = e;
+  }
 
-  document.write( result ? "All tests passed." : "Some tests failed." );
+  document.write( result === true ? "<span class='happy'>All tests passed.</span>" : ("<div class='sad'><p>Some tests failed:</p>" + "<pre><code>" + result + "</code></pre></div>") );
 </script>
 </p>
 
