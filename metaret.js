@@ -87,9 +87,14 @@ if (typeof lp2fmtree === 'undefined')
     }
 
     function rec_decl( fmtree, /*boolean*/isGlobal, /*object*/name2info, /*?array?*/output )
+    // Returns an array of `info` objects, ordered by increasing
+    // `.begin` value.
     {
         output  ||  (output = []);
 
+        // FIFO: conserve order per .begin
+        var i = output.length;
+        
         if (fmtree instanceof Array)
         {
             for (var n = fmtree.length, i = 0; i < n; i++)
@@ -103,7 +108,8 @@ if (typeof lp2fmtree === 'undefined')
             
             Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.children, fmtree.isFunction, name2info );
 
-            output.push( { fullname : fmtree.fullname, fmtree : fmtree, info : name2info[ fmtree.fullname ] } );
+            // conserve order per .begin
+            output.splice( i, 0, { fullname : fmtree.fullname, fmtree : fmtree, info : name2info[ fmtree.fullname ] } );
         }
         return output;
     }
