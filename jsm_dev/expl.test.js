@@ -53,6 +53,8 @@
         assert( 'false === isEven( 10000001 )' );   
         assert( 'true  === isEven( 10000002 )' );
 
+
+        //#BEGIN_TEST_DEV_ONLY
         // --- Tests with functions declared programmatically
 
         // - Test the local `name2info`
@@ -227,6 +229,8 @@
 
         // No stack issue because the code has been unrolled
         assert( '10000 * 10001 * 20001 / 6 === some.name.space.fact2( 10000 )' );
+
+        //#END_TEST_DEV_ONLY
 
         // --- sortedSearch: mutual recursion between 3 metafuns.
 

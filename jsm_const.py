@@ -24,4 +24,7 @@ JSM2JS = lambda filename: 'load("jsm2js.js"); print(jsm2js(read("' + filename + 
 
 JSM_EXT = '.jsm'
 
+TEST_DEV_ONLY_RX = re.compile( r'//#BEGIN_TEST_DEV_ONLY[\s\S]*//#END_TEST_DEV_ONLY' )
+TEST_JS_EXT      = '.test.js'
+
 UTF8 = 'utf-8'

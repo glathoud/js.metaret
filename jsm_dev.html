@@ -26,6 +26,8 @@ h1, h2, h3 { margin-top: 3em; }
        alt="Fork me on GitHub">
 </a>
 
+<pre><code><strong>dev</strong>    <a href="jsm_out_build.html">test build</a>    <a href="jsm_out_mini.html">test mini</a></code></pre>
+
 <h2>js.metaret: development examples</h2>
 
 <p>Individual <code>.js</code> and <code>.jsm</code> are loaded and
@@ -49,6 +51,24 @@ first transformed into standard JavaScript, then executed).</p>
 </script>
 </p>
 
+
+<h2>Next step: production</h2>
+
+<p>When you are done with development, <code>jsm_build.py</code> can produce a single standalone <code>.js</code> file where all dependencies have been eliminated (*).</p>
+
+<p>Usage (Python 3.2 or later):</p>
+<pre><code>./jsm_build.py expl.js
+./jsm_build.py jsm_dev/expl.js</code> (equivalent)</pre>
+
+<p>This creates 2 output files:</p>
+<pre><code>jsm_out_build/expl.js</code> (readable) <a href="jsm_out_build.html">test build</a>
+<code>jsm_out_mini/expl.js</code> (minified) <a href="jsm_out_mini.html">test mini</a>
+</pre>
+
+<p>(*)
+<br>- <code>need$()</code> replaced by the contents of the corresponding file.
+<br>- <code>metafun</code> &amp; <code>metaret</code> replaced by standard JavaScript.
+</p>
+
 </body>
 </html>
-
