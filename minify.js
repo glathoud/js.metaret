@@ -28,8 +28,8 @@ function minify( /*string*/code )
             if (x.end + 1 < current) // Remove whitespaces
             {
                 newcode = newcode.substring( 0, x.end ) + 
-                    newcode.substring( x.end, current + 1 ).replace( /\s+/g, ' ' ) + 
-                    newcode.substring( current + 1);
+                    newcode.substring( x.end, current + 2 ).replace( /\s+/g, ' ' ).replace( /(\W)\s+/, '$1' ).replace( /\s+(\W)/, '$1' ) + 
+                    newcode.substring( current + 2);
             }
             
             if (x.type === 'comment') // Remove comments
@@ -44,7 +44,9 @@ function minify( /*string*/code )
                 if (x.type === 'bracket')
                 {
                     var b = x.begin + x.open.length;
-                    newcode = newcode.substring( 0, b ) + newcode.substring( b, x.end ).replace( /^\s+/, ' ' ) + newcode.substring( x.end );
+                    newcode = newcode.substring( 0, b - 1 ) + 
+                        newcode.substring( b - 1, x.end + 2 ).replace( /\s+/g, ' ' ).replace( /(\W)\s+/, '$1' ).replace( /\s+(\W)/, '$1' ) +
+                        newcode.substring( x.end + 2 );
                 }
             }
             
