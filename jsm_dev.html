@@ -68,9 +68,10 @@ h1, h2, h3 { margin-top: 3em; }
 
 <p>After development, use <code>jsm_build.py</code> to create a standalone <code>.js</code> file&nbsp;(*).</p>
 
-<p>Usage (Python 3.2 or later):</p>
-<pre><code>./jsm_build.py expl.js
-./jsm_build.py jsm_dev/expl.js</code>  # equivalent</pre>
+<p>Usage (Python 3.2 or later + V8 version 3.19.10):</p>
+<pre><code>./jsm_build.py expl.js 
+# or equivalent:
+./jsm_build.py jsm_dev/expl.js</code></pre>
 
 <p>This creates 2 output files:</p>
 <pre><code>jsm_out_build/expl.js</code> (readable) -> <a href="jsm_out_build.html">click to test the build (redable)</a>
