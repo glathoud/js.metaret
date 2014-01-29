@@ -34,9 +34,8 @@ def jsm_out_build( infilename, deptree = None, default_in = DEFAULT_IN, default_
         new_test_code   = re.sub( TEST_DEV_ONLY_RX, '', open( intestfilename, 'rb' ).read().decode( UTF8 ) )
         
         open( outtestfilename, 'wb' ).write( new_test_code.encode( UTF8 ) )
+
         
-    
-    
 if __name__ == '__main__':
     jsm_out_build( sys.argv[ 1 ] )
     

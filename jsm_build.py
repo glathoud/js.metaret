@@ -5,6 +5,7 @@ import os, re, sys
 from jsm_const import *
 from jsm_out   import jsm_out
 from jsm_out_build import jsm_out_build
+from jsm_out_mini  import jsm_out_mini
 from jsm_util  import *
    
 
@@ -30,8 +31,8 @@ def main( argv_1 ):
 
     # Step 4 minify
 
-    'xxx'
-
+    jsm_out_mini( infilename )
+    
 if __name__ == '__main__':
     main( sys.argv[ 1: ] )
 
