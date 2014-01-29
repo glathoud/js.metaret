@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<title>js.metaret development example</title>
+<title>js.metaret: test the build (minified)</title>
 <meta charset="utf-8">
 <style type="text/css">
 body { max-width: 600px; margin: auto;  }
@@ -16,7 +16,7 @@ h1, h2, h3 { margin-top: 3em; }
 .happy { color: darkgreen; }
 .sad { color: darkred; }
 
-#scripts-display {width: 100%; height: 235px;}
+#scripts-display {width: 100%; height: 200px;}
 </style>
 </head>
 <body>
@@ -27,23 +27,23 @@ h1, h2, h3 { margin-top: 3em; }
        alt="Fork me on GitHub">
 </a>
 
-<pre><code><strong>dev</strong>    <a href="jsm_out_build.html">test build</a>    <a href="jsm_out_mini.html">test mini</a></code></pre>
+<pre><code><a href="jsm_dev.html">dev</a>    <a href="jsm_out_build.html">test build</a>    <strong>test mini</strong></code></pre>
 
-<h2>js.metaret development example</h2>
+<h2>js.metaret: test the build (minified)</h2>
 
-<p><code>need$</code> loads and executes individual <code>.js</code> and <code>.jsm</code> files (using <a href="jsm2js.js">jsm2js.js</a>).</p>
+<p><a href="jsm_out_mini/expl.js"><code>jsm_out_mini/expl.js</code></a> was created as explained in: <a href="jsm_dev.html#production">jsm_dev.html#production</a></p>
+<p>Let us test it!</p>
+
 
 <p id="scripts">
-<script type="text/javascript" src="need$.js"></script>
+<script type="text/javascript" src="jsm_out_mini/expl.js"></script>
+<script type="text/javascript" src="jsm_out_mini/expl.test.js"></script>
 <script type="text/javascript">
-  need$( "jsm_dev/expl.js" );
-  need$( "jsm_dev/expl.test.js" );
-
   var result;
   try {
       result = test();
   } catch (e) {
-      console.log( "jsm_dev.html: caught error: " + e, e )
+      console.log( "jsm_out_mini.html: caught error: " + e, e )
       result = e;
   }
 </script>
@@ -63,25 +63,6 @@ h1, h2, h3 { margin-top: 3em; }
        "\x3Cpre\x3E\x3Ccode\x3E" + result + "\x3C/code\x3E\x3C/pre\x3E\x3C/div\x3E") 
   ;
 </script>
-
-<h2 id="production">Next step: production</h2>
-
-<p>After development, use <code>jsm_build.py</code> to create a standalone <code>.js</code> file&nbsp;(*).</p>
-
-<p>Usage (Python 3.2 or later):</p>
-<pre><code>./jsm_build.py expl.js
-./jsm_build.py jsm_dev/expl.js</code>  # equivalent</pre>
-
-<p>This creates 2 output files:</p>
-<pre><code>jsm_out_build/expl.js</code> (readable) -> <a href="jsm_out_build.html">click to test the build (redable)</a>
-<code>jsm_out_mini/expl.js</code>  (minified) -> <a href="jsm_out_mini.html">click to test the build (minified)</a>
-</pre>
-
-<hr/>
-<p>(*) "Standalone" means that all dependencies have been eliminated:
-<br>- <code>need$()</code> replaced by the contents of the corresponding file.
-<br>- <code>metafun</code> &amp; <code>metaret</code> replaced by standard JavaScript.
-</p>
 
 </body>
 </html>

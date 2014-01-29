@@ -94,6 +94,12 @@ def replace_dependencies( deptree, in_filename, default_in, default_out, deptree
             one_out_filename = re.sub( r'\.jsm$', '.js', get_out_filename( one_in_filename, default_in, default_out ) )
             one_out_code     = open( one_out_filename, 'rb' ).read().decode( UTF8 )
 
-        outcode = outcode[ :begin ] + one_out_code + outcode[ end: ]
+        outcode = (
+            outcode[ :begin ] +
+            ((os.linesep + '//#BUILD_BEGIN_FILE: "' + one_in_filename + '"' + (2 * os.linesep) ) if one_out_code else '') +
+            one_out_code +
+            ((os.linesep + '//#BUILD_END_FILE: "' + one_in_filename + '"' + (2 * os.linesep) ) if one_out_code else '') +
+            outcode[ end: ]
+        )
 
     return outcode
