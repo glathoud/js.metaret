@@ -4,46 +4,33 @@ import os, re, sys
 
 from jsm_const import *
 from jsm_out   import jsm_out
-
-
-def fetch_deptree( inname, default_in = DEFAULT_IN, deptree_rx = DEPTREE_RX ):
-
-    filename = inname  if  os.path.exists( inname )  else  os.path.join( 'jsm_dev', inname )
-
-    code = open( filename, 'rb' ).read().decode( 'utf-8' )
-    children = []
-    ret  = { filename : { CODE : code, CHILDREN : children, IS_JSM : filename.endswith( JSM_EXT ) } }
-
-    for m in deptree_rx.finditer( code ):
-
-        kid_filename = m.group( FILENAME )
-
-        if kid_filename in ret:
-            continue
-
-        print(kid_filename)
-        
-        kidtree = fetch_deptree( kid_filename, default_in = default_in, deptree_rx = deptree_rx )
-        
-        # flat `ret` output
-        children.append( kid_filename )
-        ret[ kid_filename ] = kidtree[ kid_filename ]
-
-    return ret
-
-    
+from jsm_out_build import jsm_out_build
+from jsm_util  import *
+   
 
 def main( argv_1 ):
 
     inname  = argv_1[ 0 ]
-    
-    deptree = fetch_deptree( inname )
 
+    # Step 1: fetch the dependency tree
+
+    print()
+    print('jsm_build.py: fetch_deptree for "{0}"'.format( inname ))
+    deptree,infilename = fetch_deptree( inname )
+
+    # Step 2: jsm2js for each file -> many files
+
+    print()
     for filename in deptree:
         jsm_out( filename, incode = deptree[ filename ][ CODE ] )
-    
-    pass
 
+    # Step 3: build -> a single file including all dependencies
+    
+    jsm_out_build( infilename, deptree = deptree )
+
+    # Step 4 minify
+
+    'xxx'
 
 if __name__ == '__main__':
     main( sys.argv[ 1: ] )

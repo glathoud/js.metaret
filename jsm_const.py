@@ -1,5 +1,7 @@
 import re
 
+BEGIN = 'begin'
+
 CHILDREN = 'children'
 CODE = 'code'
 
@@ -9,6 +11,9 @@ DEFAULT_IN = 'jsm_dev'
 DEPTREE_RX = re.compile( r'need\$\s*\(\s*(?P<quote>["\'])(?P<filename>[^"\']+)(?P=quote)\s*\)'  )
 
 DEFAULT_OUT = 'jsm_out'
+DEFAULT_OUT_BUILD = 'jsm_out_build'
+
+END = 'end'
 
 FILENAME = 'filename'
 

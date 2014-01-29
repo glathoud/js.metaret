@@ -3,16 +3,13 @@
 import os, re, subprocess, sys
 
 from jsm_const import *
+from jsm_util  import *
 
 def jsm_out( in_filename, default_in = DEFAULT_IN, default_out = DEFAULT_OUT, incode = None ):
 
-    if not os.path.exists( in_filename ):
-        in_filename = os.path.join( default_in, in_filename )
-    assert os.path.exists( in_filename )
+    in_filename = fix_in_filename( in_filename, default_in )
 
-    out_filename = in_filename.replace( default_in, default_out )
-    if out_filename == in_filename:
-        out_filename = os.path.join( default_out, out_filename )
+    out_filename = get_out_filename( in_filename, default_in, default_out )
 
     is_jsm = out_filename.endswith( JSM_EXT )
 
@@ -28,7 +25,7 @@ def jsm_out( in_filename, default_in = DEFAULT_IN, default_out = DEFAULT_OUT, in
 
         
 
-    print( 'jsm_out: {0} ->({1})-> {2}'.format(  in_filename, 'copy' if not is_jsm else 'jsm2js', out_filename ) )
+    print( 'jsm_out: {0} {1} \t-> {2}'.format(  '(copy)  ' if not is_jsm else '(jsm2js)', in_filename, out_filename ) )
 
     outbytes = outcode.encode( UTF8 )
     open( out_filename, 'wb' ).write( outbytes )
