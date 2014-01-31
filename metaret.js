@@ -171,8 +171,8 @@ if (typeof lp2fmtree === 'undefined')
         
         // Now we are ready to create the metafunction
         
-        var remember = ( 
-            '\n' + (is_fun  ?  'function'  :  'metafun' ) + ' ' + name + '\n( ' + param + ')'
+        var remember = is_fun  ?  ''  :  ( 
+            '\nmetafun ' + name + '\n( ' + param + ')'
         ).replace( /([\r\n])/g, '$1// --- ' )
             + '\n\n'
         ;
@@ -293,8 +293,8 @@ if (typeof lp2fmtree === 'undefined')
 
     // ---------- Private constant
     
-    var _RX_NAME             = /^[a-zA-Z_][\w\.]*(anonymous#\d+)?$/
-        , _RX_NAME_ANONYMOUS = /^[a-zA-Z_][\w\.]*(anonymous#\d+)$/
+    var _RX_NAME             = /^(([a-zA-Z_]\w*|anonymous#\d+)\.)*([a-zA-Z_]\w*|anonymous#\d+)$/
+        , _RX_NAME_ANONYMOUS = /^(([a-zA-Z_]\w*|anonymous#\d+)\.)*(anonymous#\d+)$/
         , _RX_PARAM   = /^((?:^\s*|\s*,\s*)[a-zA-Z_]\w*(?:\s*))+$/
         , _RX_ACTION  = /^[a-zA-Z_]\w*?(\.[a-zA-Z_]\w*?)*$/
     , _Aps            = Array.prototype.slice
@@ -478,7 +478,7 @@ if (typeof lp2fmtree === 'undefined')
             arr.push( 'function ' + info.lastname + '(' + 
                       ('string' === typeof info.param  ?  info.param  :  info.param.join( ',' ))
                       + ')\n'
-                      + info.body
+                      + (/^\s*\{[\s\S]*?\}\s*$/.test( info.body )  ?  info.body  :  ('{\n' + info.body + '\n}\n'))
                     );
         }
         
@@ -686,7 +686,7 @@ if (typeof lp2fmtree === 'undefined')
 
         for (var i = null ; true ; i = (i >>> 0) + 1)
         {
-            var label = '_' + baseName.replace( /\./g, '_' ) + (i || '') + '_';
+            var label = '_' + baseName.replace( /#/g, '' ).replace( /\W/g, '_' ) + (i || '') + '_';
             
             if (!match( against ))
                 return label;  // success
