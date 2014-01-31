@@ -331,25 +331,24 @@
          ret.allReverse = reversed( all );
 
          /*dc*/// Build a tree
-         var /*vd*/allTree/**/ = [].concat( all )
-         ,   /*vd*/i/**/ = 0
-         ;
-         while (i < allTree.length - 1)
+         var /*vd*/allTree/**/ = [].concat( all );
+
+         for (var /*vd*/i/**/ = allTree.length - 1; i--; )
          /*{11*/{
              var /*vd*/xi/**/ = allTree[ i ]
-             , /*vd*/xip1/**/ = allTree[ i + 1 ]
+             ,   /*vd*/xip1/**/
              ;
-             if (xi.begin <= xip1.begin  &&  xip1.end <= xi.end)
+             while (xip1 = allTree[ i + 1 ]
+                    , xip1  &&  
+                    xi.begin <= xip1.begin  &&  xip1.end <= xi.end
+                   )
              /*{11.1*/{
                  (xi.children  ||  (xi.children = []))
                      .push( allTree.splice( i+1, 1 )[ 0 ] )
                  ;
              }/*}11.1*/
-             else
-             /*{11.2*/{
-                 i++;
-             }/*}11.2*/
          }/*}11*/
+             
          ret.allTree = allTree;
          
          return ret;
