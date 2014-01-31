@@ -293,7 +293,8 @@ if (typeof lp2fmtree === 'undefined')
 
     // ---------- Private constant
     
-    var _RX_NAME      = /^[a-zA-Z_][\w\.]*$/
+    var _RX_NAME             = /^[a-zA-Z_][\w\.]*(anonymous#\d+)?$/
+        , _RX_NAME_ANONYMOUS = /^[a-zA-Z_][\w\.]*(anonymous#\d+)$/
         , _RX_PARAM   = /^((?:^\s*|\s*,\s*)[a-zA-Z_]\w*(?:\s*))+$/
         , _RX_ACTION  = /^[a-zA-Z_]\w*?(\.[a-zA-Z_]\w*?)*$/
     , _Aps            = Array.prototype.slice
@@ -470,6 +471,9 @@ if (typeof lp2fmtree === 'undefined')
             var kid = children[ i ]
             ,  info = name2info[ kid.fullname ]
             ;
+            if (kid.isAnonymousFunction)
+                continue;
+            
             arr.push( '\n' );
             arr.push( 'function ' + info.lastname + '(' + 
                       ('string' === typeof info.param  ?  info.param  :  info.param.join( ',' ))

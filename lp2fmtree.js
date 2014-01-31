@@ -19,7 +19,7 @@
 
     // ---------- Public API implementation
 
-    function lp2fmtree( lp, /*?array of string?*/namespace )
+    function lp2fmtree( lp, /*?array of string?*/namespace, /*?object?*/workspace )
     // Input:  object returned by lightparse.
     // 
     // Output: array of function/metafun declaration trees.
@@ -47,6 +47,7 @@
     // glathoud@yahoo.fr
     {       
         namespace  ||  (namespace = []);
+        workspace  ||  (workspace = { iAnonymous : 0 });
         
         var at = lp  instanceof Array  ?  lp  :  lp.allTree
         ,  ret = []
@@ -56,12 +57,16 @@
             var one  = at[ i ];
 
             // Detect a named function/metafunction declaration,
-            // ignore anonymous functions.
-
+            
             var isFunction     = one.name === FUNCTION
             ,   isMetafunction = one.name === METAFUN
+
+            ,   isAnonymousFunction = isFunction  &&  at[ i+1 ].type === TYPE_BRACKET
             ;
-            if ((isFunction  ||  isMetafunction)  &&  at[ i+1 ].type !== TYPE_BRACKET )
+
+
+            if (((isFunction  ||  isMetafunction)  &&  at[ i+1 ].type !== TYPE_BRACKET)  ||
+                isAnonymousFunction)
             {
                 var begin = one.begin
                 ,   end
@@ -69,12 +74,22 @@
                 ,   dot_arr = []
                 ,   next 
                 ;
-                do {
-                    next = at[ ++i ];
-                    dot_arr.push( next.name );
-                } while (
-                    next.type !== DOTCALL  &&  next.type !== CALL
-                )
+                if (isAnonymousFunction)
+                {
+                    // Give some identity
+                    dot_arr = [ 'anonymous#' + (workspace.iAnonymous++) ];
+                }
+                else
+                {
+                    // Fetch the name of the function or metafunction.
+                    // Dots are supported (subnamespace).
+                    do {
+                        next = at[ ++i ];
+                        dot_arr.push( next.name );
+                    } while (
+                        next.type !== DOTCALL  &&  next.type !== CALL
+                    )
+                }
                 
                 var param = (next = at[ ++i ]).sepSplit.map( strip_comment_and_space );
 
@@ -92,7 +107,7 @@
                 // Support for local metafunctions: look at the
                 // metafuns and functions within the body.
                 
-                var children = next.children  ?  lp2fmtree( next.children, fullname_arr )  :  [];
+                var children = next.children  ?  lp2fmtree( next.children, fullname_arr, workspace )  :  [];
                 
                 // Remove children code from the body.
                 
@@ -102,7 +117,8 @@
                     ,     a = kid.begin - body_node.begin
                     ,     b = kid.end   - body_node.begin
                     ;
-                    body = body.substring( 0, a ) + body.substring( a, b ).replace( /[\s\S]/g, ' ' ) + body.substring( b );
+                    if (!kid.isAnonymousFunction)
+                        body = body.substring( 0, a ) + body.substring( a, b ).replace( /[\s\S]/g, ' ' ) + body.substring( b );
                 }
                                 
                 var out = { begin : begin
@@ -110,6 +126,7 @@
                             , fullname_arr : fullname_arr
                             , isFunction     : isFunction
                             , isMetafunction : isMetafunction
+                            , isAnonymousFunction : isAnonymousFunction
                             , body_node : body_node
                             , fm_node : one
                             , fullname : fullname
@@ -120,6 +137,12 @@
                           };
                 
                 ret.push( out );
+            }
+            else if (one.children)
+            {
+                // Useful to find functions e.g. within `(...)`:
+                // `(function (global) { ... })(this);`
+                ret.push.apply( ret, lp2fmtree( one.children, namespace, workspace ) );
             }
         }
 
