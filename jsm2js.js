@@ -2,8 +2,8 @@
 
 // Support both use cases: browser development (example: jsm_dev) and
 // command-line transformation (example: jsm_dev -> jsm_out).
-if (typeof metaparse === 'undefined')
-    (typeof need$ !== 'undefined'  ?  need$  :  load)( "metaret.js" );
+    if (typeof metaparse === 'undefined')
+        (typeof need$ !== 'undefined'  ?  need$  :  load)( "metaret.js" );
 
 (function (global) {
 
@@ -20,36 +20,48 @@ if (typeof metaparse === 'undefined')
     {
         var local_name2info = {}
         ,   arr = metaparse( jsm_code, local_name2info )
-
         ,   ret_js = jsm_code
         ;
         
-        for (var i = arr.length; i--;)
+        replace_rec( arr );
+
+        return ret_js;
+
+        function replace_rec( arr )
         {
-            var one = arr[ i ]
-            
-            , fmtree = one.fmtree
-            , info   = one.info
-            
-            , begin    = fmtree.begin
-            , end      = fmtree.end
-            , lastname = info.lastname
-
-            ;
-
-            begin.toPrecision.call.a;
-            (end || null).toPrecision.call.a;
-
-            if (fmtree.isMetafunction)
+            for (var i = arr.length; i--;)
             {
-                ret_js = ret_js.substring( 0, begin ) +
-                    '\nfunction ' + info.lastname + '(' + info.paramArr.join( ',' ) + ')\n{\n' + 
-                    (info.newBody  ||  (info.solve(), info.newBody)) + '\n}\n' +
-                    ret_js.substring( end );
+                var one = arr[ i ]
+                
+                , fmtree = one.fmtree
+                , info   = one.info
+                
+                , begin    = fmtree.begin
+                , end      = fmtree.end
+                , lastname = info.lastname
+
+                ;
+
+                begin.toPrecision.call.a;
+                (end || null).toPrecision.call.a;
+
+                if (fmtree.isMetafunction)
+                {
+                    ret_js = ret_js.substring( 0, begin ) +
+                        '\nfunction ' + info.lastname + '(' + info.paramArr.join( ',' ) + ')\n{\n' + 
+                        (info.newBody  ||  (info.solve(), info.newBody)) + '\n}\n' +
+                        ret_js.substring( end );
+                }
+                else if (fmtree.isFunction)
+                {
+                    // E.g. to support anonymous namespace like:
+                    // `(function (global) { global.f = f; metafun f(...) ... })(this);`
+                    var children = fmtree.children;
+                    if (children)
+                        replace_rec( children.map( function (kid) { return { fmtree : kid, info : local_name2info[ kid.fullname ] }; } ) );
+                }
             }
         }
-        
-        return ret_js;
     }
 
 })( this );

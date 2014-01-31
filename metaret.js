@@ -205,8 +205,8 @@ if (typeof lp2fmtree === 'undefined')
                 , name2info : name2info 
 
                 // Store also for childrenCode
-                , param : param
-                , body  : body
+                , paramArr : param.split(',')
+                , body     : body
 
             }
         ;
@@ -372,8 +372,8 @@ if (typeof lp2fmtree === 'undefined')
             info.impl = new Function( newParam.join( ',' ), newBody );
 
             // Store also for childrenCode
-            info.param = newParam;
-            info.body  = newBody;
+            info.paramArr = newParam;
+            info.body     = newBody;
         }
 
         function solveMulti()
@@ -476,9 +476,9 @@ if (typeof lp2fmtree === 'undefined')
             
             arr.push( '\n' );
             arr.push( 'function ' + info.lastname + '(' + 
-                      ('string' === typeof info.param  ?  info.param  :  info.param.join( ',' ))
-                      + ')\n'
-                      + (/^\s*\{[\s\S]*?\}\s*$/.test( info.body )  ?  info.body  :  ('{\n' + info.body + '\n}\n'))
+                      info.paramArr.join( ',' ) +
+                      ')\n' +
+                      (/^\s*\{[\s\S]*?\}\s*$/.test( info.body )  ?  info.body  :  ('{\n' + info.body + '\n}\n'))
                     );
         }
         

@@ -39,24 +39,47 @@ metafun gcd( self, a, b )
     return a; 
 }
 
-metafun isEven( self, n )
-{
-    if (n > 0)
-        metaret isOdd, n - 1; // mutual recursion
+// Variant: define and solve *metafunctions* within a local namespace, 
+// then export the resulting *functions* using for example:
+//
+// `global.isEven = isEven`.
+//
+// See also: ../jsm2js.js
 
-    if (n < 0)
-        metaret self, -n;
+(function (global) {
 
-    return true;
-}
+    // --- API: global functions
 
-metafun isOdd( self, n )
-{
-    if (n > 0)
-        metaret isEven, n - 1;
+    global.isEven = isEven;
+    global.isOdd  = isOdd;
 
-    if (n < 0)
-        metaret self, -n;
+    // --- API implementation: local metafunctions
+    
+    metafun isEven( self, n )
+    {
+        if (n > 0)
+            metaret isOdd, n - 1; // mutual recursion
 
-    return false; 
-}
+        if (n < 0)
+            metaret self, -n;
+
+        return true;
+    }
+
+    metafun isOdd( self, n )
+    {
+        if (n > 0)
+            metaret isEven, n - 1;
+
+        if (n < 0)
+            metaret self, -n;
+
+        return false; 
+    }
+
+    // --- Private stuff
+    
+    // Here you could have small tool functions and metafunctions
+    // which won't be visible globally.
+    
+})(this);
