@@ -30,10 +30,28 @@ if (typeof lp2fmtree === 'undefined')
     global.inline = inline;
 
     function inline( code )
-    // Turn a .js file into another .js file, with `inline` statements
-    // hygienically expanded.
+    // Remove `inline` statements, replace them with hygienic inlining 
+    // of the called function.
     //
-    // Returns another code string.
+    // Returns: another code string.
+    //
+    // Examples:
+    // {{{
+    // inline var result = f(x,y,z);
+    //
+    // inline result = f(x,y,z);
+    //
+    // inline f(x,y,z);
+    // }}}
+    //
+    // See also:
+    // 
+    // issue [#3](https://github.com/glathoud/js.metaret/issues/3) 
+    // 
+    // ./jsm_dev/expl_longer.jsm
+    //
+    // Guillaume Lathoud
+    // glathoud@yahoo.fr
     {
         var      lp = lightparse( code, LIGHTPARSE_OPT )
         ,        fm = lp2fmtree( lp )
