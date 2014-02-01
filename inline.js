@@ -278,7 +278,7 @@ if (typeof lp2fmtree === 'undefined')
         var bodyAlreadyCurly = /^\s*\{[\s\S]*?\}\s*$/.test( newbody );
 
         var newcode = [ '{'
-                        , '// ' + one.str.replace( /\r\n/g, ' ' ) // On top, put the original "inline" call in a comment.
+                        , '//#INLINE_BEGIN: ' + one.str.replace( /\r\n/g, ' ' ) // On top, put the original "inline" call in a comment.
                       ]
             .concat( set_args_arr )
             .concat( [ 'var ' + undefN + ', ' + retN + ';' ] )
@@ -294,6 +294,7 @@ if (typeof lp2fmtree === 'undefined')
                      : one.inlinetype === VARASSIGN  ?  [ 'var ' + one.identifier.name + ' = ' + retN + ';' ] 
                      : error.bug
                    )
+            .concat( [ '//#INLINE_END: ' + one.str.replace( /\r\n/g, ' ' ) ] ) // On the bottom as well, put the original "inline" call in a comment.
             .concat( [ '}' ] )
             .join( '\n' )
         ;
