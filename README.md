@@ -11,7 +11,7 @@ Background: Implementing mutual tail recursion optimization without trampoline [
 
 .
 
-An extra keyword `inline` is supported, see issue #3 and file:jsm_dev/expl_longer.jsm for examples.
+Addition: An extra keyword `inline` triggers hygienic inlining, see issue #3 and [expl_longer.jsm](jsm_dev/expl_longer.jsm) for examples.
 
 .
 
