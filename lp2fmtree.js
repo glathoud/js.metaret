@@ -46,6 +46,8 @@
     // Guillaume Lathoud
     // glathoud@yahoo.fr
     {       
+        var isTopLevel = arguments.length < 2;
+
         namespace  ||  (namespace = []);
         workspace  ||  (workspace = { iAnonymous : 0 });
         
@@ -91,7 +93,7 @@
                     )
                 }
                 
-                var param = (next = at[ ++i ]).sepSplit.map( strip_comment_and_space );
+                var param_arr = (next = at[ ++i ]).sepSplit.map( strip_comment_and_space );
 
                 while (next.type !== TYPE_BRACKET  ||  next.typebracket !== TYPEBRACKET_CURLY)
                     next = at[ ++i ];
@@ -102,6 +104,7 @@
 
                 ,   fullname_arr = namespace.concat( dot_arr )
                 ,   fullname     = fullname_arr.join( '.' )
+                ,   lastname     = fullname_arr[ fullname_arr.length - 1 ]
                 ;
 
                 // Support for local metafunctions: look at the
@@ -124,14 +127,15 @@
                 var out = { begin : begin
                             , end : end
                             , fullname_arr : fullname_arr
+                            , lastname     : lastname
                             , isFunction     : isFunction
                             , isMetafunction : isMetafunction
                             , isAnonymousFunction : isAnonymousFunction
                             , body_node : body_node
                             , fm_node : one
                             , fullname : fullname
-                            , param : param
-                            , param_str : param.join( ',' )
+                            , param_arr : param_arr
+                            , param_str : param_arr.join( ',' )
                             , body : body 
                             , children : children
                           };
@@ -146,12 +150,53 @@
             }
         }
 
+        // When done with the tree, walk it from the top
+        if (isTopLevel)
+            find_out_who_declares_what( ret, [].concat( lp.vardeclArr ) );
+
         return ret;
     }
     
     function strip_comment_and_space( o )
     {
         return o.str.replace( /\/\*[\s\S]*?\*\//g, '' ).replace( /(^\s+|\s+$)/g, '' );
+    }
+
+    function find_out_who_declares_what( arr, vardeclArr )
+    {
+        var n = arr.length;
+
+        // Depth first - this can change `vardeclArr`
+        
+        for (var i = 0; i < n; i++)
+        {
+            var one = arr[ i ]
+            ,   c   = one.children
+            ;
+            if (c  &&  c.length)
+                find_out_who_declares_what( c, vardeclArr );
+        }
+        
+        // then breadth
+
+        for (var i = 0; i < n; i++)
+        {
+            var one = arr[ i ]
+            , begin = one.begin
+            ,   end = one.end
+
+            , one_vda = one.vardeclArr = []
+            ;
+            for (var j = vardeclArr.length; j--;)
+            {
+                var vd = vardeclArr[ j ];
+                if (vd.end < begin)
+                    break;
+
+                if (vd.begin < end)
+                    one_vda.unshift( vardeclArr.splice( j, 1 )[ 0 ] );
+            }
+        }
     }
 
 }(this));

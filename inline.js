@@ -3,6 +3,9 @@
 if (typeof lightparse === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "lightparse.js" );
 
+if (typeof lp2fmtree === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lp2fmtree.js" );
+
 (function (global) {
 
     var       INLINE = 'inline'
@@ -31,8 +34,9 @@ if (typeof lightparse === 'undefined')
     //
     // Returns another code string.
     {
-        console.log('xxx inline', code.substring(0,100))
         var      lp = lightparse( code, LIGHTPARSE_OPT )
+        ,        fm = lp2fmtree( lp )
+        
         ,       all = lp.all
         , inlineArr = all
             .map( function (o, ind) { return getInlineInfo( o, ind, all, code ); })
@@ -41,7 +45,9 @@ if (typeof lightparse === 'undefined')
         if (!inlineArr.length)
             return code;
 
+        console.log('xxx inline lp', lp)
         console.log('xxx inline inlineArr', inlineArr)
+        console.log('xxx inline fm', fm)
 
         return code;
     }
