@@ -3,7 +3,10 @@ js.metaret
 
 lightweight mutual tail recursion optimization without trampoline
 
+also known as: Tail Metacomposition
+
 These are the sources for the article http://glat.info/js.metaret/
+and the slides http://glat.info/mlocjs2014/#3
 
 .
 
