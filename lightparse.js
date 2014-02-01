@@ -227,7 +227,7 @@
                  
          build_bracket_tree( bA, ret.bracketTree );
          build_bracket_sep_split( bA, nakedCodeNoRx, code, reservedArr );
-
+         build_bracket_var_leftstr_rightstr( bA, cA );
 
          /*dc*/// Mark which identifier instances are var declarations.
          
@@ -456,6 +456,57 @@
                  } );
              }
              
+         }
+     }
+
+     function build_bracket_var_leftstr_rightstr( bA, commentArr )
+     {
+         for (var i = bA.length; i--;)
+         {
+             var brack = bA[ i ];
+             if (brack.typebracket !== VAR)
+                 continue;
+             
+             var vdArr = brack.vdArr = [];
+             
+             var s_arr = brack.sepSplit;
+             for (var nj = s_arr.length, j = 0; j < nj; j++)
+             {
+                 var s = s_arr[ j ]
+                 , str = (
+                         /\/\*|\*\//.test( s.str )  ?  removeComments( s ) : s.str
+                 )
+                     .replace( /^\s*|\s*$/g, '' )
+                 , mo_LR = str.match( /^([^=]*)\s*=\s*([\s\S]+)$/ )
+                 ;
+                 vdArr.push(
+                     mo_LR ?  { leftstr : mo_LR[ 1 ]
+                                , rightstr : mo_LR[ 2 ]
+                              }
+                     : { leftstr : str, rightstr : null }
+                 );
+             }
+         }
+
+         function removeComments( s )
+         {
+             var str = s.str
+             , begin = s.begin
+             ,   end = s.end
+             ;
+             for (var i = commentArr.length; i--;)
+             {
+                 var c = commentArr[ i ];
+                 if (c.end > end)
+                     continue;
+
+                 if (c.end < begin)
+                     break;
+
+                 str = str.substring( 0, c.begin - begin )
+                     + str.substring( c.end - begin );
+             }
+             return str;
          }
      }
 

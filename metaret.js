@@ -80,13 +80,13 @@ if (typeof lp2fmtree === 'undefined')
             ,   lp       = lightparse( metacode, LIGHTPARSE_OPT )
             ,   fmtree   = lp2fmtree( lp )
             ;
-            rec_decl( fmtree, /*isGlobal:*/true, name2info, ret, opt );
+            rec_decl( fmtree, /*isTop:*/true, name2info, ret, opt );
         }
 
         return ret;
     }
 
-    function rec_decl( fmtree, /*boolean*/isGlobal, /*object*/name2info, /*?array?*/output, /*?object?*/opt )
+    function rec_decl( fmtree, /*boolean*/isTop, /*object*/name2info, /*?array?*/output, /*?object?*/opt )
     // Returns an array of `info` objects, ordered by increasing
     // `.begin` value.
     {
@@ -95,17 +95,17 @@ if (typeof lp2fmtree === 'undefined')
         if (fmtree instanceof Array)
         {
             for (var n = fmtree.length, i = 0; i < n; i++)
-                rec_decl( fmtree[ i ], isGlobal, name2info, output, opt );
+                rec_decl( fmtree[ i ], isTop, name2info, output, opt );
         }
         else
         {
             if (fmtree.children)
-                rec_decl( fmtree.children, /*isGlobal*/false, name2info, output, opt );
+                rec_decl( fmtree.children, /*isTop*/false, name2info, output, opt );
             
             
             Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.children, fmtree.isFunction, name2info, opt );
 
-            if (isGlobal)
+            if (isTop)
                 output.push( { fullname : fmtree.fullname, fmtree : fmtree, info : name2info[ fmtree.fullname ] } );
         }
         return output;
@@ -161,7 +161,7 @@ if (typeof lp2fmtree === 'undefined')
         // within the global object.
         
         var dot_arr = name.split( '.' )
-        ,   g       = global
+        ,   g       = name2info === _global_name2info  ?  global  :  {}
         ;
         while (dot_arr.length > 1)
         {
@@ -213,6 +213,7 @@ if (typeof lp2fmtree === 'undefined')
             ?  fWrapper
             :  getImpl()
         ;
+        ret.getInfo = getInfo;
         ret.getImpl = getImpl;  // For convenience, ensure the compiled code always can be seen from the outside.
         return ret;
 
@@ -223,6 +224,11 @@ if (typeof lp2fmtree === 'undefined')
             )
                 .apply( this, arguments)
             ;
+        }
+
+        function getInfo()
+        {
+            return Object.create( info );  // lousy protection but better than nothing
         }
 
         function getImpl()
@@ -295,6 +301,7 @@ if (typeof lp2fmtree === 'undefined')
                 ret = info.compile();
         }
 
+        ret.getInfo = mf_getInfo;
         ret.getImpl = mf_getImpl;
 
         return ret;
@@ -310,6 +317,12 @@ if (typeof lp2fmtree === 'undefined')
             
             return info.impl.apply( this, arguments );
         }
+        
+        function mf_getInfo()
+        {
+            return Object.create( info );  // lousy protection but better than nothing
+        }
+
         
         // For convenience : to see the generated code from outside.
 

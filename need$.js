@@ -2,7 +2,7 @@
 
 var need$, read;
 
-(function () {
+(function (global) {
 
     need$ = need$Impl;
     var has = {};
@@ -49,7 +49,7 @@ var need$, read;
 
         console.log('xxx need$ path', path)
 
-        new Function( code )();  // May include calls to `need$` -> load all missing files recursively.
+        eval.call( global, code );  // May include calls to `need$` -> load all missing files recursively.
     }
     
     function xhrGetSync( path )
@@ -68,4 +68,4 @@ var need$, read;
         return xhr.responseText + "\r\n//@ sourceURL=" + path;
     }
 
-})();
+})(this);
