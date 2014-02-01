@@ -109,13 +109,13 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
         metaret improveFirst;
     }
 
-    function isFirstFound( sortedArray, i, equal, x )
+    function isFirstFound( sortedArray, i, equal, x, blah, d, e, f )
     {
         return equal(x, sortedArray[i])  &&
             (i < 1  ||  !equal(x, sortedArray[i - 1]));
     }
 
-    function isLastFound( sortedArray, j, equal, x)
+    function isLastFound( sortedArray, j, equal, x, extra, param)
     {
         return equal(x, sortedArray[j])  &&
             (j > sortedArray.length - 2  || !equal(x, sortedArray[j + 1]));

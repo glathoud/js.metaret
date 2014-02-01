@@ -245,8 +245,15 @@ if (typeof lp2fmtree === 'undefined')
         
         // Set input argument values.
 
-        var set_args_arr = paramN_arr.map( function (pN, i) {
-            return pN + ' = ' + one.args.sepSplit[ i ].str + ';';
+        var oas = one.args.sepSplit
+        , set_args_arr = paramN_arr.map( function (pN, i) {
+            return pN + ' = ' + 
+                (i < oas.length  
+                 ?  oas[ i ].str  // argument given
+                 :  undefN        // argument missing
+                ) +
+                ';'
+            ;
         });
         
         // Beginning: Make sure "undefined" declarations work (e.g. when looping, need to reset such variables)
@@ -280,12 +287,14 @@ if (typeof lp2fmtree === 'undefined')
         var newcode = [ '{'
                         , '//#INLINE_BEGIN: ' + one.str.replace( /\r\n/g, ' ' ) // On top, put the original "inline" call in a comment.
                       ]
-            .concat( set_args_arr )
             .concat( [ 'var ' + undefN + ', ' + retN + ';' ] )
+            .concat( [ '//#INLINE_SET_INPUT_ARGS:' ] )
+            .concat( set_args_arr )
             .concat( var_decl_undef_arr.length 
                      ? [ 'var ' + var_decl_undef_arr.join( ', ' ) + ';' ]
                      : []
                    )
+            .concat( [ '//#INLINE_IMPLEMENT:' ] )
             .concat( [ 'do {' ] )
             .concat( newbody )
             .concat( [ '} while (false);' ] )
