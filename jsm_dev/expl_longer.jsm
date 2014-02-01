@@ -111,6 +111,10 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
 
     function isFirstFound( sortedArray, i, equal, x )
     {
+        var toto, 
+        tata = 34,
+        tw;
+
         return equal(x, sortedArray[i])  &&
             (i < 1  ||  !equal(x, sortedArray[i - 1]));
     }

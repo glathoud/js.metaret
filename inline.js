@@ -179,8 +179,9 @@ if (typeof lp2fmtree === 'undefined')
         , paramN_map   = getMapping( param_arr, paramN_arr )
 
         , vardeclArr   = fmCallMatch.vardeclArr
-        , vardeclN_arr = vardeclArr.map( function (x) { return getNewName( x.name, io ); } )
-        , vardeclN_map = getMapping( vardeclArr, vardeclN_arr )
+        , varnameArr   = vardeclArr.map( function (x) { return x.name; } )
+        , vardeclN_arr = varnameArr.map( function (name) { return getNewName( name, io ); } )
+        , vardeclN_map = getMapping( varnameArr, vardeclN_arr )
 
         , body = fmCallMatch.body
         , body_begin = fmCallMatch.body_node.begin
@@ -266,7 +267,7 @@ if (typeof lp2fmtree === 'undefined')
                 var vd = vdArr[ j ];
                 if (!vd.rightstr  &&  !(vd.leftstr in var_decl_undef_set))
                 {
-                    var_decl_undef_arr.push( vd.leftstr + ' = ' + undefN );
+                    var_decl_undef_arr.push( vardeclN_map[ vd.leftstr ] + ' = ' + undefN );
                     var_decl_undef_set[ vd.leftstr ] = 1;
                 }
             }
@@ -280,6 +281,7 @@ if (typeof lp2fmtree === 'undefined')
                         , '// ' + one.str.replace( /\r\n/g, ' ' ) // On top, put the original "inline" call in a comment.
                       ]
             .concat( set_args_arr )
+            .concat( [ 'var ' + undefN + ', ' + retN + ';' ] )
             .concat( var_decl_undef_arr.length 
                      ? [ 'var ' + var_decl_undef_arr.join( ', ' ) + ';' ]
                      : []
