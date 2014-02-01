@@ -9,6 +9,12 @@ These are the sources for the article http://glat.info/js.metaret/
 
 Background: Implementing mutual tail recursion optimization without trampoline [1] - for good performance - led me to write quite insane code [2]. Here is a lighter approach, that extends JavaScript with two keywords `metafun` and `metaret`, implementing one tiny bit of Backus' metacomposition [3].
 
+.
+
+An extra keyword `inline` is supported, see issue #3 and file:jsm_dev/expl_longer.jsm for examples.
+
+.
+
 [0] http://glat.info
 
 [1] http://glat.info/jscheck/tomrec.xhtml
