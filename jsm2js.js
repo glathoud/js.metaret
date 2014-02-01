@@ -2,8 +2,8 @@
 
 // Support both use cases: browser development (example: jsm_dev) and
 // command-line transformation (example: jsm_dev -> jsm_out).
-    if (typeof metaparse === 'undefined')
-        (typeof need$ !== 'undefined'  ?  need$  :  load)( "metaret.js" );
+if (typeof metaparse === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "metaret.js" );
 
 (function (global) {
 
@@ -19,7 +19,7 @@
     // glathoud@yahoo.fr
     {
         var local_name2info = {}
-        ,   arr = metaparse( jsm_code, local_name2info )
+        ,   arr = metaparse( jsm_code, local_name2info, { doNotCompile : true } )
         ,   ret_js = jsm_code
         ;
         

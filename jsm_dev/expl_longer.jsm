@@ -43,8 +43,8 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
 
     metafun improveFirst(self)
     {
-        first_found = first_found ||
-            isFirstFound(sortedArray, i, equal, x);
+        if (!first_found)
+            inline first_found = isFirstFound(sortedArray, i, equal, x);
 
         // Termination tests
 
@@ -80,8 +80,8 @@ metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
 
     metafun improveLast(self)
     {
-        last_found = last_found ||
-            isLastFound(sortedArray, j, equal, x);
+        if (!last_found)
+            inline last_found = isLastFound(sortedArray, j, equal, x);
 
         // Termination tests already done in `improveFirst`, 
         // not needed here.

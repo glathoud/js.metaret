@@ -1,4 +1,4 @@
-/*global document console load lightparse*/
+/*global document console load lightparse need$ lp2fmtree*/
 
 // Guillaume Lathoud, 2011, 2013, MIT License, see ./LICENSE.TXT
 // 
@@ -61,7 +61,7 @@ if (typeof lp2fmtree === 'undefined')
         , _metaparse_one_start_rx = /^\s*(metafun|function)\s/
         , _metaparse_one_start_function_rx = /^\s*function\s/
         ;
-    function metaparse( /*?string?*/code, /*?object?*/name2info )
+    function metaparse( /*?string?*/code, /*?object?*/name2info, /*?object?*/opt )
     {
         name2info  ||  (name2info = _global_name2info);
 
@@ -80,13 +80,13 @@ if (typeof lp2fmtree === 'undefined')
             ,   lp       = lightparse( metacode, LIGHTPARSE_OPT )
             ,   fmtree   = lp2fmtree( lp )
             ;
-            rec_decl( fmtree, /*isGlobal:*/true, name2info, ret );
+            rec_decl( fmtree, /*isGlobal:*/true, name2info, ret, opt );
         }
 
         return ret;
     }
 
-    function rec_decl( fmtree, /*boolean*/isGlobal, /*object*/name2info, /*?array?*/output )
+    function rec_decl( fmtree, /*boolean*/isGlobal, /*object*/name2info, /*?array?*/output, /*?object?*/opt )
     // Returns an array of `info` objects, ordered by increasing
     // `.begin` value.
     {
@@ -95,15 +95,15 @@ if (typeof lp2fmtree === 'undefined')
         if (fmtree instanceof Array)
         {
             for (var n = fmtree.length, i = 0; i < n; i++)
-                rec_decl( fmtree[ i ], isGlobal, name2info, output );
+                rec_decl( fmtree[ i ], isGlobal, name2info, output, opt );
         }
         else
         {
             if (fmtree.children)
-                rec_decl( fmtree.children, /*isGlobal*/false, name2info, output );
+                rec_decl( fmtree.children, /*isGlobal*/false, name2info, output, opt );
             
             
-            Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.children, fmtree.isFunction, name2info );
+            Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.children, fmtree.isFunction, name2info, opt );
 
             if (isGlobal)
                 output.push( { fullname : fmtree.fullname, fmtree : fmtree, info : name2info[ fmtree.fullname ] } );
@@ -113,17 +113,17 @@ if (typeof lp2fmtree === 'undefined')
     
     var _global_name2info = {};    
 
-    function MetaDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children, /*?object?*/name2info )
+    function MetaDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children, /*?object?*/name2info, /*?object?*/opt )
     {
-        Decl( code_or_name, param, body, children, false, name2info  ||  _global_name2info );
+        Decl( code_or_name, param, body, children, false, name2info  ||  _global_name2info, opt );
     }
 
-    function FunDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children, /*?object?*/name2info )
+    function FunDecl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children, /*?object?*/name2info, /*?object?*/opt )
     {
-        Decl( code_or_name, param, body, children, true, name2info  ||  _global_name2info );
+        Decl( code_or_name, param, body, children, true, name2info  ||  _global_name2info, opt );
     }
 
-    function Decl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children, /*?boolean?*/is_fun, /*?object?*/name2info )
+    function Decl( /*single argument: code string | three arguments: name*/code_or_name, /*?string?*/param, /*?string?*/body, /*?array?*/children, /*?boolean?*/is_fun, /*?object?*/name2info, /*?object?*/opt)
     {
         children  ||  (children = []);
 
@@ -149,7 +149,7 @@ if (typeof lp2fmtree === 'undefined')
             param = mo[ 3 ];
             body  = mo[ 4 ];
             
-            Decl( name, param, body, children, is_fun, name2info );
+            Decl( name, param, body, children, is_fun, name2info, opt );
             return;
         }
         
@@ -177,11 +177,11 @@ if (typeof lp2fmtree === 'undefined')
             + '\n\n'
         ;
 
-        g[ dot_arr[ 0 ] ] = (is_fun  ?  NormalFunction  :  MetaFunction)( name, param, remember + body, name2info, children );
+        g[ dot_arr[ 0 ] ] = (is_fun  ?  NormalFunction  :  MetaFunction)( name, param, remember + body, name2info, children, opt );
 
     }
     
-    function NormalFunction( name, param, body, name2info, /*?array?*/children )
+    function NormalFunction( name, param, body, name2info, /*?array?*/children, /*?object?*/opt )
     {
         _checkNameNotUsedYet( name2info, name );
 
@@ -192,27 +192,45 @@ if (typeof lp2fmtree === 'undefined')
             ;
             body = ok  &&  body.replace( rx, '\n\n' + childrenCode( name2info, children ) + '\n\n}' )
         }
-        
-        var impl = new Function( param, body )
 
-        ,   info = name2info[ name ] = 
+        var info = name2info[ name ] = 
             { 
                 name        : name  
                 , lastname  : name.replace( /^.*\./, '' )
                 , origParam : param  
                 , origBody  : body  
-                , impl      : impl
                 , name2info : name2info 
-
+                , impl      : null
+                
                 // Store also for childrenCode
                 , paramArr : param.split(',')
                 , body     : body
+            };
 
-            }
+        // 2 cases
+
+        var ret = opt  &&  opt.doNotCompile  
+            ?  fWrapper
+            :  getImpl()
         ;
+        ret.getImpl = getImpl;  // For convenience, ensure the compiled code always can be seen from the outside.
+        return ret;
 
+        function fWrapper()
+        {
+            return (
+                info.impl  ||  (info.impl = getImpl())
+            )
+                .apply( this, arguments)
+            ;
+        }
 
-        return impl;
+        function getImpl()
+        {
+            return info.impl  ||  (
+                info.impl = new Function( param, body )
+            );
+        }
     }
 
     function MetaFunction(
@@ -221,6 +239,7 @@ if (typeof lp2fmtree === 'undefined')
         , /*string: code*/body
         , /*object*/name2info
         , /*array*/children
+        , /*?object?*/opt
     ) 
     // Returns a function `ret`. So it does not matter whether you
     // use `new MetaFunction(...)`, or just `MetaFunction(...)`.
@@ -247,45 +266,58 @@ if (typeof lp2fmtree === 'undefined')
                                               , lastname  : name.replace( /^.*\./, '' )
                                               , origParam : param  
                                               , origBody  : body  
-                                              , impl      : null         // Where we'll store the resulting unwrapped implementation, as soon as we need it.
                                               , name2info : name2info 
+
+                                              // solve
+                                              , solved    : false
+                                              , newParam  : null
+                                              , newBody   : null
+
+                                              // compile
+                                              , impl      : null         // Where we'll store the resulting unwrapped implementation, as soon as we need it.
                                             }
         , paramArr   = info.paramArr      = _checkExtractParam( param )  
         , varArr     = info.varArr        = _extractVar( body )
         , metaretArr = info.metaretArr    = _checkExtractMetaret( body, paramArr.self, name )
-        , solve      = info.solve         = _createSolver( info, children )
         ;
+        _createSolver( info, children );
+
+
+        var ret = mfWrapper;
         
         if (metaretArr.hasAll( name2info ))
         {
             // If we can solve right away (e.g. self-recursion case),
             // then we do not need the `function ret()` check anymore.
-            solve();
-            ret = info.impl;
+            info.solve();
+
+            if (!(opt  &&  opt.doNotCompile))
+                ret = info.compile();
         }
-        
-        ret.getImpl = ret_getImpl;
+
+        ret.getImpl = mf_getImpl;
 
         return ret;
 
+        
         // Solve later (e.g. mutual recursion case where some of the
         // metaret actions (= other metafunctions) are not known yet).
 
-        function ret (/*...*/) 
+        function mfWrapper(/*...*/) 
         { 
             if (!info.impl)
-                solve();
+                info.compile();
             
-            return info.impl.apply( null, arguments );
+            return info.impl.apply( this, arguments );
         }
-
+        
         // For convenience : to see the generated code from outside.
 
-        function ret_getImpl()
+        function mf_getImpl()
         {
             if (!info.impl)
-                solve();
-
+                info.compile();
+            
             return info.impl;
         }
 
@@ -315,11 +347,12 @@ if (typeof lp2fmtree === 'undefined')
         , namespace_arr = name.split( '.' )
         ;
 
-        return solve;
+        info.solve   = solve;
+        info.compile = compile;
         
         function solve()
         {
-            if (info.impl)  
+            if (info.solved)  
                 return;  // Done already
 
             // Not done yet. Make sure it is feasible.
@@ -333,16 +366,26 @@ if (typeof lp2fmtree === 'undefined')
                 solveSelf();
             else
                 solveMulti();
+
+            info.solved = true;
+        }
+
+        function compile()
+        {
+            if (!info.solved)
+                solve();
+
+            return info.impl  ||  (
+                info.impl = new Function (info.newParam.join(','), info.newBody)
+            );
         }
 
         function solveNoMetaret()
         {
             console.warn( 'MetaFunction : _createSolver:solveNoMetaret() no #metaret in body of metafunction "' + name + '".' );
             
-            var newParam = info.newParam = paramArr
-            , newBody    = info.newBody  = origBody.replace( /^\s+$/mg, '' )
-            ;
-            info.impl = new Function( newParam.join( ',' ), newBody );
+            info.newParam = paramArr;
+            info.newBody  = origBody.replace( /^\s+$/mg, '' );
         }
 
         function solveSelf()
@@ -350,10 +393,14 @@ if (typeof lp2fmtree === 'undefined')
             var against = [ paramArr, origBody ]
             , label     = _generateAddName( 'L_' + name, against )  // Avoid collision
             , undefName = _generateAddName( 'undef', against )  // Avoid collision   
+
             , newParam  = info.newParam = paramArr
+
             , i4        = _indentGen( 4 )
             , i8        = _indentGen( 8 )
+
             , newBody   = info.newBody  = i4( 
+
                 'var ' + undefName + ';\n' + 
                 label + ': while (true) {\n' + 
                     i4( _reinitUndef( _replaceMetaretWithContinue( name2info, metaretArr, origBody, label, paramArr )
@@ -369,8 +416,6 @@ if (typeof lp2fmtree === 'undefined')
                 .replace( /^\s+$/mg, '' )
             ;
             
-            info.impl = new Function( newParam.join( ',' ), newBody );
-
             // Store also for childrenCode
             info.paramArr = newParam;
             info.body     = newBody;
@@ -400,7 +445,9 @@ if (typeof lp2fmtree === 'undefined')
             var i4     = _indentGen( 4 )
             , i8       = _indentGen( 8 )
             , i12      = _indentGen( 12 )
+            
             , newParam = info.newParam = paramArr
+            
             , newBody    = info.newBody = i4( [
                 'var ' + undefName + ';'
                 , 'var ' + switch_ind_name  + ' = 0;'
@@ -436,8 +483,6 @@ if (typeof lp2fmtree === 'undefined')
                 .replace( /^\s+$/mg, '' )
             ;
             
-            info.impl = new Function( newParam.join( ',' ), newBody );
-
             function info2code( info, ind )
             {
                 var code = [ 
@@ -513,6 +558,7 @@ if (typeof lp2fmtree === 'undefined')
 
         var ret = param.replace(/\s+/g, '' ).split( ',' );
         ret.self = ret.splice( ACTION_PARAM, 1 )[ 0 ];
+
         return ret;
     }
 

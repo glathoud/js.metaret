@@ -13,6 +13,9 @@ var need$, read;
     need$.read = readNative  ?  read  :  xhrGetSync;  // xhrGetSync to simulate the exact same order as a build file
 
     need$( 'jsm2js.js' );
+    need$( 'inline.js' );
+
+    var canInline = true;
 
     // Implementation
 
@@ -33,9 +36,18 @@ var need$, read;
             throw new Error( "need$: unknown type, only .js and .jsm are supported. Path: '" + path + "'" );
 
         var code = need$.read( path );
+
+        console.log('xxx canInline 0:',canInline,path)
         
         if (isJsm)
             code = jsm2js( code );
+
+        console.log('xxx canInline:',canInline,path)
+
+        if (canInline)
+            code = inline( code );
+
+        console.log('xxx need$ path', path)
 
         new Function( code )();  // May include calls to `need$` -> load all missing files recursively.
     }
