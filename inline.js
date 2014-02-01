@@ -1,4 +1,4 @@
-/*global need$ load lightparse console lp2fmtree*/
+/*global need$ load lightparse lp2fmtree console print*/
 
 if (typeof lightparse === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "lightparse.js" );
@@ -54,10 +54,6 @@ if (typeof lp2fmtree === 'undefined')
         ;
         if (!inlineArr.length)
             return code;
-
-        console.log('xxx inline lp', lp)
-        console.log('xxx inline inlineArr', inlineArr)
-        console.log('xxx inline fm', fm)
 
         var newcode = code;
         for (var i = inlineArr.length; i--;)
@@ -140,10 +136,6 @@ if (typeof lp2fmtree === 'undefined')
 
     function getInlineCodeHygienic( lp, fm, one )
     {
-        console.log('xxx getInlineCode lp', lp);
-        console.log('xxx getInlineCode fm',  fm);
-        console.log('xxx getInlineCode one', one);
-        
         var identifierObj = lp.identifierObj;
         var error;
 
@@ -154,7 +146,9 @@ if (typeof lp2fmtree === 'undefined')
         {
             if ('undefined' !== typeof console)  
                 console.error( 'Could not inline: self-recursion found for "' + fmCallMatch.fullname+ '".' );
-            
+            else if ('undefined' !== typeof print)
+                print( '[ERROR] Could not inline: self-recursion found for "' + fmCallMatch.fullname+ '".' );
+
             // Just drop the "inline" identifier
             return one.str.substring( INLINE.length );
         }

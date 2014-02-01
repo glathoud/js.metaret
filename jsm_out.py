@@ -17,7 +17,7 @@ def jsm_out( in_filename, default_in = DEFAULT_IN, default_out = DEFAULT_OUT, in
         outcode = incode
     else:
         out_filename = os.path.splitext( out_filename )[ 0 ] + '.js'
-        outcode = subprocess.check_output( [ D8, '-e', JSM2JS( in_filename ) ],
+        outcode = subprocess.check_output( [ D8, '-e', JSM2JS_AND_INLINE( in_filename ) ],
                                            stderr=subprocess.STDOUT,
                                            universal_newlines = True
                                            )

@@ -22,6 +22,7 @@ FILENAME = 'filename'
 IS_JSM = 'isJsm'
 
 JSM2JS = lambda filename: 'load("jsm2js.js"); print(jsm2js(read("' + filename + '")))'
+JSM2JS_AND_INLINE = lambda filename: 'load("jsm2js.js"); load("inline.js"); print(inline(jsm2js(read("' + filename + '"))))'
 
 JSM_EXT = '.jsm'
 
