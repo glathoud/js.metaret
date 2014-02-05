@@ -1,5 +1,7 @@
 import re
 
+ALL_TESTS_PASSED = 'All_tests_passed'
+
 BEGIN = 'begin'
 
 CHILDREN = 'children'
@@ -27,6 +29,20 @@ JSM2JS_AND_INLINE = lambda filename: 'load("jsm2js.js"); load("inline.js"); prin
 JSM_EXT = '.jsm'
 
 MINIFY = lambda filename: 'load("minify.js"); print(minify(read("' + filename + '")))'
+
+RUN_TEST_JS = lambda filename, testfilename, all_tests_passed_str = ALL_TESTS_PASSED: ' '.join(
+    ( 'load("need$.js");',
+      'need$("' + filename + '");',
+      'need$("' + testfilename + '");',
+      'var result;',
+      'try {',
+      'result = test();',
+      '} catch (e) {',
+      'result = e;',
+      '}',
+      'print(result === true  ?  "' + ALL_TESTS_PASSED + '" : result);',
+      )
+    )
 
 TEST_DEV_ONLY_RX = re.compile( r'//#BEGIN_TEST_DEV_ONLY[\s\S]*//#END_TEST_DEV_ONLY' )
 TEST_JS_EXT      = '.test.js'

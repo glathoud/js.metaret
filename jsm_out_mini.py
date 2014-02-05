@@ -23,7 +23,7 @@ def jsm_out_mini( infilename, default_in = DEFAULT_IN, default_out_build = DEFAU
                                        universal_newlines = True
                                        )
 
-    open( outminifilename, 'wb' ).write( outcode.encode( UTF8 ) )
+    open( ensure_dir_for_filename( outminifilename ), 'wb' ).write( outcode.encode( UTF8 ) )
 
     # Optionally there can be a test file, copy it as is
 
@@ -31,9 +31,13 @@ def jsm_out_mini( infilename, default_in = DEFAULT_IN, default_out_build = DEFAU
     if os.path.exists( outbuild_test_filename ):
 
         outmini_test_filename = get_out_filename( outbuild_test_filename, default_out_build, default_out_mini,  )
-        print( outmini_test_filename )
+        print( 'jsm_out_mini: (copy,test) {0} \t-> {1}'.format( outbuild_test_filename, outmini_test_filename ) )
 
-        open( outmini_test_filename, 'wb' ).write( open( outbuild_test_filename, 'rb' ).read() )
+        open( ensure_dir_for_filename( outmini_test_filename ), 'wb' ).write( open( outbuild_test_filename, 'rb' ).read() )
+
+
+        # Test it
+        out_test_result = run_test_js( outminifilename, outmini_test_filename )
 
         
 if __name__ == '__main__':

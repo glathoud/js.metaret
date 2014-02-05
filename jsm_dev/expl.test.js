@@ -249,7 +249,7 @@
 
         // ---
 
-        console.log('All tests passed.');
+        'undefined' !== typeof console  &&  console.log('All tests passed.');
 
         return true;
     }

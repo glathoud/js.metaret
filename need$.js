@@ -37,17 +37,11 @@ var need$, read;
 
         var code = need$.read( path );
 
-        console.log('xxx canInline 0:',canInline,path)
-        
         if (isJsm)
             code = jsm2js( code );
 
-        console.log('xxx canInline:',canInline,path)
-
         if (canInline)
             code = inline( code );
-
-        console.log('xxx need$ path', path)
 
         eval.call( global, code );  // May include calls to `need$` -> load all missing files recursively.
     }

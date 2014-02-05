@@ -1,8 +1,22 @@
 #!/usr/bin/env python3.2
 
-import os
+import os, subprocess
 
 from jsm_const import *
+
+def ensure_dir_for_filename( filename ):
+
+    '''Make sure the dir containing `filename` exists,
+    creates the dir if necessary,
+    then return `filename`.`'''
+
+    dirname = os.path.split( filename )[ 0 ]
+    if not os.path.exists( dirname ):
+        os.makedirs( dirname )
+
+    assert os.path.isdir( dirname )
+
+    return filename
 
 def fetch_deptree( inname, default_in = DEFAULT_IN, deptree_rx = DEPTREE_RX ):
 
@@ -103,3 +117,27 @@ def replace_dependencies( deptree, in_filename, default_in, default_out, deptree
         )
 
     return outcode
+
+def run_test_js( filename, testfilename, all_tests_passed_str=ALL_TESTS_PASSED, verbose=True ):
+
+    if verbose:
+        print('Testing "{0}" against test "{1}"... '.format( filename, testfilename ), end='')
+
+    ret = subprocess.check_output( [ D8, '-e', RUN_TEST_JS( filename, testfilename, all_tests_passed_str ) ],
+                                   stderr=subprocess.STDOUT,
+                                   universal_newlines = True
+                                ).strip()
+
+    success = ret == all_tests_passed_str
+
+    if not success:
+        print()
+        print(ret)
+        print('!=')
+        print(all_tests_passed_str)
+        
+    assert success
+
+    if verbose:
+        print(all_tests_passed_str)
+    

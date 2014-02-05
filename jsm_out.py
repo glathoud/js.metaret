@@ -28,7 +28,34 @@ def jsm_out( in_filename, default_in = DEFAULT_IN, default_out = DEFAULT_OUT, in
     print( 'jsm_out: {0} {1} \t-> {2}'.format(  '(copy)  ' if not is_jsm else '(jsm2js)', in_filename, out_filename ) )
 
     outbytes = outcode.encode( UTF8 )
-    open( out_filename, 'wb' ).write( outbytes )
+    open( ensure_dir_for_filename( out_filename ), 'wb' ).write( outbytes )
+
+
+    # Optionally there can be a test file
+
+    intestfilename = os.path.splitext( in_filename )[ 0 ] + TEST_JS_EXT
+    if os.path.exists( intestfilename ):
+
+        outtestfilename = get_out_filename( intestfilename, default_in, default_out )
+        print( 'jsm_out: (test,copy,test) {0} \t-> {1}'.format( intestfilename, outtestfilename ) )
+
+
+
+        # Run the test on the input file
+        in_test_result = run_test_js( in_filename, intestfilename )
+
+        
+
+        # Copy it exactly
+        new_test_code   = open( intestfilename, 'rb' ).read().decode( UTF8 )
+        
+        open( ensure_dir_for_filename( outtestfilename ), 'wb' ).write( new_test_code.encode( UTF8 ) )
+
+
+        # Run the test on the output file
+        out_test_result = run_test_js( out_filename, outtestfilename )
+        
+
 
 # can also run standalone, e.g. to check the jsm2js transformation on
 # a particular .jsm file

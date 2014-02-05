@@ -19,7 +19,7 @@ def jsm_out_build( infilename, deptree = None, default_in = DEFAULT_IN, default_
 
     new_code = replace_dependencies( deptree, infilename, default_in, default_out )
 
-    open( outbuildfilename, 'wb' ).write( new_code.encode( UTF8 ))
+    open( ensure_dir_for_filename( outbuildfilename ), 'wb' ).write( new_code.encode( UTF8 ))
 
 
     # Optionally there can be a test file
@@ -28,12 +28,16 @@ def jsm_out_build( infilename, deptree = None, default_in = DEFAULT_IN, default_
     if os.path.exists( intestfilename ):
 
         outtestfilename = get_out_filename( intestfilename, default_in, default_out_build )
-        print( outtestfilename )
+        print( 'jsm_out_build: (copy,test) {0} \t-> {1}'.format( intestfilename, outtestfilename ) )
 
         # Copy it almost exactly, stripping some parts
         new_test_code   = re.sub( TEST_DEV_ONLY_RX, '', open( intestfilename, 'rb' ).read().decode( UTF8 ) )
         
-        open( outtestfilename, 'wb' ).write( new_test_code.encode( UTF8 ) )
+        open( ensure_dir_for_filename( outtestfilename ), 'wb' ).write( new_test_code.encode( UTF8 ) )
+
+        
+        # Test it
+        out_test_result = run_test_js( outbuildfilename, outtestfilename )
 
         
 if __name__ == '__main__':
