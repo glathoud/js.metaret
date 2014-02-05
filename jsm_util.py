@@ -121,7 +121,7 @@ def replace_dependencies( deptree, in_filename, default_in, default_out, deptree
 def run_test_js( filename, testfilename, all_tests_passed_str=ALL_TESTS_PASSED, verbose=True ):
 
     if verbose:
-        print('Testing "{0}" against test "{1}"... '.format( filename, testfilename ), end='')
+        print('...testing "{0}" against test "{1}"... '.format( filename, testfilename ), end='')
 
     ret = subprocess.check_output( [ D8, '-e', RUN_TEST_JS( filename, testfilename, all_tests_passed_str ) ],
                                    stderr=subprocess.STDOUT,

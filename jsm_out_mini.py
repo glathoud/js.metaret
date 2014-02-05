@@ -4,8 +4,9 @@ import os, pprint, re, subprocess, sys
 
 from jsm_const import *
 from jsm_util  import *
+from jsm_out_build import walk_test
 
-def jsm_out_mini( infilename, default_in = DEFAULT_IN, default_out_build = DEFAULT_OUT_BUILD, default_out_mini = DEFAULT_OUT_MINI ):
+def jsm_out_mini( infilename, deptree = None, default_in = DEFAULT_IN, default_out_build = DEFAULT_OUT_BUILD, default_out_mini = DEFAULT_OUT_MINI ):
 
     infilename       = fix_in_filename( infilename, default_in )
     assert os.path.exists( infilename )
@@ -25,20 +26,9 @@ def jsm_out_mini( infilename, default_in = DEFAULT_IN, default_out_build = DEFAU
 
     open( ensure_dir_for_filename( outminifilename ), 'wb' ).write( outcode.encode( UTF8 ) )
 
-    # Optionally there can be a test file, copy it as is
+    # Optionally there can be one or more a test file
 
-    outbuild_test_filename = os.path.splitext( outbuildfilename )[ 0 ] + TEST_JS_EXT
-    if os.path.exists( outbuild_test_filename ):
-
-        outmini_test_filename = get_out_filename( outbuild_test_filename, default_out_build, default_out_mini,  )
-        print( 'jsm_out_mini: (copy,test) {0} \t-> {1}'.format( outbuild_test_filename, outmini_test_filename ) )
-
-        open( ensure_dir_for_filename( outmini_test_filename ), 'wb' ).write( open( outbuild_test_filename, 'rb' ).read() )
-
-
-        # Test it
-        out_test_result = run_test_js( outminifilename, outmini_test_filename )
-
+    walk_test( infilename, outminifilename, default_in, default_out_mini, stdout_prefix = 'jsm_out_mini' )
         
 if __name__ == '__main__':
     jsm_out_mini( sys.argv[ 1 ] )

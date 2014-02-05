@@ -1,6 +1,6 @@
 import re
 
-ALL_TESTS_PASSED = 'All_tests_passed'
+ALL_TESTS_PASSED = 'All tests passed.'
 
 BEGIN = 'begin'
 

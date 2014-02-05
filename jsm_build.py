@@ -31,7 +31,7 @@ def main( argv_1 ):
 
     # Step 4 minify
 
-    jsm_out_mini( infilename )
+    jsm_out_mini( infilename, deptree = deptree )
     
 if __name__ == '__main__':
     main( sys.argv[ 1: ] )
