@@ -49,11 +49,14 @@
         var isTopLevel = arguments.length < 2;
 
         namespace  ||  (namespace = []);
-        workspace  ||  (workspace = { iAnonymous : 0 });
+        workspace  ||  (workspace = { iAnonymous : 0, lastname2fmarr : {} });
         
         var at = lp  instanceof Array  ?  lp  :  lp.allTree
         ,  ret = []
         ;
+        if (isTopLevel)
+            ret.lastname2fmarr = workspace.lastname2fmarr;  // Convenience access (mainly for ./inline.js)
+        
         for (var n = at.length, i = 0; i < n; i++)
         {
             var one  = at[ i ];
@@ -141,6 +144,14 @@
                           };
                 
                 ret.push( out );
+
+                // Convenience access
+                if (!isAnonymousFunction)
+                {
+                    (workspace.lastname2fmarr[ lastname ]  ||  (workspace.lastname2fmarr[ lastname ] = []))
+                        .push( out )
+                    ;
+                }
             }
             else if (one.children)
             {
