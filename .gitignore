@@ -8,3 +8,4 @@ _notes.org
 jsm_out
 jsm_out*/*
 __pycache__
+*.pyc

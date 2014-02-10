@@ -23,8 +23,39 @@ FILENAME = 'filename'
 
 IS_JSM = 'isJsm'
 
-JSM2JS = lambda filename: 'load("jsm2js.js"); print(jsm2js(read("' + filename + '")))'
-JSM2JS_AND_INLINE = lambda filename: 'load("jsm2js.js"); load("inline.js"); print(inline(jsm2js(read("' + filename + '"))))'
+JS_WORKSPACE = 'js_workspace'
+JS_SEP_IN  = '\\n##########'
+JS_SEP_OUT = '\n##########\n'
+
+JSM2JS_AND_INLINE_SETUP = ' '.join([
+    'load("jsm2js.js");',
+    'load("inline.js");',
+    JS_WORKSPACE + ' = {};',
+    '',
+    ])
+
+JSM2JS_AND_INLINE_PREPARE_ONE = lambda in_filename,out_filename: ' '.join( [
+    'var in_filename = "' + in_filename + '";',
+    'var out_filename = "' + out_filename + '";',
+    'print( "#in_filename:\'" + in_filename + "\'" );',
+    'print( "#out_filename:\'" + out_filename + "\'" );',
+    'print( inline( jsm2js( read( in_filename ) ), ' + JS_WORKSPACE + ', in_filename ) );',
+    '',
+    ])
+
+JS_NO_CHANGE_PREPARE_ONE = lambda in_filename,out_filename: ' '.join( [
+    'var in_filename = "' + in_filename + '";',
+    'var out_filename = "' + out_filename + '";',
+    'print( "#in_filename:\'" + in_filename + "\'" );',
+    'print( "#out_filename:\'" + out_filename + "\'" );',
+    'print();',
+    '',
+    ])
+
+
+JS_OUT_PIECE_RX = re.compile( r'^\s*#in_filename:["\'](?P<in_filename>[^"\']+?)["\']\s*#out_filename:["\'](?P<out_filename>[^"\']+?)["\']\s*(?P<outcode>[\s\S]*)$' )
+
+JS_EXT = '.js'
 
 JSM_EXT = '.jsm'
 
@@ -48,3 +79,5 @@ TEST_DEV_ONLY_RX = re.compile( r'//#BEGIN_TEST_DEV_ONLY[\s\S]*//#END_TEST_DEV_ON
 TEST_JS_EXT      = '.test.js'
 
 UTF8 = 'utf-8'
+
+VISITED = 'visited'

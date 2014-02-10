@@ -43,6 +43,10 @@ def fetch_deptree( inname, default_in = DEFAULT_IN, deptree_rx = DEPTREE_RX ):
         dep[ FILENAME ]     = kid_filename
         ret[ kid_filename ] = kidtree[ kid_filename ]
 
+        for k in kidtree:
+            if k not in ret:
+                ret[ k ] = kidtree[ k ]
+
     return ret,filename
 
 def fix_in_filename( in_filename, default_dir ):

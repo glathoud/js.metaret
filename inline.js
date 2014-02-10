@@ -1,4 +1,4 @@
-/*global need$ load lightparse lp2fmtree console print*/
+/*global need$ load lightparse lp2fmtree console print JSON*/
 
 if (typeof lightparse === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "lightparse.js" );
@@ -29,7 +29,7 @@ if (typeof lp2fmtree === 'undefined')
     
     global.inline = inline;
 
-    function inline( code )
+    function inline( code, /*?object?*/workspace, /*?object?*/opt_code_info )
     // Remove `inline` statements, replace them with hygienic inlining 
     // of the called function.
     //
@@ -53,6 +53,10 @@ if (typeof lp2fmtree === 'undefined')
     // Guillaume Lathoud
     // glathoud@yahoo.fr
     {
+        workspace  ||  (workspace = {});
+
+        // Parse this piece of code: find inline statements.
+
         var      lp = lightparse( code, LIGHTPARSE_OPT )
         ,        fm = lp2fmtree( lp )
         
@@ -70,9 +74,87 @@ if (typeof lp2fmtree === 'undefined')
             })
             .filter( function (info) { return info; } )
         ;
+
+        var lastname2fmarr = fm.lastname2fmarr;
+
+        var key = opt_code_info  ?  JSON.stringify( opt_code_info )  :  code;
+        if (key in workspace)
+            throw new Error( 'Unexpected code match in inline workspace! Think about passing e.g. unique file path through opt_code_info.' );
+        
+        workspace[ key ] = {
+            code_info   : opt_code_info  // e.g. path of the file
+            , inlineArr : inlineArr
+            , lastname2fmarr : lastname2fmarr
+            , lp : lp
+            , fm : fm
+        };
+
+
         if (!inlineArr.length)
             return code;
 
+        // For each inline statement, look for an unambiguous match,
+        // in this piece of code, else in another one (workspace).
+
+        for (var i = inlineArr.length; i--;)
+        {
+            var one = inlineArr[ i ];
+
+            // Try first in the same piece of code.
+
+            one.fmScopePath = getFmScopePath( fm, one );
+
+            var local_fmCallMatch = getFmCallMatch( one.fmScopePath, one );
+            if (local_fmCallMatch)
+            {
+                one.hasLocalMatch = true;
+                one.fmCallMatch   = local_fmCallMatch;
+                one.matchKey      = key;
+            }
+            else
+            {
+                // Try second in other pieces of codes (typically other files).
+
+                var matches  = []
+                ,   callname = one.call.name
+                ;
+                (callname || 0).substring.call.a;
+
+                for (var other_key in workspace) { if (workspace.hasOwnProperty( key )) {
+
+                    if (key === other_key)
+                        continue;
+                    
+                    var other_stuff          = workspace[ other_key ]
+                    ,   other_lastname2fmarr = other_stuff.lastname2fmarr
+                    ,   other_fmarr = other_lastname2fmarr[ callname ]
+                    ,   other_n     = other_fmarr  &&  other_fmarr.length
+                    ;
+                    if (other_n === 1)
+                    {
+                        if (one.fmCallMatch)
+                        {
+                            throw new Error( 'Ambiguous match for inline call "' + callname + '" found between the 2 pieces: ' + one.matchKey + 
+                                             '\n --- and --- \n' + other_key 
+                                           );
+                        }
+                        
+                        one.hasLocalMatch   = false;
+                        one.fmCallMatch     = other_fmarr[ 0 ];
+                        one.matchKey        = other_key;
+                    }
+                    else if (other_n === 2)
+                    {
+                        throw new Error( 'Ambiguous match for inline call "' + callname + '" found within piece "' + other_key );
+                    }
+                }}
+            }
+        }
+        
+        // xxx detect and forbid cycles (github issue #6)
+
+        // Actually inline
+        
         var newcode = code;
         for (var i = inlineArr.length; i--;)
         {
@@ -157,8 +239,8 @@ if (typeof lp2fmtree === 'undefined')
         var identifierObj = lp.identifierObj;
         var error;
 
-        var fmScopePath = getFmScopePath( fm, one )
-        ,   fmCallMatch = getFmCallMatch( fmScopePath, one )
+        var fmScopePath = one.fmScopePath
+        ,   fmCallMatch = one.fmCallMatch
         ;
         if (-1 < fmScopePath.indexOf( fmCallMatch ))
         {
@@ -382,7 +464,6 @@ if (typeof lp2fmtree === 'undefined')
             // Not found, move one scope upwards.
         }
 
-        throw new Error( 'Could not find a match for inline call "' + callname + '".' )
     }
 
 })(this);

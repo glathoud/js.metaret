@@ -447,6 +447,9 @@
                  ,   end    = after .index
                  ,   str    = code.substring( begin, end )
                  ;
+                 if (!str)
+                     continue;
+                 
                  sS.push( { 
                      begin : begin
                      , end : end

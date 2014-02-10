@@ -5,7 +5,9 @@ var need$, read;
 (function (global) {
 
     need$ = need$Impl;
-    var has = {};
+    var has = {}
+    , inline_workspace = {}
+    ;
 
     // Load the metaret core necessary to support .jsm files
 
@@ -37,11 +39,19 @@ var need$, read;
 
         var code = need$.read( path );
 
+        // Because of inline & inline_workspace, we need to do load
+        // dependencies right now, because inline is permitted across
+        // files (see github issue #7).
+        var NEED_RX = /need\$\s*\(\s*(["\'])([^"\']+)\1/g;
+        while (mo = NEED_RX.exec( code ))
+            need$Impl( mo[ 2 ]);
+        
+        
         if (isJsm)
             code = jsm2js( code );
 
         if (canInline)
-            code = inline( code );
+            code = inline( code, inline_workspace, { path : path } ); // `inline_workspace` to permit inlining accross files, see github issue #7 
 
         eval.call( global, code );  // May include calls to `need$` -> load all missing files recursively.
     }
