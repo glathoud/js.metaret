@@ -29,7 +29,7 @@ if (typeof lp2fmtree === 'undefined')
     
     global.inline = inline;
 
-    function inline( code, /*?object?*/workspace, /*?object?*/opt_code_info )
+    function inline( code, /*?object?*/workspace, /*?object?*/opt_code_info, /*?array?*/error_inline_stack )
     // Remove `inline` statements, replace them with hygienic inlining 
     // of the called function.
     //
@@ -55,6 +55,8 @@ if (typeof lp2fmtree === 'undefined')
     {
         workspace  ||  (workspace = {});
 
+        error_inline_stack  ||  (error_inline_stack = []);
+        
         // Parse this piece of code: find inline statements.
 
         var      lp = lightparse( code, LIGHTPARSE_OPT )
@@ -78,9 +80,27 @@ if (typeof lp2fmtree === 'undefined')
         var lastname2fmarr = fm.lastname2fmarr;
 
         var key = opt_code_info  ?  JSON.stringify( opt_code_info )  :  code;
-        if (key in workspace)
-            throw new Error( 'Unexpected code match in inline workspace! Think about passing e.g. unique file path through opt_code_info.' );
         
+        error_inline_stack.push( { key : key, code : code, workspace : workspace, opt_code_info : opt_code_info } )
+        
+        if (key in workspace)
+        {
+            var newcode = workspace[ key ].newcode;
+            
+            if ('string' !== typeof newcode)
+            {
+                if ('undefined' !== typeof console  &&  console  &&  console.error)
+                {
+                    console.error( 'error_inline_stack (summary):\n ' + error_inline_stack.map( function (x) { return '\n' + x.key.substring(0,96) + (x.key.length < 96  ?  ''  :  '...'); } ).join( '\n\n###\n' ) );
+                    console.error( 'error_inline_stack (full):');
+                    console.error( error_inline_stack );
+                }
+                throw new Error( 'inline: Most likely you have an infinite `inline` recursion. Consider using `metafun` and `metaret` instead.' );
+            }
+            
+            return newcode;
+        }
+
         workspace[ key ] = {
             code_info   : opt_code_info  // e.g. path of the file
             , inlineArr : inlineArr
@@ -88,10 +108,9 @@ if (typeof lp2fmtree === 'undefined')
             , lp : lp
             , fm : fm
         };
-
-
+        
         if (!inlineArr.length)
-            return code;
+            return workspace[ key ].newcode = code;
 
         // For each inline statement, look for an unambiguous match,
         // in this piece of code, else in another one (workspace).
@@ -104,7 +123,7 @@ if (typeof lp2fmtree === 'undefined')
 
             one.fmScopePath = getFmScopePath( fm, one );
 
-            var local_fmCallMatch = getFmCallMatch( one.fmScopePath, one );
+            var local_fmCallMatch = getFmCallMatch( fm, one, one.fmScopePath );
             if (local_fmCallMatch)
             {
                 one.hasLocalMatch = true;
@@ -151,8 +170,6 @@ if (typeof lp2fmtree === 'undefined')
             }
         }
         
-        // xxx detect and forbid cycles (github issue #6)
-
         // Actually inline
         
         var newcode = code;
@@ -163,13 +180,16 @@ if (typeof lp2fmtree === 'undefined')
             ,   end = one.end
             ;
             newcode = newcode.substring( 0, begin ) +
-                getInlineCodeHygienic( lp, fm, one ) + 
-                newcode.substring( end )
+
+            // Quick implementation to support imbricated inlines.
+            // https://github.com/glathoud/js.metaret/issues/6
+            inline( getInlineCodeHygienic( lp.identifierObj, fm, one ), workspace, /*opt_code_info:*/null, error_inline_stack ) + 
+                
+            newcode.substring( end )
             ;
         }
         
-
-        return newcode;
+        return workspace[ key ].newcode = newcode;
     }
 
     // --- Details
@@ -234,9 +254,8 @@ if (typeof lp2fmtree === 'undefined')
     }
 
 
-    function getInlineCodeHygienic( lp, fm, one )
+    function getInlineCodeHygienic( identifierObj, fm, one )
     {
-        var identifierObj = lp.identifierObj;
         var error;
 
         var fmScopePath = one.fmScopePath
@@ -280,26 +299,29 @@ if (typeof lp2fmtree === 'undefined')
         , body = fmCallMatch.body
         , body_begin = fmCallMatch.body_node.begin
         , body_end   = fmCallMatch.body_node.end
+        , body_length = body_end - body_begin
         , toReplace = []
+
+        , body_lp = lightparse( body, LIGHTPARSE_OPT )
         ;
         
         // Prepare: Will replace variable names
 
-        for (var i = lp.identifierArr.length; i--;)
+        for (var i = body_lp.identifierArr.length; i--;)
         {
-            var ident = lp.identifierArr[ i ];
-            if (ident.begin < body_begin  ||  ident.end > body_end)
-                continue;
-
-            toReplace.push( { o : ident, newstr : paramN_map[ ident.name ]  ||  vardeclN_map[ ident.name ] } );
+            var ident = body_lp.identifierArr[ i ]
+            ,  newstr = paramN_map[ ident.name ]  ||  vardeclN_map[ ident.name ]
+            ;
+            if (newstr)
+                toReplace.push( { o : ident, newstr : newstr } );
         }
         
         // Prepare: Will replace returns
 
-        for (var i = lp.bracketextraArr.length; i--;)
+        for (var i = body_lp.bracketextraArr.length; i--;)
         {
-            var brack = lp.bracketextraArr[ i ];
-            if (brack.begin < body_begin  ||  brack.end > body_end  ||  brack.typebracket !== RETURN)
+            var brack = body_lp.bracketextraArr[ i ];
+            if (brack.typebracket !== RETURN)
                 continue;
             
             toReplace.push( { o : { begin : brack.begin
@@ -331,9 +353,9 @@ if (typeof lp2fmtree === 'undefined')
         for (var i = toReplace.length; i--;)
         {
             var r = toReplace[ i ];
-            newbody = newbody.substring( 0, r.o.begin - body_begin )
+            newbody = newbody.substring( 0, r.o.begin )
                 + r.newstr
-                + newbody.substring( r.o.end - body_begin )
+                + newbody.substring( r.o.end )
             ;
         }
         
@@ -356,11 +378,11 @@ if (typeof lp2fmtree === 'undefined')
         ,   var_decl_undef_set = {}
         ;
 
-        for (var n = lp.bracketextraArr.length, i = 0; i < n; i++)
+        for (var n = body_lp.bracketextraArr.length, i = 0; i < n; i++)
         {
-            var brack = lp.bracketextraArr[ i ];
-            if (brack.begin < body_begin  ||  brack.end > body_end  ||  brack.typebracket !== VAR)
-                continue;
+            var brack = body_lp.bracketextraArr[ i ];
+            if (brack.typebracket !== VAR)
+             continue;
             
             var vdArr = brack.vdArr;
             for (var nj = vdArr.length, j = 0; j < nj; j++)
@@ -443,12 +465,15 @@ if (typeof lp2fmtree === 'undefined')
         return sofar;
     }
     
-    function getFmCallMatch( fmScopePath, one )
+    function getFmCallMatch( fmtree, one, fmScopePath )
     {
-        var callname = one.call.name;
-        for (var i = fmScopePath.length; i--;)  // i--: Important: search locally first
+        var callname = one.call.name
+        ,   all      = fmtree.concat( fmScopePath )
+        ;
+        
+        for (var i = all.length; i--;)  // i--: Important: search locally first
         {
-            var fm = fmScopePath[ i ];
+            var fm = all[ i ];
 
             var fmc = fm.children  ||  [];
             for (var j = fmc.length; j--; )
@@ -463,7 +488,7 @@ if (typeof lp2fmtree === 'undefined')
 
             // Not found, move one scope upwards.
         }
-
+        
     }
 
 })(this);
