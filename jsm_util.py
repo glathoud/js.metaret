@@ -63,17 +63,25 @@ def get_out_filename( in_filename, default_dir_in, default_dir_out ):
     if out_filename == in_filename:
         out_filename = os.path.join( default_dir_out, out_filename )
 
-    return out_filename
+    return re.sub( r'\.jsm$', '.js', out_filename )
 
-def replace_dependencies( deptree, in_filename, default_in, default_out, deptree_rx = DEPTREE_RX ):
+def replace_dependencies( deptree, in_filename, default_in, default_out, deptree_rx = DEPTREE_RX, already_done = None ):
     '''Recursive replacement of dependencies, can be used to produce a
     single build file, as in ./jsm_out_build.py'''
-    
+
     in_filename  = fix_in_filename( in_filename, default_in )
     out_filename = get_out_filename( in_filename, default_in, default_out )
 
+    if None == already_done:
+        already_done = set()
+
     assert os.path.exists(  in_filename )
     assert os.path.exists( out_filename )
+
+
+    if in_filename in already_done:
+        return ''
+
     
     outcode = open( out_filename, 'rb' ).read().decode( UTF8 )
 
@@ -107,10 +115,11 @@ def replace_dependencies( deptree, in_filename, default_in, default_out, deptree
         one_in_filename = dep[ FILENAME ]
 
         if not one_in_filename:
-            one_out_code = ''  # already has the dependency
+            # already has the dependency
+            one_out_code = ''
         else:
-            one_out_filename = re.sub( r'\.jsm$', '.js', get_out_filename( one_in_filename, default_in, default_out ) )
-            one_out_code     = open( one_out_filename, 'rb' ).read().decode( UTF8 )
+            # recursion
+            one_out_code = replace_dependencies( deptree, one_in_filename, default_in, default_out, deptree_rx, already_done )
 
         outcode = (
             outcode[ :begin ] +
@@ -120,14 +129,18 @@ def replace_dependencies( deptree, in_filename, default_in, default_out, deptree
             outcode[ end: ]
         )
 
+    already_done.add( in_filename )
+
     return outcode
 
-def run_test_js( filename, testfilename, all_tests_passed_str=ALL_TESTS_PASSED, verbose=True ):
+def run_test_js( filename, testfilename, dev=False, all_tests_passed_str=ALL_TESTS_PASSED, verbose=True ):
 
     if verbose:
         print('...testing "{0}" against test "{1}"... '.format( filename, testfilename ), end='')
 
-    ret = subprocess.check_output( [ D8, '-e', RUN_TEST_JS( filename, testfilename, all_tests_passed_str ) ],
+    v8code = RUN_TEST_JS( filename, testfilename, dev = dev, all_tests_passed_str = all_tests_passed_str )
+
+    ret = subprocess.check_output( [ D8, '-e', v8code ],
                                    stderr=subprocess.STDOUT,
                                    universal_newlines = True
                                 ).strip()
