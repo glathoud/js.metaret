@@ -177,7 +177,7 @@ if (typeof lp2fmtree === 'undefined')
             ,   argumentsArr = lp.identifierObj[ 'arguments' ]  ||  []
             ;
             if (argumentsArr.some( function (x) { return matchBegin <= x  &&  x < matchEnd; } ))
-                throw new Error( 'inline: it is not permitted to use `arguments` in the body of the function to be inlined.' );
+                throw new Error( 'inline error: it is forbidden to use `arguments` in the body of the function to be inlined.' );
         }
         
         // Actually inline

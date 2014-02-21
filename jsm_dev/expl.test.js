@@ -19,6 +19,14 @@
                               /leftover/i.test( msg );
                       }
                     );
+
+        ensure_error( 'inline( "inline f(); function f() { console.log( arguments ); }" )'
+                      , function (error)
+                      {
+                          var msg = '' + error;
+                          return /\binline\b/i.test( msg )  &&  /\berror\b/i.test( msg )  &&  /\barguments\b/i.test( msg )  &&  /\bbody\b/i.test( msg );
+                      }
+                    );
         
         //#END_TEST_DEV_ONLY
 
