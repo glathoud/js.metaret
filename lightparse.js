@@ -37,7 +37,10 @@
              strArr : []
              , commentArr  : []
              , regexpArr   : []
+
              , reservedArr       : []
+             , reservedObj       : /*{1.1*/{}/*}1.1*/
+
              , callArr           : []
              , dotArr            : []
              , dotcallArr        : []
@@ -45,9 +48,10 @@
 
              /*dc*/// The last three are derived from `identifierArr`, for convenience.
              , identifierArrReverse : []
-             , identifierObj        : /*{1.1*/{}/*}1.1*/
-             , identifierObjReverse : /*{1.2*/{}/*}1.2*/
+             , identifierObj        : /*{1.2*/{}/*}1.2*/
+             , identifierObjReverse : /*{1.3*/{}/*}1.3*/
 
+             
              /*dc*/// Bracket pairs
              , bracketcurlyArr          : []
              , bracketroundArr          : []
@@ -136,9 +140,9 @@
          
          /*dc*/// Detect identifiers and reserved words
          
-         var /*vd*/reservedObj/**/ = /*{2a*/{}/*}2a*/;
+         var /*vd*/reservedSet/**/ = /*{2a*/{}/*}2a*/;
          for (var /*vd*/i/**/ = reservedArr.length; i--;)  
-             reservedObj[ reservedArr[ i ] ] = 1;
+             reservedSet[ reservedArr[ i ] ] = 1;
          
          var /*vd*/resA/**/      = ret.reservedArr
          ,   /*vd*/caA/**/       = ret.callArr
@@ -157,7 +161,7 @@
              ,   /*vd*/name/**/ = mo[ 2 ]
              ,   /*vd*/call/**/ = mo[ 3 ]
              ,   /*vd*/arr/**/  = (
-                 name in reservedObj  ?  resA  
+                 name in reservedSet  ?  resA  
                      : dot && call    ?  dcaA
                      : dot            ?    dA
                      : call           ?   caA
@@ -282,7 +286,21 @@
              iOR[ str ] = reversed( iO[ str ] );
              
          }/*}5.1*/}/*}5*/
-         
+
+
+         /*dc*/// Reserved words: a few derived values, for convenience
+         var /*vd*/rA/**/ = ret.reservedArr
+         ,   /*vd*/rO/**/ = ret.reservedObj
+         ;
+         for (var /*vd*/n/**/ = rA.length, /*vd*/i/**/ = 0; i < n ; i++)
+         /*{6a*/{
+             var /*vd*/x/**/ = rA[ i ];
+             (
+                 rO[ x.name ]  ||  (rO[ x.name ] = [])
+             )
+                 .push( x.begin );
+         }/*}6a*/
+                  
 
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.

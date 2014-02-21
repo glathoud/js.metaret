@@ -54,6 +54,25 @@ if (typeof lp2fmtree === 'undefined')
     global.MetaFunction  = MetaFunction;  // MetaFunction returns a function. Optionally you can give a local name space object.
     global.metaparse     = metaparse;     // Returns nothing. Search for script tags with type="text/js-metaret", parse and apply them.
 
+    // convenience access to constants
+    metaparse.get_LIGHTPARSE_OPT = metaparse_get_LIGHTPARSE_OPT;
+    metaparse.get_CONST          = metaparse_get_CONST;
+
+    function metaparse_get_LIGHTPARSE_OPT() 
+    {
+        // Safe deep copy using a hammer.
+        return JSON.parse( JSON.stringify( LIGHTPARSE_OPT ) ); 
+    }
+
+    function metaparse_get_CONST()
+    {
+        return {
+            'METAFUN'   : METAFUN
+            , 'METARET' : METARET
+            , 'LIGHTPARSE_OPT' : metaparse_get_LIGHTPARSE_OPT()
+        };
+    }
+    
     // ---------- Public API implementation
     
     var _metaparse_rx     = /\s*(metafun|function)\s*(\S+)\s*\(\s*([^\)]+?)\s*\)((?![\r\n]\s*(metafun|function))[\s\S])*/g

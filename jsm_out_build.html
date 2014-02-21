@@ -37,15 +37,29 @@ h1, h2, h3 { margin-top: 3em; }
 
 <p id="scripts">
 <script type="text/javascript" src="jsm_out_build/expl.js"></script>
-<script type="text/javascript" src="jsm_out_build/expl_basic.test.js"></script>
-<script type="text/javascript" src="jsm_out_build/expl_longer.test.js"></script>
+<script type="text/javascript" src="need$.js"></script>
 <script type="text/javascript">
+  var total_result = true;
+
+  need$( "jsm_out_build/expl.test.js" ); 
+  run_test();
+  
+  need$( "jsm_out_build/expl_basic.test.js" ); 
+  run_test();
+  
+  need$( "jsm_out_build/expl_longer.test.js" );
+  run_test();
+
+  function run_test() {
   var result;
-  try {
-      result = test();
-  } catch (e) {
-      console.log( "jsm_out_build.html: caught error: " + e, e )
-      result = e;
+    try {
+        result = test();
+    } catch (e) {
+        console.log( "jsm_dev.html: caught error: " + e, e )
+        result = e;
+    }
+    if (result !== true  &&  total_result === true)
+      total_result = result;
   }
 </script>
 </p>
@@ -58,10 +72,10 @@ h1, h2, h3 { margin-top: 3em; }
 <p id="result"></p>
 
 <script type="text/javascript">
-  document.getElementById("result").innerHTML = result === true 
+  document.getElementById("result").innerHTML = total_result === true 
     ? "\x3Cspan class='happy'\x3EAll tests passed.\x3C/span\x3E" 
     : ("\x3Cdiv class='sad'\x3E\x3Cp\x3ESome tests failed:\x3C/p\x3E" +
-       "\x3Cpre\x3E\x3Ccode\x3E" + result + "\x3C/code\x3E\x3C/pre\x3E\x3C/div\x3E") 
+       "\x3Cpre\x3E\x3Ccode\x3E" + total_result + "\x3C/code\x3E\x3C/pre\x3E\x3C/div\x3E") 
   ;
 </script>
 

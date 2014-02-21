@@ -69,7 +69,7 @@ def jsm_out_test( in_filename, out_filename ):
 
 
         # Run the test on the output file
-        out_test_result = run_test_js( out_filename, outtestfilename )
+        out_test_result = run_test_js( out_filename, outtestfilename, dev = True )
         
 
 
