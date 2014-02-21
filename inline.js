@@ -168,6 +168,16 @@ if (typeof lp2fmtree === 'undefined')
                     }
                 }}
             }
+
+
+            // beginner help: detect `arguments` usage
+            // https://github.com/glathoud/js.metaret/issues/10
+            var matchBegin   = one.fmCallMatch.begin
+            ,   matchEnd     = one.fmCallMatch.end
+            ,   argumentsArr = lp.identifierObj[ 'arguments' ]  ||  []
+            ;
+            if (argumentsArr.some( function (x) { return matchBegin <= x  &&  x < matchEnd; } ))
+                throw new Error( 'inline: it is not permitted to use `arguments` in the body of the function to be inlined.' );
         }
         
         // Actually inline
