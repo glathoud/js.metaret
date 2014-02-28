@@ -19,7 +19,7 @@
 
     // ---------- Public API implementation
 
-    function lp2fmtree( lp, /*?array of string?*/namespace, /*?object?*/workspace )
+    function lp2fmtree( lp, /*?array of string?*/namespace, /*?object?*/workspace, /*?fm?*/parent )
     // Input:  object returned by lightparse.
     // 
     // Output: array of function/metafun declaration trees.
@@ -108,12 +108,32 @@
                 ,   fullname_arr = namespace.concat( dot_arr )
                 ,   fullname     = fullname_arr.join( '.' )
                 ,   lastname     = fullname_arr[ fullname_arr.length - 1 ]
+
+                , out = {
+                    begin : begin
+                    , end : end
+                    , fullname_arr : fullname_arr
+                    , lastname     : lastname
+                    , isFunction     : isFunction
+                    , isMetafunction : isMetafunction
+                    , isAnonymousFunction : isAnonymousFunction
+                    , body_node : body_node
+                    , fm_node : one
+                    , fullname : fullname
+                    , param_arr : param_arr
+                    , param_str : param_arr.join( ',' )
+                    , parent   : parent  ||  null
+                    
+                    // The remaining values are set further below
+                    , children : null
+                    , body : null  
+                }
                 ;
 
                 // Support for local metafunctions: look at the
                 // metafuns and functions within the body.
                 
-                var children = next.children  ?  lp2fmtree( next.children, fullname_arr, workspace )  :  [];
+                var children = next.children  ?  lp2fmtree( next.children, fullname_arr, workspace, /*parent:*/out )  :  [];
                 
                 // Remove children code from the body.
                 
@@ -126,23 +146,10 @@
                     if (!kid.isAnonymousFunction)
                         body = body.substring( 0, a ) + body.substring( a, b ).replace( /[\s\S]/g, ' ' ) + body.substring( b );
                 }
-                                
-                var out = { begin : begin
-                            , end : end
-                            , fullname_arr : fullname_arr
-                            , lastname     : lastname
-                            , isFunction     : isFunction
-                            , isMetafunction : isMetafunction
-                            , isAnonymousFunction : isAnonymousFunction
-                            , body_node : body_node
-                            , fm_node : one
-                            , fullname : fullname
-                            , param_arr : param_arr
-                            , param_str : param_arr.join( ',' )
-                            , body : body 
-                            , children : children
-                          };
                 
+                out.children = children;
+                out.body     = body;
+
                 ret.push( out );
 
                 // Convenience access
@@ -163,7 +170,10 @@
 
         // When done with the tree, walk it from the top
         if (isTopLevel)
-            find_out_who_declares_what( ret, [].concat( lp.vardeclArr ) );
+        {
+            find_out_who_has_what( ret, [].concat( lp.vardeclArr ), 'vardecl' );
+            find_out_who_has_what( ret, lp.identifierArr.filter( function (x) { return !x.isVardecl; } ), 'varuse' );
+        }
 
         return ret;
     }
@@ -173,11 +183,11 @@
         return o.str.replace( /\/\*[\s\S]*?\*\//g, '' ).replace( /(^\s+|\s+$)/g, '' );
     }
 
-    function find_out_who_declares_what( arr, vardeclArr )
+    function find_out_who_has_what( arr, vArr, outputName )
     {
         var n = arr.length;
 
-        // Depth first - this can change `vardeclArr`
+        // Depth first - this can change `vArr`
         
         for (var i = 0; i < n; i++)
         {
@@ -185,7 +195,7 @@
             ,   c   = one.children
             ;
             if (c  &&  c.length)
-                find_out_who_declares_what( c, vardeclArr );
+                find_out_who_has_what( c, vArr, outputName );
         }
         
         // then breadth
@@ -196,16 +206,21 @@
             , begin = one.begin
             ,   end = one.end
 
-            , one_vda = one.vardeclArr = []
+            , one_vda = one[ outputName + 'Arr' ] = []
+            , one_vdo = one[ outputName + 'Obj' ] = {}
             ;
-            for (var j = vardeclArr.length; j--;)
+            for (var j = vArr.length; j--;)
             {
-                var vd = vardeclArr[ j ];
+                var vd = vArr[ j ];
                 if (vd.end < begin)
                     break;
 
                 if (vd.begin < end)
-                    one_vda.unshift( vardeclArr.splice( j, 1 )[ 0 ] );
+                {
+                    var x = vArr.splice( j, 1 )[ 0 ];
+                    one_vda.unshift( x );
+                    (one_vdo[ x.name ]  ||  (one_vdo[ x.name ] = [])).push( x );
+                }
             }
         }
     }

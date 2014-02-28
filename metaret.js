@@ -172,6 +172,17 @@ if (typeof lp2fmtree === 'undefined')
             return;
         }
         
+        // --- beginner help: detect `arguments` usage within metafun
+        // https://github.com/glathoud/js.metaret/issues/11
+        if (!is_fun)
+        {
+            var body_lp = lightparse( body )
+            ,   body_argumentsArr = body_lp.identifierObj[ 'arguments' ]  ||  []
+            ;
+            if (body_argumentsArr.length)
+                throw new Error( 'metafun error: it is forbidden to use `arguments` in the body of the metafun (because the body of the metafun may end up being inlined within a `while` loop).' );
+        }
+
         // --- All three strings: name, param, body.
 
         var name = code_or_name;

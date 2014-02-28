@@ -48,10 +48,12 @@ var need$, read;
         
         
         if (isJsm)
+        {
             code = jsm2js( code );
 
-        if (canInline)
-            code = inline( code, inline_workspace, { path : path } ); // `inline_workspace` to permit inlining accross files, see github issue #7 
+            if (canInline)
+                code = inline( code, inline_workspace, { path : path } ); // `inline_workspace` to permit inlining accross files, see github issue #7 
+        }
 
         eval.call( global, code );  // May include calls to `need$` -> load all missing files recursively.
     }

@@ -95,7 +95,7 @@ if (typeof lp2fmtree === 'undefined')
                     console.error( 'error_inline_stack (full):');
                     console.error( error_inline_stack );
                 }
-                throw new Error( 'inline: Most likely you have an infinite `inline` recursion. Consider using `metafun` and `metaret` instead.' );
+                throw new Error( 'inline error: Most likely you have an infinite `inline` recursion. Consider using `metafun` and `metaret` instead.' );
             }
             
             return newcode;
@@ -161,6 +161,17 @@ if (typeof lp2fmtree === 'undefined')
                         one.hasLocalMatch   = false;
                         one.fmCallMatch     = other_fmarr[ 0 ];
                         one.matchKey        = other_key;
+
+                        // Globals are permitted (e.g. to access some
+                        // tools), but not local closure in some
+                        // parent function, because the latter would
+                        // be lost when inlining the body.
+                        // 
+                        // See also:
+                        // https://github.com/glathoud/js.metaret/issues/7
+                        // 
+                        // And the test in:  ./jsm_dev/expl.test.js
+                        check_no_local_closure( one.fmCallMatch );
                     }
                     else if (other_n === 2)
                     {
@@ -498,6 +509,36 @@ if (typeof lp2fmtree === 'undefined')
 
             // Not found, move one scope upwards.
         }
+        
+    }
+
+    // ---------- Checks
+
+    function check_no_local_closure( fm )
+    {
+        var vuo = fm.varuseObj
+        ,   vdo = fm.vardeclObj
+        ;
+        for (var name in vuo) { if (!(name in vdo)) {
+            
+            // Not declared here. 
+            // -> global: ok.
+            // -> local declared in a parent function (closure): forbidden.
+            // 
+            // See also:
+            // https://github.com/glathoud/js.metaret/issues/7
+            // ./jsm_dev/expl.test.js
+            var pFm = fm;
+            while (pFm = pFm.parent)
+            {
+                if (name in pFm.vardeclObj)
+                {
+                    throw new Error('inline error: when inlining across files, the body to inline MUST NOT use locally bound variables (closures). (It may use globals, though.)');
+                }
+            }
+            
+
+        }}
         
     }
 

@@ -8,6 +8,71 @@
 
         //#BEGIN_TEST_DEV_ONLY
         
+        // https://github.com/glathoud/js.metaret/issues/6
+        // detect and forbid inline cycles
+
+        ensure_error( 'inline( "inline f(); function f() { inline g(); } function g() { inline f(); }" );' 
+                      , function (error)
+                      {
+                          var msg = ('' + error).toLowerCase();
+                          return [ 'error', 'inline', 'infinite', 'recursion', 'metafun', 'metaret', 'instead' ].every( function (word) { return -1 < msg.lastIndexOf( word ); } );
+                      }
+                    );
+
+        // https://github.com/glathoud/js.metaret/issues/7
+        // Permit inlining across files.
+
+        var  workspace  = {}
+        ,   first_file  = 'function f() { "blah" }'
+        ,   second_file = 'inline f();'
+
+        ,   first_file_inlined  = inline( first_file, workspace, { path : "first.file.js" } )
+        ,   second_file_inlined = inline( second_file, workspace, { path : "second.file.js" } )
+        ;
+        assert( 'v.first_file === v.first_file_inlined', { first_file : first_file, first_file_inlined : first_file_inlined } );
+        assert( 'v.second_file !== v.second_file_inlined', { second_file : second_file, second_file_inlined : second_file_inlined } );
+        assert( '!/\\binline\\b/.test( v )', second_file_inlined.replace( /^\/\/#INLINE_.*$/gm, '' ) );
+        assert( ' /"blah"/.test( v )', second_file_inlined );
+        
+
+        // https://github.com/glathoud/js.metaret/issues/7
+        // Permit inlining across files including access to some globals
+
+        var  workspace  = {}
+        ,   first_file  = 'var SOME_CONST = "blah"; function f() { return SOME_CONST; }'
+        ,   second_file = 'inline f();'
+
+        ,   first_file_inlined  = inline( first_file, workspace, { path : "first.file.js" } )
+        ,   second_file_inlined = inline( second_file, workspace, { path : "second.file.js" } )
+        ;
+        assert( 'v.first_file === v.first_file_inlined', { first_file : first_file, first_file_inlined : first_file_inlined } );
+        assert( 'v.second_file !== v.second_file_inlined', { second_file : second_file, second_file_inlined : second_file_inlined } );
+        assert( '!/\\binline\\b/.test( v )', second_file_inlined.replace( /^\/\/#INLINE_.*$/gm, '' ) );
+        assert( ' /\\bSOME_CONST\\b/.test( v )', second_file_inlined );
+
+
+        // https://github.com/glathoud/js.metaret/issues/7
+        // Permit inlining across files but forbid access to locally bound externals (closure).
+
+        var  workspace  = {}
+        ,   first_file  = '(function () { var SOME_CONST = "blah"; function f() { return SOME_CONST; } })()'
+        ,   second_file = 'inline f();'
+
+        ,   first_file_inlined  = inline( first_file, workspace, { path : "first.file.js" } )
+        ;
+        assert( 'v.first_file === v.first_file_inlined', { first_file : first_file, first_file_inlined : first_file_inlined } );
+        assert( '!/\\binline\\b/.test( v )', second_file_inlined.replace( /^\/\/#INLINE_.*$/gm, '' ) );
+
+        ensure_error( 'inline( this.second_file, this.workspace, { path : "second.file.js" } )'
+                      , function (error)
+                      {
+                          var msg = ('' + error).toLowerCase();
+                          return [ 'error', 'inline', 'across', 'files', 'local', 'closure', 'global' ].every( function (word) { return -1 < msg.lastIndexOf( word ); } );
+                      }
+                      , { second_file : second_file, workspace : workspace }
+                    );
+        
+        
         // https://github.com/glathoud/js.metaret/issues/9
         // error messages for beginner
 
@@ -27,6 +92,17 @@
                           return /\binline\b/i.test( msg )  &&  /\berror\b/i.test( msg )  &&  /\barguments\b/i.test( msg )  &&  /\bbody\b/i.test( msg );
                       }
                     );
+
+        // https://github.com/glathoud/js.metaret/issues/11
+        // forbid `arguments` use within metafun body because the body will be inlined.
+
+        ensure_error( 'var jscode = jsm2js("metafun f( self ) { arguments; }");'
+                      , function (error)
+                      {
+                          var msg = ('' + error).toLowerCase();
+                          return [ 'error', 'metafun', 'arguments', 'forbidden' ].every( function (word) { return -1 < msg.lastIndexOf( word ); } );
+                      }
+                    );
         
         //#END_TEST_DEV_ONLY
 
@@ -39,11 +115,11 @@
     
     // ---
  
-    function ensure_error(codestring, testfun)
+    function ensure_error(codestring, testfun, /*?object?*/thisObj)
     {
         var success = false;
         try {
-            eval.call( global, codestring );
+            new Function( codestring ).call( thisObj  ||  global );
         } catch (e) {
             if (testfun( e ))
                 success = true;
