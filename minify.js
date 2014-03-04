@@ -1,9 +1,12 @@
-/*global minify need$ load lightparse*/
+/*global minify need$ load lightparse lp2fmtree*/
 
 // Support both use cases: browser development (example: jsm_dev) and
 // command-line transformation (example: jsm_dev -> jsm_out).
 if (typeof lightparse === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "lightparse.js" );
+
+if (typeof lp2fmtree === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lp2fmtree.js" );
 
 (function (global) {
 
@@ -12,13 +15,36 @@ if (typeof lightparse === 'undefined')
 function minify( /*string*/code )
 // Remove whitespaces and comments.
 {
-    var    lp = lightparse( code )
-    , current = code.length
-    , newcode = code
+    var current = code.length
+    ,   newcode = code
+
+    ,      lp = lightparse( code )
+    ,  fmtree = lp2fmtree( lp )
+    ,  unused = fmtree2unused( lp, fmtree )
     ;
+    remove_unused( unused );
+
     minify_tree( lp.allTree );
+
     return newcode.replace( /^\s+/, '' );
     
+    function remove_unused( unused )
+    {
+        // https://github.com/glathoud/js.metaret/issues/12
+        // 
+        // Remove any non-global function declaration
+        // whose identifier is never used in the file.
+        
+        for (var i = unused.length; i--;)
+        {
+            var fm = unused[ i ];
+            newcode = newcode.substring( 0, fm.begin )
+                + newcode.substring( fm.begin, fm.end ).replace( /[\s\S]/g, ' ' )  // Keep the length, many spaces, will be simplified by `minify_tree`.
+                + newcode.substring( fm.end );
+        }
+    }
+    
+
     function minify_tree( allTree )
     {
         for (var i = allTree.length; i--;)
@@ -53,6 +79,31 @@ function minify( /*string*/code )
             current = x.begin;
         }       
     }
+
+
+    function fmtree2unused( lp, fmtree, unused )
+    {
+        unused || (unused = []);
+
+        for (var n = fmtree.length, i = 0; i < n; i++)
+        {
+            var fm = fmtree[ i ];
+            if (fm.lastname  &&  !fm.isAnonymousFunction  &&  // if has a name
+                fm.parent  &&                                 // ...and not a global declaration...
+                !lp.identifierObj[ fm.lastname ])             // ...and is never used
+            {
+                unused.push( fm );
+            }
+            else if (fm.children)
+            {
+                // Walk deeper
+                fmtree2unused( lp, fm.children, unused );
+            }
+        }
+        
+        return unused;
+    }
+    
 }
 
 })(this);
