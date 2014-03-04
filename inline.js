@@ -180,7 +180,9 @@ if (typeof lp2fmtree === 'undefined')
                 }}
             }
 
-
+            if (!one.fmCallMatch)
+                throw new Error( 'inline error: when inlining within a file, the source body must be visible to the target inline location.' );
+            
             // beginner help: detect `arguments` usage
             // https://github.com/glathoud/js.metaret/issues/10
             var matchBegin   = one.fmCallMatch.begin
@@ -490,9 +492,10 @@ if (typeof lp2fmtree === 'undefined')
     {
         var callname = one.call.name
         ,   all      = fmtree.concat( fmScopePath )
+        ,   match
         ;
         
-        for (var i = all.length; i--;)  // i--: Important: search locally first
+        top_loop: for (var i = all.length; i--;)  // i--: Important: search locally first
         {
             var fm = all[ i ];
 
@@ -501,15 +504,25 @@ if (typeof lp2fmtree === 'undefined')
             {
                 var c = fmc[ j ];
                 if (c.lastname === callname)
-                    return c;
+                {
+                    match = c;
+                    break top_loop;
+                }
             }
 
             if (fm.lastname === callname)
-                return fm;
+            {
+                match = fm;
+                break top_loop;
+            }
 
             // Not found, move one scope upwards.
         }
         
+        if (match)
+            check_bound_variables_all_shared( match, fmScopePath.slice( -1 )[ 0 ] );
+
+        return match;
     }
 
     // ---------- Checks
@@ -542,4 +555,44 @@ if (typeof lp2fmtree === 'undefined')
         
     }
 
+
+    function check_bound_variables_all_shared( match, target_inline_fm )
+    // https://github.com/glathoud/js.metaret/issues/7
+    // 
+    // If the `match` body source has any bound variables, they must
+    // be shared with the target `one` location.
+    //
+    // In particular, we detect re-declaration ambiguities.
+    //
+    // See also failure detection examples in ./jsm_dev/expl.test.js
+    {
+        var bound = []
+        ,   m_vuo = match.varuseObj
+        ,   m_vdo = match.vardeclObj
+        ;
+        for (var name in m_vuo) { if (!(name in m_vdo)) { bound.push( name ); } }
+        
+        bound.forEach( check_declared_in_same_scope );
+
+        function check_declared_in_same_scope( name )
+        {
+            var m_decl_scope = decl_scope( name, match )
+            ,   t_decl_scope = decl_scope( name, target_inline_fm )
+            ;
+            if (m_decl_scope !== t_decl_scope)
+                throw new Error( 'inline error: when inlining within a file, the source body and the target inline location must share their bound variables (if the source body has any).' );
+        }
+
+        function decl_scope( name, fm )
+        // Returns the closest scope where `name` is declared (`fm` or
+        // one of its parents), else `null` for a global variable.
+        {
+            return fm  
+            ?  (fm.vardeclObj[ name ]  ?  fm  :  decl_scope( name, fm.parent ))
+            :  null  // global variable
+            ;
+        }
+    }
+
+    
 })(this);

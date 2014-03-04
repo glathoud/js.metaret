@@ -72,6 +72,49 @@
                       , { second_file : second_file, workspace : workspace }
                     );
         
+        // https://github.com/glathoud/js.metaret/issues/7
+        //
+        // Inlining within a file. The source body must be visible
+        // to the target inline location.
+        //
+        ensure_error( 
+            "inline( 'function f() { var a,b; return g(); function g() { inline var ret = i(); return ret; function h() { function i() { return a+b; } } } }' )"
+            , function (error)
+            {
+                 var msg = ('' + error).toLowerCase();
+                return [ 'error', 'inline', 'within', 'file', 'source', 'body', 'must be', 'visible', 'target', 'inline', 'location' ].every( function (word) { return -1 < msg.lastIndexOf( word ); } );
+            }
+        );
+         
+        // https://github.com/glathoud/js.metaret/issues/7
+        //
+        // Inlining within a file. Permit:
+        // 
+        //  * to inline any function that does not have any closure.
+        // 
+        assert( "2 === inline( 'function f() { return g(); function g() { var ret = inline i(); return ret; } }  function h() { function i() { \"i-body\"; } }' ).match( /i-body/g ).length" );
+        //  * to share bound variables as long as they are defined
+        // within a scope shared by the source body and the target
+        // inline location.
+        inline( 'function f() { var a,b; return g(); function g() { inline var ret = h(); return ret; function h() { return a+b; } } }' );
+
+        ensure_error( 
+            "inline( 'function f() { return g(); function g() { inline var ret = i(); } function h() { var a,b; function i() { return a+b; } } }' )"
+            , function (error)
+            {
+                var msg = ('' + error).toLowerCase();
+                return [ 'error', 'inline', 'within', 'file', 'source', 'body', 'must be', 'visible', 'target', 'inline', 'location' ].every( function (word) { return -1 < msg.lastIndexOf( word ); } );
+            }
+        );
+
+        ensure_error(
+            "inline( 'function f() { var a,b; inline var ret = g(); } var a,b; function g() { return a+b; }' )"
+            , function (error)
+            {
+                var msg = ('' + error).toLowerCase();
+                return [ 'error', 'inline', 'within', 'file', 'source', 'body', 'target', 'inline', 'location', 'must', 'share', 'bound', 'variables' ].every( function (word) { return -1 < msg.lastIndexOf( word ); } );
+            }
+        );
         
         // https://github.com/glathoud/js.metaret/issues/9
         // error messages for beginner
