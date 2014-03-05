@@ -147,6 +147,18 @@
                       }
                     );
         
+        // https://github.com/glathoud/js.metaret/issues/13
+        // mutual recursion: any bound parameters must be shared.
+
+        ensure_error(
+            'jsm2js("function f(x){var y;return a(x); metafun a(self,x) { if (x > 0) metaret b,x-1; else return x+y; } } metafun b(self,x) {return y*x;}")'
+            , function (error)
+            {
+                var msg = ('' + error).toLowerCase();
+                return [ 'error', 'metafun', 'mutual', 'recursion', 'bound', 'variable', 'must', 'share' ].every( function (word) { return -1 < msg.lastIndexOf( word ); } );
+            }
+        );
+        
         //#END_TEST_DEV_ONLY
 
         // ---

@@ -1,4 +1,4 @@
-/*global document console load lightparse need$ lp2fmtree*/
+/*global document console load lightparse need$ lp2fmtree JSON*/
 
 // Guillaume Lathoud, 2011, 2013, MIT License, see ./LICENSE.TXT
 // 
@@ -122,11 +122,17 @@ if (typeof lp2fmtree === 'undefined')
                 rec_decl( fmtree.children, /*isTop*/false, name2info, output, opt );
             
             
+            name2info[ fmtree.fullname ] = { fm : fmtree, _work_in_progress : true };
+            
             Decl( fmtree.fullname, fmtree.param_str, fmtree.body, fmtree.children, fmtree.isFunction, name2info, opt );
+            
+            delete name2info[ fmtree.fullname ]._work_in_progress;
 
             if (isTop)
                 output.push( { fullname : fmtree.fullname, fmtree : fmtree, info : name2info[ fmtree.fullname ] } );
         }
+
+            
         return output;
     }
     
@@ -214,7 +220,7 @@ if (typeof lp2fmtree === 'undefined')
     function NormalFunction( name, param, body, name2info, /*?array?*/children, /*?object?*/opt )
     {
         _checkNameNotUsedYet( name2info, name );
-
+        
         if (children  &&  children.length)
         {
             var rx = /\}\s*/
@@ -223,20 +229,19 @@ if (typeof lp2fmtree === 'undefined')
             body = ok  &&  body.replace( rx, '\n\n' + childrenCode( name2info, children ) + '\n\n}' )
         }
 
-        var info = name2info[ name ] = 
-            { 
-                name        : name  
-                , lastname  : name.replace( /^.*\./, '' )
-                , origParam : param  
-                , origBody  : body  
-                , name2info : name2info 
-                , impl      : null
-                
-                // Store also for childrenCode
-                , paramArr : param.split(',')
-                , body     : body
-            };
-
+        var info = name2info[ name ] = name2info[ name ]  ||  {};
+        
+        info.name      = name;
+        info.lastname  = name.replace( /^.*\./, '' );
+        info.origParam = param;
+        info.origBody  = body;
+        info.name2info = name2info;
+        info.impl      = null;
+        
+        // Store also for childrenCode
+        info.paramArr = param.split(',');
+        info.body     = body;
+        
         // 2 cases
 
         var ret = opt  &&  opt.doNotCompile  
@@ -298,21 +303,23 @@ if (typeof lp2fmtree === 'undefined')
     {        
         _checkNameNotUsedYet( name2info, name );
 
-        var info     = name2info[ name ]  = { name        : name  
-                                              , lastname  : name.replace( /^.*\./, '' )
-                                              , origParam : param  
-                                              , origBody  : body  
-                                              , name2info : name2info 
+        var info = name2info[ name ] = name2info[ name ]  ||  {};
+        
+        info.name      = name;
+        info.lastname  = name.replace( /^.*\./, '' );
+        info.origParam = param;
+        info.origBody  = body;
+        info.name2info = name2info;
 
-                                              // solve
-                                              , solved    : false
-                                              , newParam  : null
-                                              , newBody   : null
+        // solve
+        info.solved    = false;
+        info.newParam  = null;
+        info.newBody   = null;
 
-                                              // compile
-                                              , impl      : null         // Where we'll store the resulting unwrapped implementation, as soon as we need it.
-                                            }
-        , paramArr   = info.paramArr      = _checkExtractParam( param )  
+        // compile
+        info.impl      = null;         // Where we'll store the resulting unwrapped implementation, as soon as we need it.
+        
+        var paramArr   = info.paramArr      = _checkExtractParam( param )  
         , varArr     = info.varArr        = _extractVar( body )
         , metaretArr = info.metaretArr    = _checkExtractMetaret( body, paramArr.self, name )
         ;
@@ -485,6 +492,9 @@ if (typeof lp2fmtree === 'undefined')
             , undefName       = _generateAddName( 'undef', against )  // Avoid collision   
             ; 
             
+            // https://github.com/glathoud/js.metaret/issues/13
+            check_bound_variables_all_shared( infoArr.map( function (info) { return info.fm; } ) );
+
             var i4     = _indentGen( 4 )
             , i8       = _indentGen( 8 )
             , i12      = _indentGen( 12 )
@@ -985,7 +995,8 @@ if (typeof lp2fmtree === 'undefined')
 
     function name2info_has( /*object <fullname> -> info*/name2info, /*string*/name, /*array of string*/namespace_arr )
     {
-        return !!name2info_get( name2info, name, namespace_arr );
+        var info = name2info_get( name2info, name, namespace_arr );
+        return !!(info  &&  !info._work_in_progress);
     }
     
     function name2info_get( /*object <fullname> -> info*/name2info, /*string*/name, /*array of string*/namespace_arr )
@@ -1003,6 +1014,43 @@ if (typeof lp2fmtree === 'undefined')
 
         // Else not found
         return false;
+    }
+
+    function check_bound_variables_all_shared( fmArr)
+    {
+        var name2scope = {};
+        fmArr.forEach( check_one );
+
+        function check_one( fm )
+        {
+            if (!fm)
+                return;
+
+            var m_vuo  = fm.varuseObj
+            ,   m_vdo  = fm.vardeclObj
+            ,   m_pset = fm.param_set
+            ;
+            for (var name in m_vuo) { if (!(name in m_vdo) && !(name in m_pset)) { 
+                
+                var scope = decl_scope( name, fm );
+
+                if (!name2scope[ name ])
+                    name2scope[ name ] = { scope : scope };
+
+                else if (scope !== name2scope[ name ].scope)
+                    throw new Error( 'metafun error: when using mutual recursion, the various metafunctions must share their bound variables (if any).' );
+            }}
+        }
+    }
+
+    function decl_scope( name, fm )
+    // Returns the closest scope where `name` is declared (`fm` or
+    // one of its parents), else `null` for a global variable.
+    {
+        return fm  
+            ?  (fm.vardeclObj[ name ]  ?  fm  :  decl_scope( name, fm.parent ))
+        :  null  // global variable
+        ;
     }
     
 })(this);

@@ -566,11 +566,12 @@ if (typeof lp2fmtree === 'undefined')
     //
     // See also failure detection examples in ./jsm_dev/expl.test.js
     {
-        var bound = []
-        ,   m_vuo = match.varuseObj
-        ,   m_vdo = match.vardeclObj
+        var bound  = []
+        ,   m_vuo  = match.varuseObj
+        ,   m_vdo  = match.vardeclObj
+        ,   m_pset = match.param_set
         ;
-        for (var name in m_vuo) { if (!(name in m_vdo)) { bound.push( name ); } }
+        for (var name in m_vuo) { if (!(name in m_vdo) && !(name in m_pset)) { bound.push( name ); } }
         
         bound.forEach( check_declared_in_same_scope );
 

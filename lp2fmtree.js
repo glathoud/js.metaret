@@ -96,7 +96,12 @@
                     )
                 }
                 
-                var param_arr = (next = at[ ++i ]).sepSplit.map( strip_comment_and_space );
+                var param_arr = (next = at[ ++i ]).sepSplit.map( strip_comment_and_space )
+                ,   param_set = {}
+                ;
+                for (var pi = param_arr.length; pi--;)
+                    param_set[ param_arr[ pi ] ] = 1;
+                               
 
                 while (next.type !== TYPE_BRACKET  ||  next.typebracket !== TYPEBRACKET_CURLY)
                     next = at[ ++i ];
@@ -122,6 +127,7 @@
                     , fullname : fullname
                     , param_arr : param_arr
                     , param_str : param_arr.join( ',' )
+                    , param_set : param_set
                     , parent   : parent  ||  null
                     
                     // The remaining values are set further below
