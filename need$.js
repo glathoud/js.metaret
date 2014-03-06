@@ -42,10 +42,19 @@ var need$, read;
         // Because of inline & inline_workspace, we need to do load
         // dependencies right now, because inline is permitted across
         // files (see github issue #7).
-        var NEED_RX = /need\$\s*\(\s*(["\'])([^"\']+)\1/g;
-        while (mo = NEED_RX.exec( code ))
-            need$Impl( mo[ 2 ]);
-        
+	    //
+	    // There were some issues with while( mo =
+	    // NEED_RX.exec(code)) in some old versions of V8,
+	    // so I replaced with the somewhat stupid version below (2 regexps).
+
+	    var rx_str = "/need\\$\\s*\\(\\s*([\"\\'])([^\"\\']+)\\1/"
+	    , rx_all  = new RegExp( rx_str, "g" )
+	    , rx_one  = new RegExp( rx_str )
+
+	    , need_all = code.match( /need\$\s*\(\s*(["\'])([^"\']+)\1/g )
+	    ;
+	while (need_all  &&  need_all.length)
+	    need$Impl( need_all.shift().match( /need\$\s*\(\s*(["\'])([^"\']+)\1/ )[2] );
         
         if (isJsm)
         {

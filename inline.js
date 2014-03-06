@@ -181,7 +181,7 @@ if (typeof lp2fmtree === 'undefined')
             }
 
             if (!one.fmCallMatch)
-                throw new Error( 'inline error: when inlining within a file, the source body must be visible to the target inline location.' );
+                throw new Error( 'inline error: when inlining within a file, the source body must be visible to the target inline location. one.call.name: "' + one.call.name + '", opt_code_info: ' + JSON.stringify( opt_code_info )  );
             
             // beginner help: detect `arguments` usage
             // https://github.com/glathoud/js.metaret/issues/10

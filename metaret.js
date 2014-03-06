@@ -432,8 +432,10 @@ if (typeof lp2fmtree === 'undefined')
 
         function solveNoMetaret()
         {
-            console.warn( 'MetaFunction : _createSolver:solveNoMetaret() no #metaret in body of metafunction "' + name + '".' );
-            
+	    var warn_msg = 'MetaFunction : _createSolver:solveNoMetaret() no #metaret in body of metafunction "' + name + '".';
+            if ('undefined' !== typeof console  &&  console.warn)
+		console.warn( warn_msg );
+	    
             info.newParam = paramArr;
             info.newBody  = origBody.replace( /^\s+$/mg, '' );
         }

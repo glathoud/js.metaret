@@ -90,7 +90,8 @@ function minify( /*string*/code )
             var fm = fmtree[ i ];
             if (fm.lastname  &&  !fm.isAnonymousFunction  &&  // if has a name
                 fm.parent  &&                                 // ...and not a global declaration...
-                !lp.identifierObj[ fm.lastname ])             // ...and is never used
+                !lp.identifierObj[ fm.lastname ] &&          // ...and is never used
+		!lp.callObj[ fm.lastname ])
             {
                 unused.push( fm );
             }

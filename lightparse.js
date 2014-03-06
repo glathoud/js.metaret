@@ -51,6 +51,8 @@
              , identifierObj        : /*{1.2*/{}/*}1.2*/
              , identifierObjReverse : /*{1.3*/{}/*}1.3*/
 
+	     /*dc*/// Derived from callArr, for convenience
+	     , callObj              : /*{1.4*/{}/*}1.4*/
              
              /*dc*/// Bracket pairs
              , bracketcurlyArr          : []
@@ -280,6 +282,19 @@
                  vdA.push( x );
          }/*}4*/
          
+	 var /*vd*/cA/**/ = ret.callArr
+	     ,  /*vd*/cO/**/ = ret.callObj = /*{4b*/{}/*}4b*/
+	 ;
+	 for (var /*vd*/n/**/ = cA.length, /*vd*/i/**/=0; i <n; i++)
+	     /*{4c*/{
+	     var /*vd*/x/**/ = cA[ i ];
+	     (
+	      cO[ x.name ]  ||  (cO[ x.name ] = [])
+	      )
+		 .push( x.begin )
+		 ;
+	 }/*}4c*/
+
          var /*vd*/iOR/**/ = ret.identifierObjReverse = /*{a5*/{}/*}a5*/;
          for (var /*vd*/str/**/ in iO) /*{5*/{ if (!(str in iOR)) /*{5.1*/{
 
