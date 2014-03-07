@@ -119,7 +119,7 @@ def replace_dependencies( deptree, in_filename, default_in, default_out, deptree
             one_out_code = ''
         else:
             # recursion
-            one_out_code = replace_dependencies( deptree, one_in_filename, default_in, default_out, deptree_rx, already_done )
+            one_out_code = '\n{\n' + replace_dependencies( deptree, one_in_filename, default_in, default_out, deptree_rx, already_done ) + '\n}\n'
 
         outcode = (
             outcode[ :begin ] +

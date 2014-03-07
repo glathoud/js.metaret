@@ -10,7 +10,8 @@ CODE = 'code'
 D8 = 'd8'
 
 DEFAULT_IN = 'jsm_dev'
-DEPTREE_RX = re.compile( r'need\$\s*\(\s*(?P<quote>["\'])(?P<filename>[^"\']+)(?P=quote)\s*\);?'  )
+DEPTREE_RX = re.compile( r'(need\$|\(\s*typeof\s+need\$\s*\!\=\=\s*(?P<qq>["\'])undefined(?P=qq)\s*\?\s*need\$\s*\:\s*load\s*\))\s*\(\s*(?P<quote>["\'])(?P<filename>[^"\']+)(?P=quote)\s*\);?'  )
+
 
 DEFAULT_OUT = 'jsm_out'
 DEFAULT_OUT_BUILD = 'jsm_out_build'
@@ -63,7 +64,10 @@ MINIFY = lambda filename: 'load("minify.js"); print(minify(read("' + filename + 
 
 RUN_TEST_JS = lambda filename, testfilename, dev = False, all_tests_passed_str = ALL_TESTS_PASSED: ' '.join(
     ( ( 'load("need$.js");', 'need$("' + filename + '");', ) if dev  # dev mode: need$ dependencies allowed
-      else ( 'load("' + filename + '");', 'load("need$.js");', ) )   # build mode: all need$ dependencies must have been eliminated
+      else ( 'load("' + filename + '");', 
+             'load("need$.js");' if not filename.endswith('_standalone.js') else '', 
+             ) 
+      )   # build mode: all need$ dependencies must have been eliminated
 +
 ( 'need$("' + testfilename + '");', # the test file itself can use need$ in both dev and build modes
   'var result;',

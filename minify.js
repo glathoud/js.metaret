@@ -24,7 +24,9 @@ function minify( /*string*/code )
     ;
     remove_unused( unused );
 
-    minify_tree( lp.allTree );
+    lp     = lightparse( newcode );
+    fmtree = lp2fmtree( lp );
+    minify_all( lp.all );
 
     return newcode.replace( /^\s+/, '' );
     
@@ -39,44 +41,44 @@ function minify( /*string*/code )
         {
             var fm = unused[ i ];
             newcode = newcode.substring( 0, fm.begin )
-                + newcode.substring( fm.begin, fm.end ).replace( /[\s\S]/g, ' ' )  // Keep the length, many spaces, will be simplified by `minify_tree`.
+                + newcode.substring( fm.begin, fm.end ).replace( /[\s\S]/g, ' ' )  // Keep the length, many spaces, will be simplified by `minify_all`.
                 + newcode.substring( fm.end );
         }
     }
     
 
-    function minify_tree( allTree )
+    function minify_all( all )
     {
-        for (var i = allTree.length; i--;)
+        for (var i = all.length; i--;)
         {
-            var x = allTree[ i ];
-            
-            if (x.end + 1 < current) // Remove whitespaces
+            var x = all[ i ]
+		
+		;
+            if (x.end <= current)
             {
-                newcode = newcode.substring( 0, x.end ) + 
-                    newcode.substring( x.end, current + 2 ).replace( /\s+/g, ' ' ).replace( /(\W)\s+/, '$1' ).replace( /\s+(\W)/, '$1' ) + 
-                    newcode.substring( current + 2);
-            }
-            
-            if (x.type === 'comment') // Remove comments
-            {
-                newcode = newcode.substring( 0, x.begin ) + newcode.substring( x.end );
-            }
-            else
-            {
-                // Recurse
-                minify_tree( x.children  ||  [] );
 
-                if (x.type === 'bracket')
-                {
-                    var b = x.begin + x.open.length;
-                    newcode = newcode.substring( 0, b - 1 ) + 
-                        newcode.substring( b - 1, x.end + 2 ).replace( /\s+/g, ' ' ).replace( /(\W)\s+/, '$1' ).replace( /\s+(\W)/, '$1' ) +
-                        newcode.substring( x.end + 2 );
-                }
+		newcode = newcode.substring( 0, x.end ) + newcode.substring( x.end ).replace( /^\s+/, ' ' ).replace( /^\s*([;,\?:=\+\-\*\(\)\]\[\}\{]+)\s*/, '$1' );
+
+
+
+		if (x.type === 'comment') // Remove comments
+            {
+                newcode = newcode.substring( 0, x.begin ).replace( /\s+$/, ' ' ) + newcode.substring( x.end ).replace( /^\s+/, ' ' );
             }
-            
-            current = x.begin;
+		else
+		    {
+		// Remove whitespaces
+                newcode = newcode.substring( 0, x.end ) + 
+                    newcode.substring( x.end, current ).replace( /\s+/g, ' ' ).replace( /^\s*([;,\?:=\+\-\*\)\(\]\[\}\{]+)\s*/, '$1' ) + 
+                    newcode.substring( current ).replace( /^\s*([;,\?:=\+\-\*\)\(\]\[\}\{]+)\s*/, '$1' )
+		    ;
+		    }
+            }
+		
+	    var s_beg = newcode.substring( 0, x.begin ).replace( /\s+$/, ' ' ).replace( /([;,\?:=\+\-\*\(\[\{]+)\s*$/, '$1' );
+	    newcode = s_beg + newcode.substring( x.begin ).replace( /^\s*([;,\?:=\+\-\*\)\(\]\[\}\{]+)\s*/, '$1' );
+
+            current = s_beg.length;
         }       
     }
 

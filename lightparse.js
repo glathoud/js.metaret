@@ -15,6 +15,7 @@
          { open : RETURN, close : ';', typebracket : RETURN, ignore_unbalanced : true }
          , { open : VAR,  close : [ ';', 'in' ], typebracket : VAR, ignore_unbalanced : true }
      ]
+	 , _emptyObj = {}
      ;
      
      global.lightparse = lightparse;
@@ -85,8 +86,12 @@
              ,   /*vd*/sc/**/ = code.indexOf( /*sq*/'/*'/**/, searchPosition )
              ,   /*vd*/dc/**/ = code.indexOf( /*sq*/'//'/**/, searchPosition )
              ,   /*vd*/rr/**/ = code.indexOf( /*sq*/'/'/**/,  searchPosition )
-
-             ,   /*vd*/four/**/ = [ sq, dq, sc, dc, rr ]
+		 ;
+	     /*dc*/// Do not see a divide operator `/` as the beginning of a regexp
+	     if (-1 < rr  &&  !/*rr*//^\/(?![\*\/])(\\[^\r\n]|[^\\\r\n])+?\/[gmi]?//**/.test(code.substring(rr)))
+		 rr = -1;
+	     
+             var /*vd*/four/**/ = [ sq, dq, sc, dc, rr ]
              ,   /*vd*/begin/**/ = +Infinity
              ,   /*vd*/ind/**/  = -1
              ;
@@ -116,7 +121,7 @@
                  :    ind === 1  ?  /*rr*//^[\s\S]*?[^\\]\"//**/
                  :    ind === 2  ?  /*rr*//^\/\*[\s\S]*?\*\///**/
                  :    ind === 3  ?  /*rr*//^\/\/([^\r\n])*//**/
-                 :                  /*rr*//^\/.*?[^\\]\/[gmi]?//**/
+                 :                  /*rr*//^\/(?![\*\/])(\\[^\r\n]|[^\\\r\n])+?\/[gmi]?//**/
 
              , /*vd*/mo/**/    = rx.exec( rest )
              , /*vd*/delta/**/ = mo  ?  mo.index + mo[ 0 ].length  :  rest.length
@@ -273,7 +278,7 @@
          /*{4*/{
              var /*vd*/x/**/ = iA[ i ];
              (
-                 iO[ x.str ]  ||  (iO[ x.str ] = [])
+	      iO[ x.str ] !== _emptyObj[ x.str ] ? iO[ x.str ] : (iO[ x.str ] = [])
              )
                  .push( x.begin )
              ;
@@ -289,7 +294,7 @@
 	     /*{4c*/{
 	     var /*vd*/x/**/ = cA[ i ];
 	     (
-	      cO[ x.name ]  ||  (cO[ x.name ] = [])
+	      cO[ x.name ] !== _emptyObj[ x.name ]  ?  cO[ x.name ]  :  (cO[ x.name ] = [])
 	      )
 		 .push( x.begin )
 		 ;
@@ -311,7 +316,7 @@
          /*{6a*/{
              var /*vd*/x/**/ = rA[ i ];
              (
-                 rO[ x.name ]  ||  (rO[ x.name ] = [])
+	      rO[ x.name ] !== _emptyObj[ x.name ]  ? rO[ x.name ] :  (rO[ x.name ] = [])
              )
                  .push( x.begin );
          }/*}6a*/
@@ -455,7 +460,7 @@
 
              var rx = new RegExp(
                  [ ',', ';' ]
-                     .concat( reservedArr.map( function (w) { return '\\b' + w + '\\b' } ) )
+		 .concat( reservedArr.map( function (w) { return '\\b' + w + '\\b'; } ) )
                      .join( '|' )
                  , 'g' 
              )
@@ -622,9 +627,6 @@
          for (var n = arr.length, i = 0; i < n; i++)
          {
              var one = arr[ i ];
-
-             if (i === 297)
-                 'xxx';
 
              if (one.open)
              {

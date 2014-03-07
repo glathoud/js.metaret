@@ -81,7 +81,7 @@ if (typeof lp2fmtree === 'undefined')
 
         var key = opt_code_info  ?  JSON.stringify( opt_code_info )  :  code;
         
-        error_inline_stack.push( { key : key, code : code, workspace : workspace, opt_code_info : opt_code_info } )
+        error_inline_stack.push( { key : key, code : code, workspace : workspace, opt_code_info : opt_code_info } );
         
         if (key in workspace)
         {
