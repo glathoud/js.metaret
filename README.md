@@ -39,7 +39,7 @@ Requirements: [Python 3](http://docs.python.org/3/) and [V8](https://code.google
 
 Include/load the one script [metaret_standalone.js](metaret_standalone.js) to develop and test (similarly to [jsm_dev.html](jsm_dev.html)).
 
-When done with development and testing, the use e.g. `../js.metaret/jsm_build.py
+When done with development and testing, then use e.g. `../js.metaret/jsm_build.py
 somewhere/else/jsm_dev/yourapp.jsm` to build your app == production
 code == 100% JavaScript-compatible (relies mainly on [jsm2js.js](jsm2js.js)).
 
