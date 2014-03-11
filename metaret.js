@@ -160,7 +160,7 @@ if (typeof lp2fmtree === 'undefined')
         ,    body_null = body  == null
         ;
         if (param_null ^ body_null)
-            throw new Error( 'Decl: invalid usage. Give either both `param` and `body`, or none of them.' )
+            throw new Error( 'Decl: invalid usage. Give either both `param` and `body`, or none of them.' );
 
         if (param_null)
         {
@@ -543,7 +543,7 @@ if (typeof lp2fmtree === 'undefined')
                 var code = [ 
                     ''
                     , 'case ' + ind + ':' 
-                ]
+			     ];
                 
                 code.push( i4( _reinitUndef
                                ( 
@@ -564,7 +564,7 @@ if (typeof lp2fmtree === 'undefined')
 
     function childrenCode( /*object*/name2info, /*?array?*/children )
     {
-        var arr = []
+        var arr = [];
         
         for (var n = children.length, i = 0; i < n; i++)
         {
@@ -609,7 +609,7 @@ if (typeof lp2fmtree === 'undefined')
         param = param.replace( /\/\*.*?\*\//g, '' );
 
         if (!_RX_PARAM.test( param ))
-            throw new Error('MetaFunction : _checkExtractParam : Invalid parameters string, the string must be like "self,x,y,z".')
+            throw new Error('MetaFunction : _checkExtractParam : Invalid parameters string, the string must be like "self,x,y,z".');
 
         var ret = param.replace(/\s+/g, '' ).split( ',' );
         ret.self = ret.splice( ACTION_PARAM, 1 )[ 0 ];

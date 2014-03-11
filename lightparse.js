@@ -502,7 +502,7 @@
 
      function build_bracket_var_leftstr_rightstr( bA, commentArr )
      {
-         for (var i = bA.length; i--;)
+         for (var i = bA.length, i_cA = commentArr.length; i--;)
          {
              var brack = bA[ i ];
              if (brack.typebracket !== VAR)
@@ -514,11 +514,16 @@
              for (var nj = s_arr.length, j = 0; j < nj; j++)
              {
                  var s = s_arr[ j ]
-                 , str = (
-                         /\/\*|\*\//.test( s.str )  ?  removeComments( s ) : s.str
-                 )
-                     .replace( /^\s*|\s*$/g, '' )
-                 , mo_LR = str.match( /^([^=]*)\s*=\s*([\s\S]+)$/ )
+                 , str = s.hasOwnProperty( 'str_noComments' )
+		     ? s.str_noComments
+		     : (s.str_noComments = 
+			( /\/\*|\*\//.test( s.str )  
+			  ? removeComments( s )
+			  : s.str
+			  ).replace( /^\s*|\s*$/g, '' )
+			)
+		     
+		     , mo_LR = str.match( /^([^=]*)\s*=\s*([\s\S]+)$/ )
                  ;
                  vdArr.push(
                      mo_LR ?  { leftstr : mo_LR[ 1 ]
@@ -535,19 +540,25 @@
              , begin = s.begin
              ,   end = s.end
              ;
-             for (var i = commentArr.length; i--;)
-             {
-                 var c = commentArr[ i ];
-                 if (c.end > end)
-                     continue;
-
-                 if (c.end < begin)
-                     break;
-
-                 str = str.substring( 0, c.begin - begin )
-                     + str.substring( c.end - begin );
-             }
-             return str;
+	     if (0 < i_cA)
+		 {
+		     for (; i_cA--;)
+			 {
+			     var c = commentArr[ i_cA ];
+			     if (c.end > end)
+				 continue;
+			     
+			     if (c.end < begin)
+				 {
+				     i_cA++;
+				     break;
+				 }
+			     
+			     str = str.substring( 0, c.begin - begin )
+				 + str.substring( c.end - begin );
+			 }
+		 }
+	     return str;
          }
      }
 
@@ -669,7 +680,11 @@
          }
          
          if (pile.length !== 0)
-             throw new Error( 'Unbalanced brackets: missing a closing "' + pile[ pile.length - 1 ].x.close + '".' );
+	     {
+		 var last = pile[ pile.length - 1 ];
+		 global.console  &&  global.console.error("last:",last);
+             throw new Error( 'Unbalanced brackets: missing a closing "' + last.x.close + '" for {open:"' + last.x.open + '", begin:<char:' + last.x.begin + '>}. Did you forget a semicolon, maybe?' );
+	     }
      }
           
 

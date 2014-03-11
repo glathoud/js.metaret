@@ -26,7 +26,12 @@ function minify( /*string*/code )
 
     lp     = lightparse( newcode );
     fmtree = lp2fmtree( lp );
+    remove_comments( lp.commentArr );
+
+    lp     = lightparse( newcode );
+    fmtree = lp2fmtree( lp );
     minify_all( lp.all );
+
 
     return newcode.replace( /^\s+/, '' );
     
@@ -47,6 +52,15 @@ function minify( /*string*/code )
     }
     
 
+    function remove_comments( cA )
+    {
+	for (var i = cA.length; i--; )
+	    {
+		var c = cA[ i ];
+		newcode = newcode.substring( 0, c.begin ) + newcode.substring( c.end );
+	    }
+    }
+
     function minify_all( all )
     {
         for (var i = all.length; i--;)
@@ -56,14 +70,14 @@ function minify( /*string*/code )
 		;
             if (x.end <= current)
             {
-
+		
 		newcode = newcode.substring( 0, x.end ) + newcode.substring( x.end ).replace( /^\s+/, ' ' ).replace( /^\s*([;,\?:=\+\-\*\(\)\]\[\}\{]+)\s*/, '$1' );
 
 
 
-		if (x.type === 'comment') // Remove comments
+		if (x.type === 'comment')
             {
-                newcode = newcode.substring( 0, x.begin ).replace( /\s+$/, ' ' ) + newcode.substring( x.end ).replace( /^\s+/, ' ' );
+                throw new Error('bug');
             }
 		else
 		    {
