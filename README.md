@@ -38,7 +38,7 @@ Include/load the one script [metaret_standalone.js](metaret_standalone.js) to de
  * [jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
 
 
-## How to use outside: production
+## How to build and test for production
 
 Requirements: [Python 3](http://docs.python.org/3/) and [V8](https://code.google.com/p/v8/).
 
