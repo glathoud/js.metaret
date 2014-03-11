@@ -36,6 +36,7 @@ Requirements:
 
  * [example_development.html](example_development.html)
  * [jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
+ * [jsm_dev/example_development.test.js](jsm_dev/example_development.test.js) (automatically tested, see below).
 
 
 ## How to build and test for production
