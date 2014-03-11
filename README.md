@@ -37,7 +37,7 @@ There should be a live example: http://glat.info/js.metaret/jsm_dev.html
 
 Requirements: [node.js](http://nodejs.org) or [V8](https://code.google.com/p/v8/) or a browser (browser: maybe with a server like [simple_server.py](simple_server.py)).
 
-Include/load the one script [metaret_standalone.js](metaret_standalone.js) to develop and test (similarly to [jsm_dev.html](jsm_dev.html)).
+Include/load the one script [metaret_standalone.js](metaret_standalone.js) to develop and test.
 
 ## How to use outside: production
 
