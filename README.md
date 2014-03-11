@@ -26,18 +26,17 @@ Addition: An extra keyword `inline` triggers hygienic inlining, see issue [#3](h
 
 [3] http://www.stanford.edu/class/cs242/readings/backus.pdf
 
-## How to use here: to quickly test a small idea
-
-Requirements: a browser. Maybe a server like [simple_server.py](simple_server.py)
-
-Look at [jsm_dev.html](jsm_dev.html) and [jsm_dev/expl.js](jsm_dev/expl.js) and play around with them to start with.
-There should be a live example: http://glat.info/js.metaret/jsm_dev.html
-
-## How to use outside: development
+## How to use for development
 
 Requirements: [node.js](http://nodejs.org) or [V8](https://code.google.com/p/v8/) or a browser (browser: maybe with a server like [simple_server.py](simple_server.py)).
 
 Include/load the one script [metaret_standalone.js](metaret_standalone.js) to develop and test.
+
+#### Example
+
+[example_development.html](example_development.html)
+[jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
+
 
 ## How to use outside: production
 
@@ -49,3 +48,8 @@ code == 100% JavaScript-compatible (relies mainly on [jsm2js.js](jsm2js.js)).
 
 Note that `jsm_build.py` automatically runs the corresponding `.test.js` file,
 see for example [jsm_dev/expl.js](jsm_dev/expl.js) and [jsm_dev/expl.test.js](jsm_dev/expl.test.js)
+
+#### Example
+
+[example_production.html](example_production.html)
+[jsm_dev/example_production.jsm](jsm_dev/example_production.jsm)
