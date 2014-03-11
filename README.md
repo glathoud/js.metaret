@@ -26,6 +26,11 @@ Addition: An extra keyword `inline` triggers hygienic inlining, see issue [#3](h
 
 [3] http://www.stanford.edu/class/cs242/readings/backus.pdf
 
+## Convention
+
+ * `.jsm` files may use the extra keywords `metafun`, `metaret` and `inline`.
+ * `.js` files contain 100% standard JavaScript.
+
 ## How to use for development
 
 Requirements: 
