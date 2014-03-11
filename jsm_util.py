@@ -81,14 +81,15 @@ def replace_dependencies( deptree, in_filename, default_in, default_out, deptree
 
     if in_filename in already_done:
         return ''
-
+    already_done.add( in_filename )
     
     outcode = open( out_filename, 'rb' ).read().decode( UTF8 )
 
     depli = deptree[ in_filename ][ CHILDREN ]
     i_dep = 0
     todo_li = []
-    DEP ='dep'
+    todo_set = set()
+    DEP_NEWCODE ='dep_newcode'
 
     for m in deptree_rx.finditer( outcode ):
 
@@ -99,37 +100,27 @@ def replace_dependencies( deptree, in_filename, default_in, default_out, deptree
         #
         # A simple and safe way to guarantee this is to write the list
         # of `need$()` at the top of your .js or .jsm file.
-        assert dep[ FILENAME ] == m.group( 'filename' )  
-
-        todo_li.append( { BEGIN : m.start(), END : m.end(), DEP : dep } )
-
+        depfn = dep[ FILENAME ]
+        assert depfn == m.group( 'filename' )  
+        
+        todo_li.append( { 
+                BEGIN : m.start()
+                , END : m.end()
+                , DEP_NEWCODE : (
+                    os.linesep + '//#BUILD_BEGIN_FILE: "' + depfn + '"' + (2 * os.linesep) +
+                    os.linesep + '{' + os.linesep + 
+                    replace_dependencies( deptree, depfn, default_in, default_out, deptree_rx, already_done ) +   # recursion
+                    os.linesep + '}' + os.linesep +
+                    os.linesep + '//#BUILD_END_FILE: "' + depfn + '"' + (2 * os.linesep)
+                    )
+                } )
+        
     # Now we have everything we need to eliminate `need$()` calls.
 
     todo_li.reverse()    # Last first
 
     for todo in todo_li:
-        begin = todo[ BEGIN ]
-        end   = todo[ END ]
-        dep   = todo[ DEP ]
-
-        one_in_filename = dep[ FILENAME ]
-
-        if not one_in_filename:
-            # already has the dependency
-            one_out_code = ''
-        else:
-            # recursion
-            one_out_code = '\n{\n' + replace_dependencies( deptree, one_in_filename, default_in, default_out, deptree_rx, already_done ) + '\n}\n'
-
-        outcode = (
-            outcode[ :begin ] +
-            ((os.linesep + '//#BUILD_BEGIN_FILE: "' + one_in_filename + '"' + (2 * os.linesep) ) if one_out_code else '') +
-            one_out_code +
-            ((os.linesep + '//#BUILD_END_FILE: "' + one_in_filename + '"' + (2 * os.linesep) ) if one_out_code else '') +
-            outcode[ end: ]
-        )
-
-    already_done.add( in_filename )
+        outcode = outcode[ :todo[ BEGIN ] ] + todo[ DEP_NEWCODE ] + outcode[ todo[ END ]: ]
 
     return outcode
 
