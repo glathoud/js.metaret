@@ -1,8 +1,9 @@
 if ('function' === typeof load  &&  'undefined' === typeof lightparse)
     load( 'lightparse.js' );  // V8, Rhino
 
-var result, expected;
-(function () {
+function lightparse_test()
+{
+    var result, expected;
     
     // Run the test on the `lightparse` implementation code itself.
     
@@ -26,9 +27,9 @@ var result, expected;
     assert( 'arrEqual( result.vardeclArr, expected.vardeclArr )' );
     assert( 'arrEqual( result.vardeclArr, result.identifierArr.filter( function (x) { return x.isVardecl; } ) )' );
     assert( 'arrEqual( result.bracketcurlyArr, expected.bracketcurlyArr )' );
-    
-    console.log( 'Successfuly tested `lightparse`.' );
 
+    return true;
+    
     // --- Details
     
     function extractExpectations( code )
@@ -204,4 +205,4 @@ var result, expected;
                                                 ); 
     }
 
-})();
+}
