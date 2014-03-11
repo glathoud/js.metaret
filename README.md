@@ -33,11 +33,15 @@ Requirements: a browser. Maybe a server like [simple_server.py](simple_server.py
 Look at [jsm_dev.html](jsm_dev.html) and [jsm_dev/expl.js](jsm_dev/expl.js) and play around with them to start with.
 There should be a live example: http://glat.info/js.metaret/jsm_dev.html
 
-## How to use outside
+## How to use outside: development
 
-Requirements: [Python 3](http://docs.python.org/3/) and [V8](https://code.google.com/p/v8/).
+Requirements: a browser. Maybe a server like [simple_server.py](simple_server.py)
 
 Include/load the one script [metaret_standalone.js](metaret_standalone.js) to develop and test (similarly to [jsm_dev.html](jsm_dev.html)).
+
+## How to use outside: production
+
+Requirements: [Python 3](http://docs.python.org/3/) and [V8](https://code.google.com/p/v8/).
 
 When done with development and testing, then use e.g. `../js.metaret/jsm_build.py
 somewhere/else/jsm_dev/yourapp.jsm` to build your app == production
