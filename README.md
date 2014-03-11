@@ -26,11 +26,11 @@ Addition: An extra keyword `inline` triggers hygienic inlining, see issue [#3](h
 
 [3] http://www.stanford.edu/class/cs242/readings/backus.pdf
 
-= How to use here: quickly test a small idea =
+# How to use here: to quickly test a small idea
 
 Look at [jsm_dev.html] and [jsm_dev/expl.js] and play around with them to start with.
 
-= How to use outside =
+# How to use outside
 
 Use the script [metaret_standalone.js] to develop and test (similarly to [jsm_dev.html]).
 
