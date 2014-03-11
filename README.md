@@ -34,8 +34,8 @@ Include/load the one script [metaret_standalone.js](metaret_standalone.js) to de
 
 #### Example
 
-[example_development.html](example_development.html)
-[jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
+ * [example_development.html](example_development.html)
+ * [jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
 
 
 ## How to use outside: production
@@ -51,5 +51,5 @@ see for example [jsm_dev/expl.js](jsm_dev/expl.js) and [jsm_dev/expl.test.js](js
 
 #### Example
 
-[example_production.html](example_production.html)
-[jsm_dev/example_production.jsm](jsm_dev/example_production.jsm)
+ * [example_production.html](example_production.html)
+ * [jsm_dev/example_production.jsm](jsm_dev/example_production.jsm)
