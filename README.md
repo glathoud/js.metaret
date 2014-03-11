@@ -37,7 +37,7 @@ There should be a live example: http://glat.info/js.metaret/jsm_dev.html
 
 Requirements: [Python 3](http://docs.python.org/3/) and [V8](https://code.google.com/p/v8/).
 
-Include/load the one script [metaret_standalone.js](metaret_standalone.js) to develop and test (similarly to [jsm_dev.html]).
+Include/load the one script [metaret_standalone.js](metaret_standalone.js) to develop and test (similarly to [jsm_dev.html](jsm_dev.html)).
 
 When done with development and testing, the use e.g. `../js.metaret/jsm_build.py
 somewhere/else/jsm_dev/yourapp.jsm` to build your app == production
