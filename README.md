@@ -55,4 +55,4 @@ see for example [jsm_dev/example_development.test.js](jsm_dev/example_developmen
 #### Example
 
  * [example_production.html](example_production.html)
- * [jsm_out_mini/example_development.js](jsm_out_mini/example_development.js)
+ * jsm_out_mini/example_development.js (produced by `jsm_build.py`).
