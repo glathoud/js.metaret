@@ -29,6 +29,7 @@ Addition: An extra keyword `inline` triggers hygienic inlining, see issue [#3](h
 ## How to use here: to quickly test a small idea
 
 Look at [jsm_dev.html](jsm_dev.html) and [jsm_dev/expl.js](jsm_dev/expl.js) and play around with them to start with.
+There should be a live example: http://glat.info/js.metaret/jsm_dev.html
 
 ## How to use outside
 
