@@ -28,9 +28,9 @@ Addition: An extra keyword `inline` triggers hygienic inlining, see issue [#3](h
 
 ## How to use for development
 
-Requirements: [node.js](http://nodejs.org) or [V8](https://code.google.com/p/v8/) or a browser (browser: maybe with a server like [simple_server.py](simple_server.py)).
-
-Include/load the one script [metaret_standalone.js](metaret_standalone.js) to develop and test.
+Requirements: 
+ * [node.js](http://nodejs.org) or [V8](https://code.google.com/p/v8/) or a browser (browser: maybe with a server like [simple_server.py](simple_server.py)).
+ * [metaret_standalone.js](metaret_standalone.js)
 
 #### Example
 
@@ -40,7 +40,9 @@ Include/load the one script [metaret_standalone.js](metaret_standalone.js) to de
 
 ## How to build and test for production
 
-Requirements: [Python 3](http://docs.python.org/3/) and [V8](https://code.google.com/p/v8/).
+Requirements: 
+ * [Python 3](http://docs.python.org/3/)
+ * [V8](https://code.google.com/p/v8/)
 
 When done with development and testing, then use e.g. `../js.metaret/jsm_build.py
 somewhere/else/jsm_dev/yourapp.jsm` to build your app == production
