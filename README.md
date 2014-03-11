@@ -28,13 +28,20 @@ Addition: An extra keyword `inline` triggers hygienic inlining, see issue [#3](h
 
 ## How to use here: to quickly test a small idea
 
+Requirements: a browser. Maybe a server like [simple_server.py](simple_server.py)
+
 Look at [jsm_dev.html](jsm_dev.html) and [jsm_dev/expl.js](jsm_dev/expl.js) and play around with them to start with.
 There should be a live example: http://glat.info/js.metaret/jsm_dev.html
 
 ## How to use outside
 
+Requirements: [Python 3](http://docs.python.org/3/) and [V8](https://code.google.com/p/v8/).
+
 Include/load the one script [metaret_standalone.js](metaret_standalone.js) to develop and test (similarly to [jsm_dev.html]).
 
-Use e.g. `../js.metaret/jsm_build.py
+When done with development and testing, the use e.g. `../js.metaret/jsm_build.py
 somewhere/else/jsm_dev/yourapp.jsm` to build your app == production
 code == 100% JavaScript-compatible (relies mainly on [jsm2js.js](jsm2js.js)).
+
+Note that `jsm_build.py` automatically runs the corresponding `.test.js` file,
+see for example [jsm_dev/expl.js](jsm_dev/expl.js) and [jsm_dev/expl.test.js](jsm_dev/expl.test.js)
