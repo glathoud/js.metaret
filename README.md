@@ -25,3 +25,15 @@ Addition: An extra keyword `inline` triggers hygienic inlining, see issue [#3](h
 [2] http://glat.info/jscheck/tool.tailopt.js
 
 [3] http://www.stanford.edu/class/cs242/readings/backus.pdf
+
+= How to use here: quickly test a small idea =
+
+Look at [jsm_dev.html] and [jsm_dev/expl.js] and play around with them to start with.
+
+= How to use outside =
+
+Use the script [metaret_standalone.js] to develop and test (similarly to [jsm_dev.html]).
+
+Use e.g. `../js.metaret/jsm_build.py
+somewhere/else/jsm_dev/yourapp.jsm` to build your app == production
+code == 100% JavaScript-compatible (relies mainly on [jsm2js.js]).
