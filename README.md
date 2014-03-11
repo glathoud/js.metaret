@@ -47,7 +47,7 @@ somewhere/else/jsm_dev/yourapp.jsm` to build your app == production
 code == 100% JavaScript-compatible (relies mainly on [jsm2js.js](jsm2js.js)).
 
 Note that `jsm_build.py` automatically runs the corresponding `.test.js` file,
-see for example [jsm_dev/expl.js](jsm_dev/expl.js) and [jsm_dev/expl.test.js](jsm_dev/expl.test.js)
+see for example [jsm_dev/example_development.test.js](jsm_dev/example_development.test.js).
 
 #### Example
 
