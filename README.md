@@ -61,3 +61,37 @@ see for example [jsm_dev/example_development.test.js](jsm_dev/example_developmen
 
  * [example_production.html](example_production.html)
  * jsm_out_mini/example_development.js (produced by `jsm_build.py`).
+
+## Longer example
+
+ * [jsm_dev/expl.js](jsm_dev/expl.js) and [jsm_dev/expl.test.js](jsm_dev/expl.test.js)
+ * [jsm_dev/expl_basic.js](jsm_dev/expl_basic.js) and [jsm_dev/expl_basic.test.js](jsm_dev/expl_basic.test.js)
+ * [jsm_dev/expl_longer.js](jsm_dev/expl_longer.js) and [jsm_dev/expl_longer.test.js](jsm_dev/expl_longer.test.js)
+
+Assuming that you have installed [Python 3](http://docs.python.org/3/)
+and [V8](https://code.google.com/p/v8/), you can build this example
+into one minified file: 
+
+``` 
+jsm_build.py jsm_dev/expl.js
+```
+
+This takes the original `jsm_dev/expl*.jsm` files and produces:
+ * as many 100% JS-compatible files: `jsm_out/expl*.js`
+ * one build file: `jsm_out_build/expl.js`
+ * one minified file: `jsm_out_mini/expl.js`
+
+Tests are automatically run at each step of the build process.
+A test is simply a `.test.js` file that defines one `function test () { ... }` which `return`s `true` if success.
+Any other behaviour is seen as a failure:
+ * `test()` throws an eror,
+ * or `test()` returns something else than `true`.
+
+## Fun fact
+
+[metaret_standalone.js](metaret_standalone.js) was produced by building the one-liner [jsm_dev/metaret_standalone.js](jsm_dev/metaret_standalone.js):
+```
+need$( 'need$.js' );
+```
+
+For more details: [./build_standalone.sh](build_standalone.sh)
