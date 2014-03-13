@@ -57,7 +57,7 @@ speedup imperative code.
 
 `jsm_build.py` (1) transforms all `.jsm` files back to 100%-standard
 JavaScript `.js` files, (2) automatically runs the corresponding
-`.test.js` files and (2) collate them into a single, minified `.js`
+`.test.js` files and (3) collate them into a single, minified `.js`
 file.
 
 #### Example:
