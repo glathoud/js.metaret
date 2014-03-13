@@ -83,4 +83,20 @@ def walk_jsm_out( deptree, filename, py_workspace=None, codeli= None ):
 
 
 if __name__ == '__main__':
-    main( sys.argv[ 1: ] )
+
+    # If needed, do some path changes to permit external use == call
+    # from a `current_path` not where `jsm_build.py` is.
+
+    current_path   = os.path.abspath( os.curdir )    
+    jsm_build_path = os.path.abspath( os.path.split( sys.argv[ 0 ] )[ 0 ] )
+    
+    args = sys.argv[ 1: ]
+
+    if current_path != jsm_build_path:
+        args = list( map( lambda s: os.path.abspath( s ), args ) )
+        os.chdir( jsm_build_path )    
+
+    main( args )
+
+    if current_path != jsm_build_path:
+        os.chdir( current_path )
