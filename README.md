@@ -49,7 +49,7 @@ Example:
  * [jsm_dev/example_development.test.js](jsm_dev/example_development.test.js) (automatically tested during build, as described below).
 
 
-## Getting started: build your app
+## Getting started: test and build your app
 
 `jsm_build.py` (1) transforms all `.jsm` files back to
 100%-standard JavaScript `.js` files and (2) collate them into a single, minified `.js` file.
