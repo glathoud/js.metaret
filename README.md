@@ -40,7 +40,7 @@ speedup imperative code.
 ## Getting started: develop your app
 
 #### Requirements: 
- * [node.js](http://nodejs.org) or [V8](https://code.google.com/p/v8/) or a browser (browser: maybe with a server like [simple_server.py](simple_server.py)).
+ * A browser, or [node.js](http://nodejs.org) or [V8](https://code.google.com/p/v8/). (browser: maybe with a server like [simple_server.py](simple_server.py).)
  * [metaret_standalone.js](metaret_standalone.js)
 
 #### Example:
