@@ -86,9 +86,9 @@ This takes the original `jsm_dev/expl*.js[m]` files and produces:
  * as many 100% JS-compatible files: `jsm_out/expl*.js`
     * ...and tests them against the corresponding `.test.js` files.
  * one build file: `jsm_out_build/expl.js`
-    * ...and tests them against the corresponding `.test.js` files.
+    * ...and tests it against the corresponding `.test.js` files.
  * one minified file: `jsm_out_mini/expl.js`
-    * ...and tests them against the corresponding `.test.js` files.
+    * ...and tests it against the corresponding `.test.js` files.
 
 A test file `.test.js` declares one `function test () { ... }` which `return`s `true` if success. Any other behaviour is seen as a failure:
  * `test()` throws an eror,
