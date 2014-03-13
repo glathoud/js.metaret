@@ -96,7 +96,7 @@ A test file `.test.js` declares one `function test () { ... }` which `return`s `
 
 ## Fun fact
 
-[./metaret_standalone.js](metaret_standalone.js) was produced by building the one-liner [jsm_dev/metaret_standalone.js](jsm_dev/metaret_standalone.js):
+[./metaret_standalone.js](metaret_standalone.js) was produced by building the one-liner [./jsm_dev/metaret_standalone.js](jsm_dev/metaret_standalone.js):
 ```
 need$( 'need$.js' );
 ```
