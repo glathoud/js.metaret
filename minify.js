@@ -89,8 +89,28 @@ function minify( /*string*/code )
 		    }
             }
 		
-	    var s_beg = newcode.substring( 0, x.begin ).replace( /\s+$/, ' ' ).replace( /([;,\?:=\+\-\*\(\[\{]+)\s*$/, '$1' );
-	    newcode = s_beg + newcode.substring( x.begin ).replace( /^\s*([;,\?:=\+\-\*\)\(\]\[\}\{]+)\s*/, '$1' );
+	    var s_beg = newcode.substring( 0, x.begin );
+	    
+	    if ( /^\s\s$/.test( s_beg.slice( -2 ) ) ) // For performance reasons: test first, before replacing.
+		{
+		    // Original code (way too slow): s_beg = s_beg.replace( /\s+$/, ' ' );
+		    for (var si = s_beg.length - 1; (si--) && /^\s$/.test( s_beg[si] ); )
+			;
+		    
+		    s_beg = s_beg.substring( 0, si+2 );
+		}
+			
+	    
+	    if ( /^\S\s$/.test( s_beg.slice( -2 ) ) && // For performance reasons: test first, before replacing
+		 /^[;,\?:=\+\-\*\(\[\{]$/.test( s_beg.slice( -2, -1 ))
+		 )
+		{
+		    s_beg = s_beg.slice( 0, -1 );
+		}
+	    
+	    newcode = s_beg + 
+		newcode.substring( x.begin ).replace( /^\s*([;,\?:=\+\-\*\)\(\]\[\}\{]+)\s*/, '$1' )
+		;
 
             current = s_beg.length;
         }       
