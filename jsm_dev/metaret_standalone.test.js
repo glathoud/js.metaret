@@ -13,7 +13,7 @@
 
      function run_one_test( name )
      {
-	 return eval( need$.read( 'jsm_dev/' + name + '.test.js' ) + '; test()' );
+	 return eval( need$.read( 'jsm_dev/' + name + '.test.js' ) + '\n;\n test()' );
      }
  }
 
