@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+
+    <title>core test of metaret</title>
+    <style type="text/css">
+      body { max-width: 600px; margin: auto;  }
+      p, h1, h2, h3, h4, ul, li {
+        font-family: Verdana,Arial,'Lucida Grande',Sans-Serif;
+        line-height: 150%;
+        text-align: justify;
+      }
+      .happy { color: darkgreen; }
+      .sad   { color: red; }
+    </style>
+  </head>
+  <body>
+    <h1>core test of metaret</h1>
+
+    <p>This should be the browser pendant of the command-line <a href="test.py"><code>test.py</code></a>.</p>
+
+
+
+    <hr/>
+
+    <p>Global result: <span id="global_result">&lt;...in progress...&gt;</span></p>
+
+
+
+
+    
+    <script type="text/javascript">
+      function testClearAll()
+      {
+      delete need$;
+      delete lightparse;
+      delete lp2fmtree;
+      delete metaparse;
+      delete MetaDecl;
+      delete MetaFunction;
+      delete jsm2js;
+      delete minify;
+      delete test;
+
+      delete fact; delete gcd; delete isEven; delete isOdd;
+      }
+
+      function copyTestHTML( domnode )
+      {
+      var SCRIPT_RX = /^script$/i
+      ,   arr = SCRIPT_RX.test( domnode.tagName )  ?  [ domnode ] : domnode.getElementsByTagName( "script" )
+      ,   retA = []
+      ;
+      for (var n = arr.length, i = 0; i < n; i++)
+          retA.push( arr[i].outerHTML );
+      
+      return retA.join("\n");
+      }
+      
+      var global_result = true;
+      function testRun( /*string*/globalname, /*?string?*/name ) 
+      {
+      name  ||  (name = globalname);
+
+      var f = window[ globalname ];
+
+      var result
+      ,   expected = true
+      ,   duration
+      ;
+      try 
+      { 
+          var start = new Date; 
+          result = f(); 
+          duration = new Date - start; 
+      } 
+      catch (e) 
+      {
+          result = e !== expected  ?  e  :  "<error>";
+      }
+      var success = result === expected;
+      if (!success)
+          global_result = false;
+      
+      return "\x3Cp\x3E\x3Ccode\x3E" + (name  ||  globalname  ||  (("" + f).substring(0,60)+"...")) + ":\x3C/code\x3E&nbsp;\x3Cspan class='" + 
+      (success  ? "happy'\x3Esuccess\x3C/span\x3E, duration: " + duration+ "ms" : "sad'\x3Efailure:\x3Cbr\x3E" + result + ".\x3C/span\x3E") +
+      "\x3C/p\x3E";
+      }
+    </script>
+
+
+
+    <hr/>
+
+
+
+
+    <h2>lightparse</h2>
+    
+    <script type="text/javascript">testClearAll();</script>
+
+    <script type="text/javascript" src="lightparse.js"></script>
+    <script type="text/javascript" src="lightparse_test.js"></script>
+    <script type="text/javascript">document.write(testRun("lightparse_test"));</script>
+
+    <script type="text/javascript">testClearAll();</script>
+
+
+
+
+
+
+
+    <hr/>
+
+
+
+
+
+
+    <div id="jsm_dev_example_development_jsm">
+
+      <h2>jsm_dev/example_development.jsm</h2>
+
+      <p>
+        
+        <script type="text/javascript">testClearAll();</script>
+
+        <script type="text/javascript" src="need$.js"></script>
+        <script type="text/javascript">need$("jsm_dev/example_development.jsm");</script>
+
+        <script type="text/javascript">delete test; need$("jsm_dev/example_development.test.js");</script>
+        <script type="text/javascript">document.write(testRun("test","jsm_dev/example_development.test.js"));</script>
+        
+        <script type="text/javascript">testClearAll();</script>
+
+      </p>
+
+    </div>
+
+
+    
+
+    <div id="jsm_out_example_development_js">
+
+      <h2>jsm_out/example_development.js</h2>
+
+      <p>
+        
+        <script type="text/javascript">document.write(copyTestHTML(document.getElementById("jsm_dev_example_development_jsm")).replace( /jsm_dev/g, "jsm_out" ).replace( /\.jsm\b/g, ".js" ));</script>
+	
+      </p>
+
+    </div>
+
+    
+
+    <div id="jsm_out_build_example_development_js">
+
+      <h2>jsm_out_build/example_development.js</h2>
+
+      <p>
+        
+        <script type="text/javascript">document.write(copyTestHTML(document.getElementById("jsm_dev_example_development_jsm")).replace( /jsm_dev/g, "jsm_out_build" ).replace( /\.jsm\b/g, ".js" ));</script>
+	
+      </p>
+
+    </div>
+
+
+
+
+   <div id="jsm_out_mini_example_development_js">
+
+      <h2>jsm_out_mini/example_development.js</h2>
+
+      <p>
+        
+        <script type="text/javascript">document.write(copyTestHTML(document.getElementById("jsm_dev_example_development_jsm")).replace( /jsm_dev/g, "jsm_out_mini" ).replace( /\.jsm\b/g, ".js" ));</script>
+	
+      </p>
+
+    </div>
+
+
+
+
+
+
+
+
+
+
+   <hr/>
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+    <div id="jsm_dev_expl_js">
+
+      <h2>jsm_dev/expl.js</h2>
+
+      <p>
+        
+        <script type="text/javascript">testClearAll();</script>
+
+        <script type="text/javascript" src="need$.js"></script>
+        <script type="text/javascript">need$("jsm_dev/expl.js");</script>
+
+        <script type="text/javascript">delete test; need$("jsm_dev/expl.test.js");</script>
+        <script type="text/javascript">document.write(testRun("test","jsm_dev/expl.test.js"));</script>
+        
+        <script type="text/javascript">delete test; need$("jsm_dev/expl_basic.test.js");</script>
+        <script type="text/javascript">document.write(testRun("test","jsm_dev/expl_basic.test.js"));</script>
+
+        <script type="text/javascript">delete test; need$("jsm_dev/expl_longer.test.js");</script>
+        <script type="text/javascript">document.write(testRun("test","jsm_dev/expl_longer.test.js"));</script>
+
+        <script type="text/javascript">delete test; need$("jsm_dev/expl_inline.test.js");</script>
+        <script type="text/javascript">document.write(testRun("test","jsm_dev/expl_inline.test.js"));</script>
+	
+        <script type="text/javascript">testClearAll();</script>
+
+      </p>
+
+    </div>
+
+
+    <div id="jsm_out_expl_js">
+
+      <h2>jsm_out/expl.js</h2>
+
+      <p>
+        
+        <script type="text/javascript">document.write(copyTestHTML(document.getElementById("jsm_dev_expl_js")).replace( /jsm_dev/g, "jsm_out" ));</script>
+	
+      </p>
+
+    </div>
+
+    
+
+    <div id="jsm_out_build_expl_js">
+
+      <h2>jsm_out_build/expl.js</h2>
+
+      <p>
+        
+        <script type="text/javascript">document.write(copyTestHTML(document.getElementById("jsm_dev_expl_js")).replace( /jsm_dev/g, "jsm_out_build" ));</script>
+	
+      </p>
+
+    </div>
+
+
+
+
+   <div id="jsm_out_mini_expl_js">
+
+      <h2>jsm_out_mini/expl.js</h2>
+
+      <p>
+        
+        <script type="text/javascript">document.write(copyTestHTML(document.getElementById("jsm_dev_expl_js")).replace( /jsm_dev/g, "jsm_out_mini" ));</script>
+	
+      </p>
+
+    </div>
+
+
+
+
+
+
+
+
+
+
+   <hr/>
+
+
+
+
+
+
+    <div id="jsm_dev_metaret_standalone_js">
+
+      <h2>jsm_dev/metaret_standalone.js</h2>
+
+      <p>
+        
+        <script type="text/javascript">testClearAll();</script>
+
+        <script type="text/javascript" src="need$.js"></script>
+        <script type="text/javascript">need$("jsm_dev/metaret_standalone.js");</script>
+
+        <script type="text/javascript">delete test; need$("jsm_dev/metaret_standalone.test.js");</script>
+        <script type="text/javascript">document.write(testRun("test","metaret_standalone.test.js"));</script>
+        	
+        <script type="text/javascript">testClearAll();</script>
+
+      </p>
+
+    </div>
+
+
+
+
+
+    <div id="jsm_out_metaret_standalone_js">
+
+      <h2>jsm_out/metaret_standalone.js</h2>
+
+      <p>
+        
+        <script type="text/javascript">document.write(copyTestHTML(document.getElementById("jsm_dev_metaret_standalone_js")).replace( /jsm_dev/g, "jsm_out" ));</script>
+	
+      </p>
+
+    </div>
+
+
+
+
+
+    <div id="jsm_out_build_metaret_standalone_js">
+
+      <h2>jsm_out_build/metaret_standalone.js</h2>
+
+      <p>
+        
+        <script type="text/javascript">document.write(copyTestHTML(document.getElementById("jsm_dev_metaret_standalone_js")).replace( /jsm_dev/g, "jsm_out_build" ));</script>
+	
+      </p>
+
+    </div>
+
+
+
+
+
+
+
+
+
+    <div id="jsm_out_mini_metaret_standalone_js">
+
+      <h2>jsm_out_mini/metaret_standalone.js</h2>
+
+      <p>
+        
+        <script type="text/javascript">document.write(copyTestHTML(document.getElementById("jsm_dev_metaret_standalone_js")).replace( /jsm_dev/g, "jsm_out_mini" ));</script>
+	
+      </p>
+
+    </div>
+
+
+
+
+
+
+    <hr/>
+
+
+    
+
+    <div id="minify_speed">
+      
+      <h2>minify speed</h2>
+
+      <script type="text/javascript">testClearAll();</script>
+      
+      <script type="text/javascript" src="need$.js"></script>
+      <script type="text/javascript" src="minify.js"></script>
+      <script type="text/javascript">
+	var build_code = need$.read( "jsm_out_build/metaret_standalone.js" )
+	,   start      = new Date
+	,   mini_code  = minify( build_code )
+	,   duration   = new Date - start
+	;
+	document.write( "\x3Cp\x3E" + duration + "ms\x3C/p\x3E" );
+      </script>
+
+      <script type="text/javascript">testClearAll();</script>
+
+
+    </div>
+
+
+
+
+
+
+
+    <script type="text/javascript">
+      document.getElementById("global_result").innerHTML = "\x3Cspan class='" + (global_result===true  ?  "happy'\x3Esuccess"  :  "sad'\x3Efailure") + "\x3C/span\x3E";
+    </script>
+
+  </body>
+</html>
+
