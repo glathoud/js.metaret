@@ -40,13 +40,13 @@ speedup imperative code.
 ## Getting started: develop your app
 
 #### Requirements: 
- * A browser,  or [V8](https://code.google.com/p/v8/), or [node.js](http://nodejs.org). (browser: maybe with a server like [simple_server.py](simple_server.py).)
- * [metaret_standalone.js](metaret_standalone.js)
+ * A browser,  or [V8](https://code.google.com/p/v8/), or [node.js](http://nodejs.org). (browser: maybe with a server like [./simple_server.py](simple_server.py).)
+ * [./metaret_standalone.js](metaret_standalone.js)
 
 #### Example:
- * [jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
- * [jsm_dev/example_development.test.js](jsm_dev/example_development.test.js) (automatically tested during build, as described below).
- * Check it in a browser: [example_development.html](example_development.html)
+ * [./jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
+ * [./jsm_dev/example_development.test.js](jsm_dev/example_development.test.js) (automatically tested during build, as described below).
+ * Check it in a browser: [./example_development.html](example_development.html)
 
 ## Getting started: test and build your app
 
@@ -69,9 +69,9 @@ jsm_build.py jsm_dev/example_development.jsm
 
 ## Longer example
 
- * [jsm_dev/expl.js](jsm_dev/expl.js) and [jsm_dev/expl.test.js](jsm_dev/expl.test.js)
- * [jsm_dev/expl_basic.jsm](jsm_dev/expl_basic.jsm) and [jsm_dev/expl_basic.test.js](jsm_dev/expl_basic.test.js)
- * [jsm_dev/expl_longer.jsm](jsm_dev/expl_longer.jsm) and [jsm_dev/expl_longer.test.js](jsm_dev/expl_longer.test.js)
+ * [./jsm_dev/expl.js](jsm_dev/expl.js) and [jsm_dev/expl.test.js](jsm_dev/expl.test.js)
+ * [./jsm_dev/expl_basic.jsm](jsm_dev/expl_basic.jsm) and [jsm_dev/expl_basic.test.js](jsm_dev/expl_basic.test.js)
+ * [./jsm_dev/expl_longer.jsm](jsm_dev/expl_longer.jsm) and [jsm_dev/expl_longer.test.js](jsm_dev/expl_longer.test.js)
 
 Assuming that you have installed [Python 3](http://docs.python.org/3/)
 and [V8](https://code.google.com/p/v8/), you can build this example
