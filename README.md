@@ -65,7 +65,7 @@ file.
 jsm_build.py jsm_dev/example_development.jsm
 ```
  * Output: ./jsm_out_mini/example_development.js
- * Check it in a browser: [example_production.html](example_production.html)
+ * Check it in a browser: [./example_production.html](example_production.html)
 
 ## Longer example
 
