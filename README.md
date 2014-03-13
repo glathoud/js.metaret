@@ -70,9 +70,9 @@ jsm_build.py jsm_dev/example_development.jsm
 ## Bigger example
 
 Under ./jsm_dev/:
- * [expl.js](jsm_dev/expl.js) and [expl.test.js](jsm_dev/expl.test.js)
  * [expl_basic.jsm](jsm_dev/expl_basic.jsm) and [expl_basic.test.js](jsm_dev/expl_basic.test.js)
  * [expl_longer.jsm](jsm_dev/expl_longer.jsm) and [expl_longer.test.js](jsm_dev/expl_longer.test.js)
+ * [expl.js](jsm_dev/expl.js) and [expl.test.js](jsm_dev/expl.test.js)
 
 Assuming that you have installed [Python 3](http://docs.python.org/3/)
 and [V8](https://code.google.com/p/v8/), you can build this example
