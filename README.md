@@ -69,9 +69,9 @@ jsm_build.py jsm_dev/example_development.jsm
 
 ## Longer example
 
- * [./jsm_dev/expl.js](jsm_dev/expl.js) and [jsm_dev/expl.test.js](jsm_dev/expl.test.js)
- * [./jsm_dev/expl_basic.jsm](jsm_dev/expl_basic.jsm) and [jsm_dev/expl_basic.test.js](jsm_dev/expl_basic.test.js)
- * [./jsm_dev/expl_longer.jsm](jsm_dev/expl_longer.jsm) and [jsm_dev/expl_longer.test.js](jsm_dev/expl_longer.test.js)
+ * [./jsm_dev/expl.js](jsm_dev/expl.js) and [./jsm_dev/expl.test.js](jsm_dev/expl.test.js)
+ * [./jsm_dev/expl_basic.jsm](jsm_dev/expl_basic.jsm) and [./jsm_dev/expl_basic.test.js](jsm_dev/expl_basic.test.js)
+ * [./jsm_dev/expl_longer.jsm](jsm_dev/expl_longer.jsm) and [./jsm_dev/expl_longer.test.js](jsm_dev/expl_longer.test.js)
 
 Assuming that you have installed [Python 3](http://docs.python.org/3/)
 and [V8](https://code.google.com/p/v8/), you can build this example
@@ -95,9 +95,14 @@ A test file `.test.js` declares one `function test () { ... }` which `return`s `
 
 ## Fun fact
 
-[metaret_standalone.js](metaret_standalone.js) was produced by building the one-liner [jsm_dev/metaret_standalone.js](jsm_dev/metaret_standalone.js):
+[./metaret_standalone.js](metaret_standalone.js) was produced by building the one-liner [jsm_dev/metaret_standalone.js](jsm_dev/metaret_standalone.js):
 ```
 need$( 'need$.js' );
 ```
 
 For more details: [./build_standalone.sh](build_standalone.sh)
+
+## Core tests
+
+The command-line [./test.py](test.py) and its browser pendant
+[./test.html](test.html)
