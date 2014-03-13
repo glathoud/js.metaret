@@ -39,36 +39,33 @@ speedup imperative code.
 
 ## Getting started: develop your app
 
-Requirements: 
+#### Requirements: 
  * [node.js](http://nodejs.org) or [V8](https://code.google.com/p/v8/) or a browser (browser: maybe with a server like [simple_server.py](simple_server.py)).
  * [metaret_standalone.js](metaret_standalone.js)
 
-Example:
- * [example_development.html](example_development.html)
+#### Example:
  * [jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
  * [jsm_dev/example_development.test.js](jsm_dev/example_development.test.js) (automatically tested during build, as described below).
-
+ * Check it in a browser: [example_development.html](example_development.html)
 
 ## Getting started: test and build your app
 
-`jsm_build.py` (1) transforms all `.jsm` files back to
-100%-standard JavaScript `.js` files and (2) collate them into a single, minified `.js` file.
-
-Requirements: 
+#### Requirements: 
  * [Python 3](http://docs.python.org/3/)
  * [V8](https://code.google.com/p/v8/)
+ * [./jsm_build.py](jsm_build.py)
 
-When done with development and testing, then use e.g. `../js.metaret/jsm_build.py
-somewhere/else/jsm_dev/yourapp.jsm` to build your app == production
-code == 100% JavaScript-compatible (relies mainly on [jsm2js.js](jsm2js.js)).
+`jsm_build.py` (1) transforms all `.jsm` files back to 100%-standard
+JavaScript `.js` files, (2) automatically runs the corresponding
+`.test.js` files and (2) collate them into a single, minified `.js`
+file.
 
-Note that `jsm_build.py` automatically runs the corresponding `.test.js` file,
-see for example [jsm_dev/example_development.test.js](jsm_dev/example_development.test.js).
-
-#### Example
-
- * [example_production.html](example_production.html)
- * jsm_out_mini/example_development.js (produced by `jsm_build.py`).
+#### Example:
+```
+jsm_build.py jsm_dev/example_development.jsm
+```
+ * Output: ./jsm_out_mini/example_development.js
+ * Check it in a browser: [example_production.html](example_production.html)
 
 ## Longer example
 
