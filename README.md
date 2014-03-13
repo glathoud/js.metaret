@@ -37,20 +37,23 @@ speedup imperative code.
  * `.jsm` files may use the extra keywords `metafun`, `metaret` and `inline`.
  * `.js` files contain 100% standard JavaScript.
 
-## How to use for development
+## Getting started: develop your app
 
 Requirements: 
  * [node.js](http://nodejs.org) or [V8](https://code.google.com/p/v8/) or a browser (browser: maybe with a server like [simple_server.py](simple_server.py)).
  * [metaret_standalone.js](metaret_standalone.js)
 
-#### Example
-
+Example:
  * [example_development.html](example_development.html)
  * [jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
  * [jsm_dev/example_development.test.js](jsm_dev/example_development.test.js) (automatically tested during build, as described below).
 
 
-## How to build and test for production
+## Getting started: build your app
+
+For production we need to (1) transform all `.jsm` files back to
+100%-standard JavaScript `.js` files and (2) build: collate all files
+into a single one, and minify.
 
 Requirements: 
  * [Python 3](http://docs.python.org/3/)
