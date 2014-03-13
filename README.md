@@ -14,7 +14,12 @@ Background: Implementing mutual tail recursion optimization without trampoline [
 
 .
 
-Addition: An extra keyword `inline` triggers hygienic inlining, see issue [#3](https://github.com/glathoud/js.metaret/issues/3) and [expl_longer.jsm](jsm_dev/expl_longer.jsm) for examples.
+`metafun` and `metaret` are useful to write fast functional code.
+
+In addition, to make imperative code faster there is also an extra
+keyword `inline` triggers hygienic inlining, see issue
+[#3](https://github.com/glathoud/js.metaret/issues/3) and
+[expl_longer.jsm](jsm_dev/expl_longer.jsm) for examples.
 
 .
 
