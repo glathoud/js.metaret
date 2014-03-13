@@ -51,9 +51,8 @@ Example:
 
 ## Getting started: build your app
 
-For production we need to (1) transform all `.jsm` files back to
-100%-standard JavaScript `.js` files and (2) build: collate all files
-into a single one, and minify.
+`jsm_build.py` (1) transforms all `.jsm` files back to
+100%-standard JavaScript `.js` files and (2) collate them into a single, minified `.js` file.
 
 Requirements: 
  * [Python 3](http://docs.python.org/3/)
