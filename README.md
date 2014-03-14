@@ -1,6 +1,12 @@
 functional tail metacomposition and imperative inlining
 =================================
 
+## Why?
+
+Write less code, that reads clear and runs fast. If you have time you
+can look at my mloc.js 2014 [slides](http://glat.info/mlocjs2014),
+else just keep reading.
+
 ## What?
 
 js.metaret extends JavaScript with three new keyworkds: `metafun`,
