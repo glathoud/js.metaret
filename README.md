@@ -38,7 +38,7 @@ eliminating function call overhead.
 #### Functional example
 
 
-[./jsm2js.js](jsm2js.js) transforms this clear, expressive code:
+[./jsm2js.js](jsm2js.js) transforms this clear, expressive but slow code (recursive function calls):
 ```
 metafun gcd(self, a, b) {
 
