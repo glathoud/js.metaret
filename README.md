@@ -5,11 +5,11 @@ fast.
 
 ## Contents
 
- * (How?)[#how]
- * (Getting started: develop your app)[#getting-started-develop-your-app]
- * (Getting started: test and build your app)[#getting-started-test-and-build-your-app]
- * (Bigger example)[#bigger-example]
- * (Background)[#background]
+ * [How?](#how)
+ * [Getting started: develop your app](#getting-started-develop-your-app)
+ * [Getting started: test and build your app](#getting-started-test-and-build-your-app)
+ * [Bigger example](#bigger-example)
+ * [Background](#background)
 
 ## How?
 
