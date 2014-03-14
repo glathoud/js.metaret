@@ -1,10 +1,6 @@
-js.metaret extends JavaScript with functional tail metacomposition and imperative inlining
-
-## Why?
-
-Write less code, that reads clear and runs fast. If you have time you
-can look at my mloc.js 2014 [slides](http://glat.info/mlocjs2014),
-else just keep reading.
+Goal of js.metaret: write less code, that reads clear and runs
+fast. If you have time you can look at my mloc.js 2014
+[slides](http://glat.info/mlocjs2014), else just keep reading.
 
 ## What?
 
@@ -12,15 +8,20 @@ js.metaret extends JavaScript with three new keyworkds: `metafun`,
 `metaret` and `inline` to write code that is shorter, more expressive
 AND runs fast.
 
- * `metafun` and `metaret` to write functional code: they can replace
+In all cases the extended JavaScript is automatically transformed back
+into 100% standard JavaScript.
+
+#### Functional: Tail Metacomposition
+
+`metafun` and `metaret` to write functional code: they can replace
    `function` and `return` whenever the call stack is not needed, which
    speeds up the code dramatically.
 
- * `inline` to inline imperative calls, which speeds them up by 
+#### Imperative: Inlining
+
+`inline` permits to inline imperative calls, which speeds them up by 
 eliminating function call overhead.
 
-In both cases the extended JavaScript is automatically transformed back
-into 100% standard JavaScript.
 
 #### Convention
 
