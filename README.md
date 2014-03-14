@@ -17,9 +17,7 @@ into fast, 100% standard JavaScript.
 
 For tail calls ([quick definition](http://glat.info/mlocjs2014/#4)), `metafun` and `metaret` can replace `function` and `return`. 
 
-This eliminates the call stack, which speeds up the code dramatically. 
-
-Mutual tail recursion is supported. 
+This eliminates the call stack, which speeds up the code dramatically. Mutual tail recursion is supported. 
 
 #### Fast Imperative Calls: Inlining
 
