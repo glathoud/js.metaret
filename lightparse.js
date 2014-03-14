@@ -433,6 +433,13 @@
 
      function build_bracket_sep_split( /*array*/bA, /*string*/nakedCodeNoRx, /*string*/code, /*array of string*/reservedArr )
      {
+	 var rx = new RegExp(
+              [ ',', ';' ]
+	      .concat( reservedArr.map( function (w) { return '\\b' + w + '\\b'; } ) )
+	      .join( '|' )
+	      , 'g' 
+	  );
+
          for (var i = bA.length; i--;)
          {
              var      x = bA[ i ]
@@ -446,7 +453,7 @@
                  str_repli( ' ', x.close.length )
              ;
 
-             // Whitespace all brackedchildren
+             // Whitespace all bracketchildren
              for (var j = kids.length; j--;)
              {
                  var  kid = kids[ j ];
@@ -458,13 +465,7 @@
              // Now we can look for comma/semicolon splits without risking to
              // match any comma/semicolon within a kid.
 
-             var rx = new RegExp(
-                 [ ',', ';' ]
-		 .concat( reservedArr.map( function (w) { return '\\b' + w + '\\b'; } ) )
-                     .join( '|' )
-                 , 'g' 
-             )
-             ,   sA = x.sepArr = []
+             var sA = x.sepArr = []
              ,   mo
              ;
              while (mo = rx.exec( nakedOne ))
@@ -514,16 +515,35 @@
              for (var nj = s_arr.length, j = 0; j < nj; j++)
              {
                  var s = s_arr[ j ]
-                 , str = s.hasOwnProperty( 'str_noComments' )
-		     ? s.str_noComments
-		     : (s.str_noComments = 
+                 , str
+		     ;
+
+		 if (s.hasOwnProperty( 'str_noComments' ))
+		     {
+			 str = s.str_noComments;
+		     }
+		 else
+		     {
+			 str =
 			( /\/\*|\*\//.test( s.str )  
 			  ? removeComments( s )
 			  : s.str
-			  ).replace( /^\s*|\s*$/g, '' )
-			)
+			  )
+			.replace( /^\s*/, '' )
+			     ;
+
+			 // Original (slow) code: str = str.replace( /\s*$/, '' );
+			 if ( /^\s$/.test( str.slice( -1 ) ) )
+			     {
+				 for (var si = str.length-1; si--  &&  /^\s$/.test( str.charAt( si )); )
+				     ;
+				 str = str.substring( 0, si+1 );
+			     }
+
+			 s.str_noComments = str;
+		     }
 		     
-		     , mo_LR = str.match( /^([^=]*)\s*=\s*([\s\S]+)$/ )
+	     var mo_LR = str.match( /^([^=]*)\s*=\s*([\s\S]+)$/ )
                  ;
                  vdArr.push(
                      mo_LR ?  { leftstr : mo_LR[ 1 ]
