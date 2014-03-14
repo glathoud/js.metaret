@@ -51,7 +51,7 @@ metafun gcd(self, a, b) {
   return a;
 }
 ```
-into 100% standard JavaScript code that runs fast:
+into 100% standard JavaScript code that runs fast (function calls eliminated):
 
 ```
 function anonymous(a, b) {
@@ -85,7 +85,7 @@ function doSomething() { alert("done!"); }
 
 inline doSomething();
 ```
-into (pretty ugly) 100% standard JavaScript code that runs fast:
+into (pretty ugly) 100% standard JavaScript code that runs fast (function calls eliminated):
 ```
 function doSomething(){alert('done');} 
   {
