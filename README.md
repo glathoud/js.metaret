@@ -20,8 +20,8 @@ This eliminates the call stack, which speeds up the code dramatically. Mutual ta
 
 #### Fast imperative calls: Inlining
 
-Use `inline` to inline imperative calls, which speeds them up because it
-eliminates function call overhead.
+`inline` which speeds up imperative calls by
+eliminating function call overhead.
 
 
 #### Convention
