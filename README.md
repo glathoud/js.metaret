@@ -9,7 +9,7 @@ Extend JavaScript with three new keyworkds: `metafun`, `metaret` and
 `inline` to write code that is short, expressive AND runs fast.
 
 The extended JavaScript is automatically transformed back
-into fast, 100% standard JavaScript. A simple development environment is included.
+into fast, 100% standard JavaScript.
 
 #### Fast functional calls: Tail metacomposition
 
