@@ -20,7 +20,7 @@ This eliminates the call stack, which speeds up the code dramatically. Mutual ta
 
 #### Fast imperative calls: Inlining
 
-`inline` which speeds up imperative calls by
+`inline` speeds up imperative calls by
 eliminating function call overhead.
 
 
