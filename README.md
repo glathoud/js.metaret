@@ -13,6 +13,70 @@ AND runs fast.
 
  * `inline` to inline imperative calls.
 
+In both cases the extended JavaScript is automatically transformed back
+into 100% standard JavaScript.
+
+## Convention
+
+ * `.jsm` files may use the extra keywords `metafun`, `metaret` and `inline`.
+ * `.js` files contain 100% standard JavaScript.
+
+## Getting started: develop your app
+
+#### Requirements: 
+ * A browser,  or [V8](https://code.google.com/p/v8/), or [node.js](http://nodejs.org). (browser: maybe with a server like [./simple_server.py](simple_server.py).)
+ * [./metaret_standalone.js](metaret_standalone.js)
+
+#### Example:
+ * [./jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
+ * [./jsm_dev/example_development.test.js](jsm_dev/example_development.test.js) (automatically tested during build, as described below).
+ * Check it in a browser: [./example_development.html](example_development.html)
+
+## Getting started: test and build your app
+
+#### Requirements: 
+ * [Python 3](http://docs.python.org/3/)
+ * [V8](https://code.google.com/p/v8/)
+ * [./jsm_build.py](jsm_build.py)
+
+`jsm_build.py` (1) transforms all `.jsm` files back to 100%-standard
+JavaScript `.js` files, (2) automatically runs the corresponding
+`.test.js` files and (3) collate them into a single, minified `.js`
+file.
+
+#### Example:
+```
+jsm_build.py jsm_dev/example_development.jsm
+```
+ * Output: ./jsm_out_mini/example_development.js
+ * Check it in a browser: [./example_production.html](example_production.html)
+
+## Bigger example
+
+Under ./jsm_dev/:
+ * [expl_basic.jsm](jsm_dev/expl_basic.jsm) and [expl_basic.test.js](jsm_dev/expl_basic.test.js)
+ * [expl_longer.jsm](jsm_dev/expl_longer.jsm) and [expl_longer.test.js](jsm_dev/expl_longer.test.js)
+ * [expl.js](jsm_dev/expl.js) and [expl.test.js](jsm_dev/expl.test.js)
+
+Assuming that you have installed [Python 3](http://docs.python.org/3/)
+and [V8](https://code.google.com/p/v8/), you can build this example
+into one minified file: 
+
+``` 
+jsm_build.py jsm_dev/expl.js
+```
+
+This takes the original `jsm_dev/expl*.js[m]` files and produces:
+ * as many 100% JS-compatible files: `jsm_out/expl*.js`
+    * ...and tests them against the corresponding `.test.js` files.
+ * one build file: `jsm_out_build/expl.js`
+    * ...and tests it against the corresponding `.test.js` files.
+ * one minified file: `jsm_out_mini/expl.js`
+    * ...and tests it against the corresponding `.test.js` files.
+
+A test file `.test.js` declares one `function test () { ... }` which `return`s `true` if success. Any other behaviour is seen as a failure:
+ * `test()` throws an eror,
+ * or `test()` returns something else than `true`.
 
 ## Background
 
@@ -128,67 +192,6 @@ added that triggers hygienic inlining, see issue
 
 `inline` can be useful to speedup imperative code.
 
-## Convention
-
- * `.jsm` files may use the extra keywords `metafun`, `metaret` and `inline`.
- * `.js` files contain 100% standard JavaScript.
-
-## Getting started: develop your app
-
-#### Requirements: 
- * A browser,  or [V8](https://code.google.com/p/v8/), or [node.js](http://nodejs.org). (browser: maybe with a server like [./simple_server.py](simple_server.py).)
- * [./metaret_standalone.js](metaret_standalone.js)
-
-#### Example:
- * [./jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
- * [./jsm_dev/example_development.test.js](jsm_dev/example_development.test.js) (automatically tested during build, as described below).
- * Check it in a browser: [./example_development.html](example_development.html)
-
-## Getting started: test and build your app
-
-#### Requirements: 
- * [Python 3](http://docs.python.org/3/)
- * [V8](https://code.google.com/p/v8/)
- * [./jsm_build.py](jsm_build.py)
-
-`jsm_build.py` (1) transforms all `.jsm` files back to 100%-standard
-JavaScript `.js` files, (2) automatically runs the corresponding
-`.test.js` files and (3) collate them into a single, minified `.js`
-file.
-
-#### Example:
-```
-jsm_build.py jsm_dev/example_development.jsm
-```
- * Output: ./jsm_out_mini/example_development.js
- * Check it in a browser: [./example_production.html](example_production.html)
-
-## Bigger example
-
-Under ./jsm_dev/:
- * [expl_basic.jsm](jsm_dev/expl_basic.jsm) and [expl_basic.test.js](jsm_dev/expl_basic.test.js)
- * [expl_longer.jsm](jsm_dev/expl_longer.jsm) and [expl_longer.test.js](jsm_dev/expl_longer.test.js)
- * [expl.js](jsm_dev/expl.js) and [expl.test.js](jsm_dev/expl.test.js)
-
-Assuming that you have installed [Python 3](http://docs.python.org/3/)
-and [V8](https://code.google.com/p/v8/), you can build this example
-into one minified file: 
-
-``` 
-jsm_build.py jsm_dev/expl.js
-```
-
-This takes the original `jsm_dev/expl*.js[m]` files and produces:
- * as many 100% JS-compatible files: `jsm_out/expl*.js`
-    * ...and tests them against the corresponding `.test.js` files.
- * one build file: `jsm_out_build/expl.js`
-    * ...and tests it against the corresponding `.test.js` files.
- * one minified file: `jsm_out_mini/expl.js`
-    * ...and tests it against the corresponding `.test.js` files.
-
-A test file `.test.js` declares one `function test () { ... }` which `return`s `true` if success. Any other behaviour is seen as a failure:
- * `test()` throws an eror,
- * or `test()` returns something else than `true`.
 
 ## Fun fact
 
