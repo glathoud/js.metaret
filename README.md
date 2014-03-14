@@ -5,11 +5,10 @@ fast.
 
 ## How?
 
-js.metaret extends JavaScript with three new keyworkds: `metafun`,
-`metaret` and `inline` to write code that is shorter, more expressive
-AND runs fast.
+Extend JavaScript with three new keyworkds: `metafun`, `metaret` and
+`inline` to write code that is short, expressive AND runs fast.
 
-In all cases the extended JavaScript is automatically transformed
+In all cases the extended JavaScript is automatically transformed back
 into fast, 100% standard JavaScript.
 
 #### Fast functional calls: Tail metacomposition
