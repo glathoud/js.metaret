@@ -11,7 +11,68 @@ AND runs fast.
    `function` and `return` whenever the call stack is not needed, which
    speeds up the code dramatically.
 
- * `inline` to inline imperative calls.
+```
+metafun gcd(self, a, b) {
+
+  if (a > b)
+    metaret self, a-b, b;
+
+  if (b > a)
+    metaret self, b-a, a;
+
+  return a;
+}
+```
+
+is transformed by [./jsm2js.js](jsm2js.js) into:
+
+```
+function anonymous(a, b) {
+  _L_gcd_: while (true) {
+
+    if (a > b) {
+      var _a1_ = a - b;
+      a = _a1_;
+      continue _L_gcd_;
+    }   
+   
+    if (b > a) {
+      var _a_ = b - a;
+      var _b_ = a;
+      a = _a_;
+      b = _b_;
+      continue _L_gcd_;
+    }
+   
+    return a;
+  }
+}
+```
+
+ * `inline` to inline imperative calls:
+
+```
+function doSomething() { alert("done!"); }
+
+inline doSomething();
+```
+
+is transformed by [./inline.js](inline.js) into the ugly but fast:
+
+```
+function doSomething(){alert('done');} 
+  {
+//#INLINE_BEGIN: inline var x = doSomething()
+var _undef_,_ret_;
+//#INLINE_SET_INPUT_ARGS:
+//#INLINE_IMPLEMENT:
+do {
+{alert('done');}
+} while (false);
+var x=_ret_;
+//#INLINE_END: inline var x = doSomething()
+};
+```
 
 In both cases the extended JavaScript is automatically transformed back
 into 100% standard JavaScript.
