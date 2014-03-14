@@ -81,7 +81,7 @@ function doSomething() { alert("done!"); }
 
 inline doSomething();
 ```
-into (pretty ugly) 100% standard JavaScript code that runs fast (function calls eliminated):
+into (pretty ugly) 100% standard JavaScript code that runs fast (function call eliminated):
 ```
 function doSomething(){alert('done');} 
   {
