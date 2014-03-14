@@ -52,10 +52,14 @@ function gcd_loop(a, b) {
   return a;
 }
 ```
-...which led me to write quite insane code [[2]](http://glat.info/jscheck/tool.tailopt.js).
 
-Moreover, since it worked on 100% normal JavaScript, the difference
-remained *implicit* between tail calls (optimized):
+But implementing this automatic transformation led me to write quite
+insane code [[2]](http://glat.info/jscheck/tool.tailopt.js).
+
+Moreover, since the automatic transformation worked on 100% normal
+JavaScript, the difference remained *implicit* between tail calls
+(optimized): 
+
 ```
 // tail call: return + single function call
 return gcd_rec(a-b, b);
