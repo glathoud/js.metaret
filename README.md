@@ -12,13 +12,13 @@ AND runs fast.
 In all cases the extended JavaScript is automatically transformed
 into fast, 100% standard JavaScript.
 
-#### Fast Functional Calls: Tail Metacomposition
+#### Fast functional calls: Tail metacomposition
 
 For tail calls ([quick definition](http://glat.info/mlocjs2014/#4)), `metafun` and `metaret` can replace `function` and `return`. 
 
 This eliminates the call stack, which speeds up the code dramatically. Mutual tail recursion is supported. 
 
-#### Fast Imperative Calls: Inlining
+#### Fast imperative calls: Inlining
 
 Use `inline` to inline imperative calls, which speeds them up because it
 eliminates function call overhead.
