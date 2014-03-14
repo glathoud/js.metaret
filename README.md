@@ -1,5 +1,5 @@
-js.metaret: Tail Metacomposition
-================================
+Tail Metacomposition and inlining
+=================================
 
 ## What?
 
