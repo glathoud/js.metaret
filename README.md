@@ -109,10 +109,10 @@ inline var x = getSomething();
  * A browser,  or [V8](https://code.google.com/p/v8/), or [node.js](http://nodejs.org). (browser: maybe with a server like [./simple_server.py](simple_server.py).)
  * [./metaret_standalone.js](metaret_standalone.js)
 
-#### Example ([live](http://glat.info/js.metaret/example_development.html)):
+#### Example
  * [./jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
  * [./jsm_dev/example_development.test.js](jsm_dev/example_development.test.js) (automatically tested during build, as described below).
- * Check it in a browser: [./example_development.html](example_development.html)
+ * Check it in a browser: [./example_development.html](example_development.html) and [live](http://glat.info/js.metaret/example_development.html).
 
 ## Getting started: test and build your app
 
@@ -126,12 +126,12 @@ JavaScript `.js` files, (2) automatically runs the corresponding
 `.test.js` files and (3) collate them into a single, minified `.js`
 file.
 
-#### Example ([live](http://glat.info/js.metaret/example_production.html)):
+#### Example
 ```
 jsm_build.py jsm_dev/example_development.jsm
 ```
  * Output: ./jsm_out_mini/example_development.js
- * Check it in a browser: [./example_production.html](example_production.html)
+ * Check it in a browser: [./example_production.html](example_production.html) and [live](http://glat.info/js.metaret/example_production.html).
 
 ## Bigger example
 
