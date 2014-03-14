@@ -11,6 +11,22 @@ AND runs fast.
    `function` and `return` whenever the call stack is not needed, which
    speeds up the code dramatically.
 
+ * `inline` to inline imperative calls, which speeds them up by 
+eliminating function call overhead.
+
+In both cases the extended JavaScript is automatically transformed back
+into 100% standard JavaScript.
+
+#### Convention
+
+ * `.jsm` files may use the extra keywords `metafun`, `metaret` and `inline`.
+ * `.js` files contain 100% standard JavaScript.
+
+
+#### Functional example
+
+
+[./jsm2js.js](jsm2js.js) transforms this clear, expressive code:
 ```
 metafun gcd(self, a, b) {
 
@@ -23,8 +39,7 @@ metafun gcd(self, a, b) {
   return a;
 }
 ```
-
-is transformed by [./jsm2js.js](jsm2js.js) into:
+into 100% standard JavaScript code that runs fast:
 
 ```
 function anonymous(a, b) {
@@ -49,16 +64,16 @@ function anonymous(a, b) {
 }
 ```
 
- * `inline` to inline imperative calls:
+#### Imperative example
+
+[./inline.js](inline.js) transforms this clear, expressive code:
 
 ```
 function doSomething() { alert("done!"); }
 
 inline doSomething();
 ```
-
-is transformed by [./inline.js](inline.js) into the ugly but fast:
-
+into (pretty ugly) 100% standard JavaScript code that runs fast:
 ```
 function doSomething(){alert('done');} 
   {
@@ -69,18 +84,16 @@ var _undef_,_ret_;
 do {
 {alert('done');}
 } while (false);
-var x=_ret_;
 //#INLINE_END: inline var x = doSomething()
 };
 ```
 
-In both cases the extended JavaScript is automatically transformed back
-into 100% standard JavaScript.
-
-## Convention
-
- * `.jsm` files may use the extra keywords `metafun`, `metaret` and `inline`.
- * `.js` files contain 100% standard JavaScript.
+Three variants are permitted:
+```
+inline doSomething();
+inline x = getSomething();
+inline var x = getSomething();
+```
 
 ## Getting started: develop your app
 
