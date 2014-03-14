@@ -1,28 +1,130 @@
-js.metaret
-==========
+js.metaret: Tail Metacomposition
+================================
 
-lightweight mutual tail recursion optimization without trampoline
+## What?
 
-also known as: Tail Metacomposition
+js.metaret extends JavaScript with three new keyworkds: `metafun`,
+`metaret` and `inline` to write code that is shorter, more expressive
+AND runs faat.
 
-These are the sources for the article http://glat.info/js.metaret/
-and the slides http://glat.info/mlocjs2014/#3
+ * `metafun` and `metaret` to write functional code: they replace of
+   `function` and `return` where the call stack is not needed, which
+   speeds up the code dramatically.
 
-.
+ * `inline` to inline imperative code.
 
-Background: Implementing mutual tail recursion optimization without trampoline [1] - for good performance - led me to write quite insane code [2]. Here is a lighter approach, that extends JavaScript with two keywords `metafun` and `metaret`, implementing one tiny bit of Backus' metacomposition [3].
 
-.
+## Background
 
-`metafun` and `metaret` are useful to write fast functional code.
+If you do not know what a tail call is, you can have a look at [this
+slide](http://glat.info/mlocjs2014/#4).
 
-In addition, an extra
-keyword `inline` triggers hygienic inlining, see issue
+Earlier I implemented "mutual tail recursion optimization without
+trampoline" [1] for good performance, which transforms the clear,
+expressive but slow code (many function calls):
+
+```
+function gcd_rec(a, b) {
+
+  if (a > b)
+    return gcd_rec(a-b, b);
+
+  if (b > a)
+    return gcd_rec(b-a, a);
+
+  return a;
+}
+```
+
+into a very fast while loop (no call stack):
+```
+function gcd_loop(a, b) {
+  while (a != b) {
+    if (a > b) {
+      a = a-b;
+    }
+    else if (b > a) {
+      var c = a;
+      a = b-a;
+      b = c;
+    }
+  }
+  return a;
+}
+```
+...which led me to write quite insane code [2].
+
+Moreover, since it worked on 100% normal JavaScript, the difference
+remained *implicit* between tail calls (optimized):
+```
+// tail call: return + single function call
+return gcd_rec(a-b, b);
+```
+and the other function calls (not
+optimized):
+```
+// not a tail call: no return statement
+t.children.forEach(doSomething);
+
+// not a single function call
+return sumtree(t.left) + sumtree(t.right);
+```
+
+You cannot expect you whole team to know about this *implicit*
+difference, which makes it somewhat [unfit to develop large-scale
+applications](http://glat.info/mlocjs2014/#7).
+
+Instead, here we make the difference
+[*explicit*](http://glat.info/mlocjs2014/#8) using `metafun` and
+`metaret` instead of `function` and `return`:
+```
+// WITH function calls (call stack)
+...
+var v = f(x);
+...
+return f(x); 
+...
+return f(x)+g(x);
+...
+o.doSomething();
+...
+
+// WITHOUT function calls (no call stack)
+metafun gcd(self, a, b) { // metafunction: contains metaret
+
+  if (a > b)
+    metaret self, a-b, b; // NOT a call, rather a sanitized goto
+
+  if (b > a) {
+    metaret self, b-a, a; // NOT a call, rather a sanitized goto
+
+  return a;
+}
+```
+
+`metaret` simply change the parameter values and jumps to the
+beginning of the metafunction. This runs fast (no call stack),
+implements one tiny bit of Backus' metacomposition [3], and can be
+seen as a *sanitized sort of goto*:
+
+ * you cannot just put a label anywhere and jump to it (spaghetti code).
+
+ * `metaret` can only jump to the beginning of a metafunction.
+
+ * therefore, you still have to think in term of clean encapsulations using `metafun` and `metaret`,
+just as you would using `function` and `return`.
+
+#### Addition
+
+`metafun` and `metaret` cannot be used with imperative calls, since
+they are not tail calls. Thus, an extra keyword `inline` was also
+added that triggers hygienic inlining, see issue
 [#3](https://github.com/glathoud/js.metaret/issues/3) and
-[expl_longer.jsm](jsm_dev/expl_longer.jsm) for examples. `inline` can be useful to
-speedup imperative code.
+[expl_longer.jsm](jsm_dev/expl_longer.jsm) for examples.
 
-.
+`inline` can be useful to speedup imperative code.
+
+#### References
 
 [0] http://glat.info
 
