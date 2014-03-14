@@ -1,4 +1,4 @@
-Tail Metacomposition and inlining
+functional tail metacomposition and imperative inlining
 =================================
 
 ## What?
