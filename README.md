@@ -35,7 +35,7 @@ eliminates function call overhead.
 
 
 [./jsm2js.js](jsm2js.js) transforms this clear, expressive code:
-```
+```js
 metafun gcd(self, a, b) {
 
   if (a > b)
@@ -49,7 +49,7 @@ metafun gcd(self, a, b) {
 ```
 into 100% standard JavaScript code that runs fast (no function call):
 
-```
+```js
 function anonymous(a, b) {
   _L_gcd_: while (true) {
 
@@ -76,13 +76,13 @@ function anonymous(a, b) {
 
 [./inline.js](inline.js) transforms this clear, expressive code:
 
-```
+```js
 function doSomething() { alert("done!"); }
 
 inline doSomething();
 ```
 into (pretty ugly) 100% standard JavaScript code that runs fast (function call eliminated):
-```
+```js
 function doSomething(){alert('done');} 
   {
 //#INLINE_BEGIN: inline var x = doSomething()
@@ -97,7 +97,7 @@ do {
 ```
 
 Three variants are permitted:
-```
+```js
 inline doSomething();
 inline x = getSomething();
 inline var x = getSomething();
@@ -127,7 +127,7 @@ JavaScript `.js` files, (2) automatically runs the corresponding
 file.
 
 #### Example
-```
+```js
 jsm_build.py jsm_dev/example_development.jsm
 ```
  * Output: ./jsm_out_mini/example_development.js
@@ -144,7 +144,7 @@ Assuming that you have installed [Python 3](http://docs.python.org/3/)
 and [V8](https://code.google.com/p/v8/), you can build this example
 into one minified file: 
 
-``` 
+```js
 jsm_build.py jsm_dev/expl.js
 ```
 
@@ -169,7 +169,7 @@ Earlier I implemented "mutual tail recursion optimization without
 trampoline" [[1]](http://glat.info/jscheck/tomrec.xhtml) for good performance, which transforms the clear,
 expressive but slow code (many function calls):
 
-```
+```js
 function gcd_rec(a, b) {
 
   if (a > b)
@@ -183,7 +183,7 @@ function gcd_rec(a, b) {
 ```
 
 into a very fast while loop (no call stack):
-```
+```js
 function gcd_loop(a, b) {
   while (a != b) {
     if (a > b) {
@@ -206,13 +206,13 @@ Moreover, since the automatic transformation worked on 100% normal
 JavaScript, the difference remained *implicit* between tail calls
 (optimized): 
 
-```
+```js
 // tail call: return + single function call
 return gcd_rec(a-b, b);
 ```
 and the other function calls (not
 optimized):
-```
+```js
 // not a tail call: no return statement
 t.children.forEach(doSomething);
 
@@ -227,7 +227,7 @@ applications](http://glat.info/mlocjs2014/#7).
 Instead, here we make the difference
 [*explicit*](http://glat.info/mlocjs2014/#8) using `metafun` and
 `metaret` instead of `function` and `return`:
-```
+```js
 // WITH function calls (call stack)
 ...
 var v = f(x);
@@ -278,7 +278,7 @@ added that triggers hygienic inlining, see issue
 ## Fun fact
 
 [./metaret_standalone.js](metaret_standalone.js) was produced by building the one-liner [./jsm_dev/metaret_standalone.js](jsm_dev/metaret_standalone.js):
-```
+```js
 need$( 'need$.js' );
 ```
 
