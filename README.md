@@ -10,6 +10,8 @@ fast.
  * [Getting started: test and build your app](#getting-started-test-and-build-your-app)
  * [Bigger example](#bigger-example)
  * [Background](#background)
+ * [Fun fact](#fun-fact)
+ * [Core tests](#core-tests)
 
 ## How?
 
