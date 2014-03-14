@@ -84,14 +84,14 @@ into (pretty ugly) 100% standard JavaScript code that runs fast (function call e
 ```js
 function doSomething(){alert('done');} 
   {
-//#INLINE_BEGIN: inline var x = doSomething()
+//#INLINE_BEGIN: inline doSomething()
 var _undef_,_ret_;
 //#INLINE_SET_INPUT_ARGS:
 //#INLINE_IMPLEMENT:
 do {
 {alert('done');}
 } while (false);
-//#INLINE_END: inline var x = doSomething()
+//#INLINE_END: inline doSomething()
 };
 ```
 
