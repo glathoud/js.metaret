@@ -5,13 +5,13 @@ js.metaret: Tail Metacomposition
 
 js.metaret extends JavaScript with three new keyworkds: `metafun`,
 `metaret` and `inline` to write code that is shorter, more expressive
-AND runs faat.
+AND runs fast.
 
- * `metafun` and `metaret` to write functional code: they replace of
-   `function` and `return` where the call stack is not needed, which
+ * `metafun` and `metaret` to write functional code: they can replace
+   `function` and `return` whenever the call stack is not needed, which
    speeds up the code dramatically.
 
- * `inline` to inline imperative code.
+ * `inline` to inline imperative calls.
 
 
 ## Background
@@ -20,7 +20,7 @@ If you do not know what a tail call is, you can have a look at [this
 slide](http://glat.info/mlocjs2014/#4).
 
 Earlier I implemented "mutual tail recursion optimization without
-trampoline" [1] for good performance, which transforms the clear,
+trampoline" [[1]](http://glat.info/jscheck/tomrec.xhtml) for good performance, which transforms the clear,
 expressive but slow code (many function calls):
 
 ```
@@ -52,7 +52,7 @@ function gcd_loop(a, b) {
   return a;
 }
 ```
-...which led me to write quite insane code [2].
+...which led me to write quite insane code [[2]](http://glat.info/jscheck/tool.tailopt.js).
 
 Moreover, since it worked on 100% normal JavaScript, the difference
 remained *implicit* between tail calls (optimized):
@@ -104,7 +104,7 @@ metafun gcd(self, a, b) { // metafunction: contains metaret
 
 `metaret` simply change the parameter values and jumps to the
 beginning of the metafunction. This runs fast (no call stack),
-implements one tiny bit of Backus' metacomposition [3], and can be
+implements one tiny bit of Backus' metacomposition [[3]](http://glat.info/jscheck/tool.tailopt.js), and can be
 seen as a *sanitized sort of goto*:
 
  * you cannot just put a label anywhere and jump to it (spaghetti code).
@@ -123,16 +123,6 @@ added that triggers hygienic inlining, see issue
 [expl_longer.jsm](jsm_dev/expl_longer.jsm) for examples.
 
 `inline` can be useful to speedup imperative code.
-
-#### References
-
-[0] http://glat.info
-
-[1] http://glat.info/jscheck/tomrec.xhtml
-
-[2] http://glat.info/jscheck/tool.tailopt.js
-
-[3] http://www.stanford.edu/class/cs242/readings/backus.pdf
 
 ## Convention
 
