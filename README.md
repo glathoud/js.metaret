@@ -27,7 +27,7 @@ into 100% standard JavaScript.
  * A browser,  or [V8](https://code.google.com/p/v8/), or [node.js](http://nodejs.org). (browser: maybe with a server like [./simple_server.py](simple_server.py).)
  * [./metaret_standalone.js](metaret_standalone.js)
 
-#### Example:
+#### Example ([live](http://glat.info/js.metaret/example_development.html)):
  * [./jsm_dev/example_development.jsm](jsm_dev/example_development.jsm)
  * [./jsm_dev/example_development.test.js](jsm_dev/example_development.test.js) (automatically tested during build, as described below).
  * Check it in a browser: [./example_development.html](example_development.html)
@@ -44,7 +44,7 @@ JavaScript `.js` files, (2) automatically runs the corresponding
 `.test.js` files and (3) collate them into a single, minified `.js`
 file.
 
-#### Example:
+#### Example ([live](http://glat.info/js.metaret/example_production.html)):
 ```
 jsm_build.py jsm_dev/example_development.jsm
 ```
