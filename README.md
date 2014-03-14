@@ -58,7 +58,7 @@ metafun gcd(self, a, b) {
 into 100% standard JavaScript code that runs fast (no function call):
 
 ```js
-function anonymous(a, b) {
+function gcd(a, b) {
   _L_gcd_: while (true) {
 
     if (a > b) {
