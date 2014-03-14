@@ -10,10 +10,10 @@ js.metaret extends JavaScript with three new keyworkds: `metafun`,
 `metaret` and `inline` to write code that is shorter, more expressive
 AND runs fast.
 
-In all cases the extended JavaScript is automatically transformed back
+In all cases the extended JavaScript is automatically transformed
 into fast, 100% standard JavaScript.
 
-#### Functional: Tail Metacomposition
+#### Fast Functional Calls: Tail Metacomposition
 
 `metafun` and `metaret` to write functional code: they can replace
    `function` and `return` whenever the call stack is not needed, which
@@ -23,7 +23,7 @@ Mutual tail recursion is supported. If you do not
 know what a tail call is, you can have a look at [this one
 slide](http://glat.info/mlocjs2014/#4).
 
-#### Imperative: Inlining
+#### Fast Imperative Calls: Inlining
 
 `inline` permits to inline imperative calls, which speeds them up by 
 eliminating function call overhead.
