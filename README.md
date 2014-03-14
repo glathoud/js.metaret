@@ -19,10 +19,9 @@ into fast, 100% standard JavaScript.
    `function` and `return` whenever the call stack is not needed, which
    speeds up the code dramatically.
 
-Both self-recursion and mutual recursion are supported.
-
-If you do not know what a tail call is, you can have a look at [this
-one slide](http://glat.info/mlocjs2014/#4).
+Both self-recursion and mutual recursion are supported. If you do not
+know what a tail call is, you can have a look at [this one
+slide](http://glat.info/mlocjs2014/#4).
 
 #### Imperative: Inlining
 
