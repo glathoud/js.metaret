@@ -1,8 +1,8 @@
 ## Goal
 
 Write less code, that reads clear and runs
-fast. If you have time you can look at my mloc.js 2014
-[slides](http://glat.info/mlocjs2014#4), else just keep reading.
+fast. If you have time you can also look at my mloc.js 2014
+[slides](http://glat.info/mlocjs2014#4).
 
 ## How?
 
