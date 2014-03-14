@@ -1,5 +1,4 @@
-functional tail metacomposition and imperative inlining
-=================================
+js.metaret extends JavaScript with functional tail metacomposition and imperative inlining
 
 ## Why?
 
