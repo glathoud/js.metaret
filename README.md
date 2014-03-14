@@ -15,7 +15,7 @@ into fast, 100% standard JavaScript.
 
 #### Fast Functional Calls: Tail Metacomposition
 
-Use `metafun` and `metaret` to replace `function` and `return`, which
+Instead of `function` and `return`, use `metafun` and `metaret`. This
 eliminates the call stack, speeding up the code dramatically.
 
 Mutual tail recursion is supported. If you do not
