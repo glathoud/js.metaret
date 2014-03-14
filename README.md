@@ -23,7 +23,7 @@ Mutual tail recursion is supported.
 
 #### Fast Imperative Calls: Inlining
 
-`inline` imperative calls, which speeds them up because it
+Use `inline` to inline imperative calls, which speeds them up because it
 eliminates function call overhead.
 
 
