@@ -11,7 +11,7 @@ js.metaret extends JavaScript with three new keyworkds: `metafun`,
 AND runs fast.
 
 In all cases the extended JavaScript is automatically transformed back
-into 100% standard JavaScript.
+into fast, 100% standard JavaScript.
 
 #### Functional: Tail Metacomposition
 
