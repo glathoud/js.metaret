@@ -34,7 +34,7 @@ eliminates function call overhead.
 #### Functional example
 
 
-[./jsm2js.js](jsm2js.js) transforms this clear, expressive but slow code (recursive function calls):
+[./jsm2js.js](jsm2js.js) transforms this clear, expressive code:
 ```
 metafun gcd(self, a, b) {
 
@@ -47,7 +47,7 @@ metafun gcd(self, a, b) {
   return a;
 }
 ```
-into 100% standard JavaScript code that runs fast (function calls eliminated):
+into 100% standard JavaScript code that runs fast (no function call):
 
 ```
 function anonymous(a, b) {
