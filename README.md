@@ -274,9 +274,10 @@ just as you would using `function` and `return`.
 
 #### Addition
 
-`metafun` and `metaret` cannot be used with imperative calls, since
-they are not tail calls. Thus, an extra keyword `inline` was also
-added that triggers hygienic inlining, see issue
+`metaret` only permits a tail call, which excludes an imperative call (calling without returning).
+
+Thus, an extra keyword `inline` was also added that triggers hygienic
+inlining, see issue
 [#3](https://github.com/glathoud/js.metaret/issues/3) and
 [expl_longer.jsm](jsm_dev/expl_longer.jsm) for examples.
 
