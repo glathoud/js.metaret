@@ -525,7 +525,8 @@
 		 else
 		     {
 			 str =
-			( /\/\*|\*\//.test( s.str )  
+			( /\/\*|\*\//.test( s.str )   &&
+			  0 < i_cA   &&  commentArr[ i_cA - 1 ].end > s.begin   // Optimization: do not call `removeComments` for nothing
 			  ? removeComments( s )
 			  : s.str
 			  )
