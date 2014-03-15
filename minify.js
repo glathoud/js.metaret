@@ -94,7 +94,7 @@ function minify( /*string*/code )
 	    if ( /^\s\s$/.test( s_beg.slice( -2 ) ) ) // For performance reasons: test first, before replacing.
 		{
 		    // Original code (way too slow): s_beg = s_beg.replace( /\s+$/, ' ' );
-		    for (var si = s_beg.length - 1; (si--) && /^\s$/.test( s_beg[si] ); )
+		    for (var si = s_beg.length - 1; (si--) && /^\s$/.test( s_beg.charAt( si ) ); )
 			;
 		    
 		    s_beg = s_beg.substring( 0, si+2 );
@@ -102,7 +102,7 @@ function minify( /*string*/code )
 			
 	    
 	    if ( /^\S\s$/.test( s_beg.slice( -2 ) ) && // For performance reasons: test first, before replacing
-		 /^[;,\?:=\+\-\*\(\[\{]$/.test( s_beg.slice( -2, -1 ))
+		 -1 < ';,?:=+-*([{'.indexOf( s_beg.slice( -2, -1 ))
 		 )
 		{
 		    s_beg = s_beg.slice( 0, -1 );
