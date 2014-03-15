@@ -302,4 +302,4 @@ For more details: [./build_standalone.sh](build_standalone.sh)
 ## Core tests
 
 The command-line [./test.py](test.py) and its browser pendant
-[./test.html](test.html)
+[./test.html](test.html) ([http://glat.info/js.metaret/test.html](live)).
