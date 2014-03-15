@@ -33,9 +33,6 @@
      function lightparse( /*sc*//*string*//**/code, /*sc*//*?object?*//**/opt )
      /*{0*/{
 
-	 'undefined' !== typeof console  &&   console.time  &&  console.time('xxx LP 0');
-
-
          var /*vd*/reservedArr/**/ = ((opt  &&  opt.reservedArr)  ||  RESERVED_ARR).concat( (opt  &&  opt.extraReservedArr)  ||  [] )
          ,   /*vd*/extraBracketArr/**/ = EXTRA_BRACKET_ARR.concat( (opt  &&  opt.extraBracketArr)  ||  [] )
          ,   /*vd*/ret/**/ = /*{1*/{
@@ -72,10 +69,6 @@
          }/*}1*/
          ;
 
-	 'undefined' !== typeof console  &&   console.time  &&  console.timeEnd('xxx LP 0');
-
-	 'undefined' !== typeof console  &&   console.time  &&  console.time('xxx LP 1');
-
          /*dc*/// Detect comments and strings, and produce a "nakedCode"
          /*dc*/// string where they've all been replaced with spaces.
 
@@ -86,43 +79,25 @@
          , /*vd*/searchPosition/**/ = 0
          ;
          while (true)
-         /*{2*/{
-             /*dc*/// Search for a string or comment, whichever comes first
+             /*{2*/{
+		 /*dc*/// Search for a string or comment, whichever comes first
 
-	     if (false)
-	     {
-		 var /*vd*/sq/**/ = code.indexOf( /*dq*/"'"/**/ , searchPosition )
-		 ,   /*vd*/dq/**/ = code.indexOf( /*sq*/'"'/**/ , searchPosition )
-		 ,   /*vd*/sc/**/ = code.indexOf( /*sq*/'/*'/**/, searchPosition )
-		 ,   /*vd*/dc/**/ = code.indexOf( /*sq*/'//'/**/, searchPosition )
-		 ,   /*vd*/rr/**/ = code.indexOf( /*sq*/'/'/**/,  searchPosition )
-		 ;
-		 
-		 
-		 /*dc*/// Do not see a divide operator `/` as the beginning of a regexp
-		 if (-1 < rr  &&  !(code.charAt(rr)==/*sq*/'/'/**/  &&  /*rr*//^\/(?![\*\/])(\\[^\r\n]|[^\\\r\n])+?\/[gmi]?//**/.test(code.substring(rr))))
-				    rr = -1;
-             }
-	     else 
-	     {
-		 var sq = -1, dq = -1, sc = -1, dc = -1, rr = -1;
-		 for (var i = searchPosition, n = code.length; i < n; i++)
-		 {
-		     var c = code.charAt( i );
-		     if (c === "'")  { sq = i; break; }
-		     if (c === '"')  { dq = i; break; }
-		     if (c === '/')
-		     {
-			 var c2 = code.charAt( i+1 );
-			 if (c2 === '*')  { sc = i; break; }
-			 if (c2 === '/')  { dc = i; break; }
-			 if (/*rr*//^\/(?![\*\/])(\\[^\r\n]|[^\\\r\n])+?\/[gmi]?//**/.test(code.substring(i)))   { rr = i; break; }
-		     }
-		 }
-	     }
-
-	     
-             var /*vd*/four/**/ = [ sq, dq, sc, dc, rr ]
+		 var /*vd*/sq/**/ = -1, /*vd*/dq/**/ = -1, /*vd*/sc/**/ = -1, /*vd*/dc/**/ = -1, /*vd*/rr/**/ = -1;
+		 for (var /*vd*/i/**/ = searchPosition, /*vd*/n/**/ = code.length; i < n; i++)
+		 /*{2.01*/{
+		     var /*vd*/c/**/ = code.charAt( i );
+		     if (c === /*dq*/"'"/**/)  /*{2.011*/{ sq = i; break; }/*}2.011*/
+		     if (c === /*sq*/'"'/**/)  /*{2.012*/{ dq = i; break; }/*}2.012*/
+		     if (c === /*sq*/'/'/**/)
+		     /*{2.013*/{
+			 var /*vd*/c2/**/ = code.charAt( i+1 );
+			 if (c2 === /*sq*/'*'/**/)  /*{2.0131*/{ sc = i; break; }/*}2.0131*/
+			 if (c2 === /*sq*/'/'/**/)  /*{2.0132*/{ dc = i; break; }/*}2.0132*/
+			 if (/*rr*//^\/(?![\*\/])(\\[^\r\n]|[^\\\r\n])+?\/[gmi]?//**/.test(code.substring(i)))   /*{2.0133*/{ rr = i; break; }/*}2.0133*/
+			 }/*}2.013*/
+		     }/*}2.01*/
+		     
+		     var /*vd*/four/**/ = [ sq, dq, sc, dc, rr ]
              ,   /*vd*/begin/**/ = +Infinity
              ,   /*vd*/ind/**/  = -1
              ;
@@ -176,11 +151,6 @@
 
          }/*}2*/
 
-	 'undefined' !== typeof console  &&   console.time  &&  console.timeEnd('xxx LP 1');
-         
-	 'undefined' !== typeof console  &&   console.time  &&  console.time('xxx LP 2');
-
-
          /*dc*/// Detect identifiers and reserved words
          
          var /*vd*/reservedSet/**/ = /*{2a*/{}/*}2a*/;
@@ -218,10 +188,6 @@
          }/*}3*/
          
 
-	 'undefined' !== typeof console  &&   console.time  &&  console.timeEnd('xxx LP 2');
-
-	 'undefined' !== typeof console  &&   console.time  &&  console.time('xxx LP 3');
-         
          /*dc*/// Curly brackets (blocks of code or objects).
          
          /*dc*/// - First, white out each regexp.
@@ -237,10 +203,6 @@
              ;
          }/*}6*/
          
-
-	 'undefined' !== typeof console  &&   console.time  &&  console.timeEnd('xxx LP 3');
-
-	 'undefined' !== typeof console  &&   console.time  &&  console.time('xxx LP 4');
 
          /*dc*/// - Second, find bracket pairs.
 
@@ -279,20 +241,11 @@
          }/*}7d*/ ) )
          ;
 
-	 'undefined' !== typeof console  &&   console.time  &&  console.timeEnd('xxx LP 4');
-
-	 'undefined' !== typeof console  &&   console.time  &&  console.time('xxx LP 5');
-
-         
          find_bracket( find_bracket_cfg, nakedCodeNoRx, code, bA );
                  
          build_bracket_tree( bA, ret.bracketTree );
          build_bracket_sep_split( bA, nakedCodeNoRx, code, reservedArr );
          build_bracket_var_leftstr_rightstr( bA, cA );
-
-	 'undefined' !== typeof console  &&   console.time  &&  console.timeEnd('xxx LP 5');
-
-	 'undefined' !== typeof console  &&   console.time  &&  console.time('xxx LP 6');
 
          /*dc*/// Mark which identifier instances are var declarations.
          
@@ -319,11 +272,6 @@
              iA_i++;
          }/*}a8*/
          
-
-
-	 'undefined' !== typeof console  &&   console.time  &&  console.timeEnd('xxx LP 6');
-
-	 'undefined' !== typeof console  &&   console.time  &&  console.time('xxx LP 7');
 
          /*dc*/// Identifiers: a few derived values, for convenience
 
@@ -380,10 +328,6 @@
                  .push( x.begin );
          }/*}6a*/
                   
-	 'undefined' !== typeof console  &&   console.time  &&  console.timeEnd('xxx LP 7');
-
-	 'undefined' !== typeof console  &&   console.time  &&  console.time('xxx LP 8');
-
 
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
@@ -452,8 +396,6 @@
              
          ret.allTree = allTree;
 
-	 'undefined' !== typeof console  &&   console.time  &&  console.timeEnd('xxx LP 8');
-         
          return ret;
              
      }/*}0*/
