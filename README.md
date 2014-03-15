@@ -281,9 +281,7 @@ inlining, see issue
 [#3](https://github.com/glathoud/js.metaret/issues/3) and
 [expl_longer.jsm](jsm_dev/expl_longer.jsm) for examples.
 
-`inline` can be useful to speedup imperative code.
-
-Three variants are permitted:
+`inline` can be useful to speedup imperative code. Three variants are permitted:
 ```js
 inline doSomething();
 inline x = getSomething();
