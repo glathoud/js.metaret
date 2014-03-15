@@ -283,6 +283,14 @@ inlining, see issue
 
 `inline` can be useful to speedup imperative code.
 
+Three variants are permitted:
+```js
+inline doSomething();
+inline x = getSomething();
+inline var x = getSomething();
+```
+
+
 
 ## Fun fact
 
