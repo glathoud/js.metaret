@@ -32,7 +32,6 @@
 
      function lightparse( /*sc*//*string*//**/code, /*sc*//*?object?*//**/opt )
      /*{0*/{
-
          var /*vd*/reservedArr/**/ = ((opt  &&  opt.reservedArr)  ||  RESERVED_ARR).concat( (opt  &&  opt.extraReservedArr)  ||  [] )
          ,   /*vd*/extraBracketArr/**/ = EXTRA_BRACKET_ARR.concat( (opt  &&  opt.extraBracketArr)  ||  [] )
          ,   /*vd*/ret/**/ = /*{1*/{
@@ -79,25 +78,20 @@
          , /*vd*/searchPosition/**/ = 0
          ;
          while (true)
-             /*{2*/{
-		 /*dc*/// Search for a string or comment, whichever comes first
+         /*{2*/{
+             /*dc*/// Search for a string or comment, whichever comes first
 
-		 var /*vd*/sq/**/ = -1, /*vd*/dq/**/ = -1, /*vd*/sc/**/ = -1, /*vd*/dc/**/ = -1, /*vd*/rr/**/ = -1;
-		 for (var /*vd*/i/**/ = searchPosition, /*vd*/n/**/ = code.length; i < n; i++)
-		 /*{2.01*/{
-		     var /*vd*/c/**/ = code.charAt( i );
-		     if (c === /*dq*/"'"/**/)  /*{2.011*/{ sq = i; break; }/*}2.011*/
-		     if (c === /*sq*/'"'/**/)  /*{2.012*/{ dq = i; break; }/*}2.012*/
-		     if (c === /*sq*/'/'/**/)
-		     /*{2.013*/{
-			 var /*vd*/c2/**/ = code.charAt( i+1 );
-			 if (c2 === /*sq*/'*'/**/)  /*{2.0131*/{ sc = i; break; }/*}2.0131*/
-			 if (c2 === /*sq*/'/'/**/)  /*{2.0132*/{ dc = i; break; }/*}2.0132*/
-			 if (/*rr*//^\/(?![\*\/])(\\[^\r\n]|[^\\\r\n])+?\/[gmi]?//**/.test(code.substring(i)))   /*{2.0133*/{ rr = i; break; }/*}2.0133*/
-			 }/*}2.013*/
-		     }/*}2.01*/
-		     
-		     var /*vd*/four/**/ = [ sq, dq, sc, dc, rr ]
+             var /*vd*/sq/**/ = code.indexOf( /*dq*/"'"/**/ , searchPosition )
+             ,   /*vd*/dq/**/ = code.indexOf( /*sq*/'"'/**/ , searchPosition )
+             ,   /*vd*/sc/**/ = code.indexOf( /*sq*/'/*'/**/, searchPosition )
+             ,   /*vd*/dc/**/ = code.indexOf( /*sq*/'//'/**/, searchPosition )
+             ,   /*vd*/rr/**/ = code.indexOf( /*sq*/'/'/**/,  searchPosition )
+		 ;
+	     /*dc*/// Do not see a divide operator `/` as the beginning of a regexp
+	     if (-1 < rr  &&  !/*rr*//^\/(?![\*\/])(\\[^\r\n]|[^\\\r\n])+?\/[gmi]?//**/.test(code.substring(rr)))
+		 rr = -1;
+	     
+             var /*vd*/four/**/ = [ sq, dq, sc, dc, rr ]
              ,   /*vd*/begin/**/ = +Infinity
              ,   /*vd*/ind/**/  = -1
              ;
@@ -150,7 +144,7 @@
              searchPosition = end;
 
          }/*}2*/
-
+         
          /*dc*/// Detect identifiers and reserved words
          
          var /*vd*/reservedSet/**/ = /*{2a*/{}/*}2a*/;
@@ -187,7 +181,7 @@
 
          }/*}3*/
          
-
+         
          /*dc*/// Curly brackets (blocks of code or objects).
          
          /*dc*/// - First, white out each regexp.
@@ -203,7 +197,6 @@
              ;
          }/*}6*/
          
-
          /*dc*/// - Second, find bracket pairs.
 
          var /*vd*/bcA/**/ = ret.bracketcurlyArr
@@ -240,7 +233,7 @@
              
          }/*}7d*/ ) )
          ;
-
+         
          find_bracket( find_bracket_cfg, nakedCodeNoRx, code, bA );
                  
          build_bracket_tree( bA, ret.bracketTree );
@@ -395,7 +388,7 @@
          }/*}11*/
              
          ret.allTree = allTree;
-
+         
          return ret;
              
      }/*}0*/
@@ -440,13 +433,6 @@
 
      function build_bracket_sep_split( /*array*/bA, /*string*/nakedCodeNoRx, /*string*/code, /*array of string*/reservedArr )
      {
-	 var rx = new RegExp(
-              [ ',', ';' ]
-	      .concat( reservedArr.map( function (w) { return '\\b' + w + '\\b'; } ) )
-	      .join( '|' )
-	      , 'g' 
-	  );
-
          for (var i = bA.length; i--;)
          {
              var      x = bA[ i ]
@@ -460,7 +446,7 @@
                  str_repli( ' ', x.close.length )
              ;
 
-             // Whitespace all bracketchildren
+             // Whitespace all brackedchildren
              for (var j = kids.length; j--;)
              {
                  var  kid = kids[ j ];
@@ -472,7 +458,13 @@
              // Now we can look for comma/semicolon splits without risking to
              // match any comma/semicolon within a kid.
 
-             var sA = x.sepArr = []
+             var rx = new RegExp(
+                 [ ',', ';' ]
+		 // xxx wrong, remove this line: .concat( reservedArr.map( function (w) { return '\\b' + w + '\\b'; } ) )
+                     .join( '|' )
+                 , 'g' 
+             )
+             ,   sA = x.sepArr = []
              ,   mo
              ;
              while (mo = rx.exec( nakedOne ))
@@ -493,7 +485,7 @@
                  ,   end    = after .index
                  ,   str    = code.substring( begin, end )
                  ;
-                 if (!str)
+                 if (!str  ||  /^\s*$/.test(nakedCodeNoRx.substring( begin, end )))
                      continue;
                  
                  sS.push( { 
@@ -522,36 +514,16 @@
              for (var nj = s_arr.length, j = 0; j < nj; j++)
              {
                  var s = s_arr[ j ]
-                 , str
-		     ;
-
-		 if (s.hasOwnProperty( 'str_noComments' ))
-		     {
-			 str = s.str_noComments;
-		     }
-		 else
-		     {
-			 str =
-			( /\/\*|\*\//.test( s.str )   &&
-			  0 < i_cA   &&  commentArr[ i_cA - 1 ].end > s.begin   // Optimization: do not call `removeComments` for nothing
+                 , str = s.hasOwnProperty( 'str_noComments' )
+		     ? s.str_noComments
+		     : (s.str_noComments = 
+			( /\/\*|\*\//.test( s.str )  
 			  ? removeComments( s )
 			  : s.str
-			  )
-			.replace( /^\s*/, '' )
-			     ;
-
-			 // Original (slow) code: str = str.replace( /\s*$/, '' );
-			 if ( /^\s$/.test( str.slice( -1 ) ) )
-			     {
-				 for (var si = str.length-1; si--  &&  /^\s$/.test( str.charAt( si )); )
-				     ;
-				 str = str.substring( 0, si+1 );
-			     }
-
-			 s.str_noComments = str;
-		     }
+			  ).replace( /^\s*|\s*$/g, '' )
+			)
 		     
-	     var mo_LR = str.match( /^([^=]*)\s*=\s*([\s\S]+)$/ )
+		     , mo_LR = str.match( /^([^=]*)\s*=\s*([\s\S]+)$/ )
                  ;
                  vdArr.push(
                      mo_LR ?  { leftstr : mo_LR[ 1 ]

@@ -7,7 +7,12 @@
         // Miscellaneous tests
 
         //#BEGIN_TEST_DEV_ONLY
+
+        // Make sure function calls are also renamed
         
+        if (!/_b_\s*\(\s*_a_\s*\+\s*_c_\s*\)/.test( inline('function f(a,b,c) { b(a+c); }  inline f(d,e,f);') ))
+            throw new Error( 'inline failure: test #123' );
+                
         // https://github.com/glathoud/js.metaret/issues/6
         // detect and forbid inline cycles
 

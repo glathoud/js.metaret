@@ -339,6 +339,17 @@ if (typeof lp2fmtree === 'undefined')
                 toReplace.push( { o : ident, newstr : newstr } );
         }
         
+        // Prepare: Will replace function names in calls
+
+        for (var i = body_lp.callArr.length; i--;)
+        {
+            var call = body_lp.callArr[ i ]
+            , newstr = paramN_map[ call.name ]  ||  vardeclN_map[ call.name ]
+            ;
+            if (newstr)
+                toReplace.push( { o : call, newstr : call.str.replace( call.name, newstr ) } );
+        }
+        
         // Prepare: Will replace returns
 
         for (var i = body_lp.bracketextraArr.length; i--;)
@@ -386,7 +397,7 @@ if (typeof lp2fmtree === 'undefined')
 
         var oas = one.args.sepSplit
         , set_args_arr = paramN_arr.map( function (pN, i) {
-            return pN + ' = ' + 
+            return 'var ' + pN + ' = ' + 
                 (i < oas.length  
                  ?  oas[ i ].str  // argument given
                  :  undefN        // argument missing
