@@ -1849,28 +1849,26 @@
     } else if (liberal && tokType.keyword) {
       node.name = tokType.keyword;
     } else {
-        
-        if (jsmDotted)
+        unexpected();
+    }
+    tokRegexpAllowed = false;
+    next();
+
+	
+	if (jsmDotted  &&  eat( _dot ))
         {
             // JSM extension: dotted names allowed for metafunctions
-
+	    
             var jsmNameArr = [ node.name ];
-            next();
             var jsmRest    = parseIdent( liberal, jsmDotted );
             jsmNameArr.push.apply( jsmNameArr, jsmRest.jsmNameArr  ||  [ jsmRest.name ] );
             
             node.jsmNameArr = jsmNameArr;
             node.name       = jsmNameArr.join( '.' );
-            next();
             return finishNode(node, "JsmDottedIdentifier");
         }
         
 
-
-      unexpected();
-    }
-    tokRegexpAllowed = false;
-    next();
     return finishNode(node, "Identifier");
   }
 

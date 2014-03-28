@@ -27186,3 +27186,81 @@ test(['metafun gcd(self,a,b) {'
      }
      , { jsm: true }
     );
+
+
+// dotted identifier (for metafunction declarations only)
+
+test( "metafun f.g.h(self,x) { metaret self,x-1;}"
+, {
+    "type": "Program",
+    "start": 0,
+    "end": 42,
+    "body": [{
+        "type": "JsmMetafunDeclaration",
+        "start": 0,
+        "end": 42,
+        "id": {
+            "type": "JsmDottedIdentifier",
+            "start": 8,
+            "end": 13,
+            "name": "f.g.h",
+            "jsmNameArr": ["f", "g", "h"]
+        },
+        "params": [{
+            "type": "Identifier",
+            "start": 14,
+            "end": 18,
+            "name": "self"
+        }, {
+            "type": "Identifier",
+            "start": 19,
+            "end": 20,
+            "name": "x"
+        }],
+        "body": {
+            "type": "BlockStatement",
+            "start": 22,
+            "end": 42,
+            "body": [{
+                "type": "JsmMetaretStatement",
+                "start": 24,
+                "end": 41,
+                "argument": {
+                    "type": "SequenceExpression",
+                    "start": 32,
+                    "end": 40,
+                    "expressions": [{
+                        "type": "Identifier",
+                        "start": 32,
+                        "end": 36,
+                        "name": "self"
+                    }, {
+                        "type": "BinaryExpression",
+                        "start": 37,
+                        "end": 40,
+                        "left": {
+                            "type": "Identifier",
+                            "start": 37,
+                            "end": 38,
+                            "name": "x"
+                        },
+                        "operator": "-",
+                        "right": {
+                            "type": "Literal",
+                            "start": 39,
+                            "end": 40,
+                            "value": 1,
+                            "raw": "1"
+                        }
+                    }]
+                }
+            }]
+        }
+    }]
+}
+, { jsm : true }
+);
+
+testFail( "function f.g.h(x) { return x-1; }"
+, "Unexpected token (1:10)"
+);
