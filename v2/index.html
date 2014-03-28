@@ -1,0 +1,626 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Tail metacomposition</title>
+<meta charset="utf-8">
+<style type="text/css">
+body { max-width: 600px; margin: auto;  }
+p, h1, h2, h3, h4, ul, li {
+    font-family: Verdana,Arial,'Lucida Grande',Sans-Serif;
+    line-height: 150%;
+    text-align: justify;
+}
+h1, h2, h3 { margin-top: 3em; }
+.anchor { margin-left: 0.5em; }
+@media only screen { .screen-hidden, .print { display: none; } }
+</style>
+<script type="text/javascript" src="lightparse.js"></script>
+<script type="text/javascript" src="lp2fmtree.js"></script>
+<script type="text/javascript" src="metaret.js"></script>
+<script type="text/js-metaret-decl" id="metaret-decls">
+/* 
+
+type="js-metaret-decl": meta-function declarations, using JavaScript
+augmented with two extra keywords `metafun` and `metaret`.
+
+`metaret` is a sort of sanitized `goto`:
+
+`metaret` is NOT a function call, hence the absence of brackets.
+
+`metaret` rather means metacomposition, here implemented by inlining
+code in an hygienic manner (renaming variables to avoid collisions).
+
+Inlining also reduces the number of function calls to a bare minimum,
+which improves runtime performance in many cases.
+
+Sources: <a href="metaret.js">metaret.js</a>  and  <a href="lightparse.js">lightparse.js</a> - MIT <a href="LICENSE.TXT">license</a>
+
+Tests: The present page, and <a href="lightparse_test.html">lightparse_test.html</a>
+
+*/
+
+metafun fact( self, k, acc )
+{
+    acc  ||  (acc = 1);
+    if (k > 1)
+        metaret self, k - 1, acc * k; // anonymous self-recursion
+    else
+        return acc;
+}
+
+metafun gcd( self, a, b )
+{
+    if (a > b)
+        metaret self, a-b, b;
+    
+    if (b > a)
+        metaret self, b-a, a;
+    
+    return a; 
+}
+
+metafun isEven( self, n )
+{
+    if (n > 0)
+        metaret isOdd, n - 1; // mutual recursion
+
+    if (n < 0)
+        metaret self, -n;
+
+    return true;
+}
+
+metafun isOdd( self, n )
+{
+    if (n > 0)
+        metaret isEven, n - 1;
+
+    if (n < 0)
+        metaret self, -n;
+
+    return false; 
+}           
+</script>
+<script type="text/js-metaret-decl" id="metaret-decls-sortedSearch">
+/*
+
+Search a sorted array e.g. [ 0, 1, 1, 2, 4, 6, 6, 6, 9, 11, 11, 12 ]
+for the first and last position of a target value e.g. 6 appears
+first at position 5 and last at position 7 -> return `[ 5, 7 ]`.
+
+If the target value was found, return:
+
+[ &lt;integer (first position)&gt;, &lt;integer (last position)&gt; ]
+
+else return:
+
+null
+
+Using the optional `less` and `equal` parameters, one can search any
+type of value, not just numbers.
+
+Implementation: joint bisection: alternatively improve `first` and
+`last`.
+
+*/
+
+metafun sortedSearch(self, sortedArray, x, /*?fun?*/less, /*?fun?*/equal)
+{
+    // In a sorted array, search for first and last occurences of `x`.
+    //
+    // If `x` found, return `[ first_index, last_index ]`
+    // (integers).
+    //
+    // If `x` not found, return `null`.
+
+    less  ||  (less = function (a,b) { return a < b; });
+    equal ||  (equal = function (a,b) { return a == b; });
+
+    var first_found = false
+    ,    last_found = false
+    ,             i = 0
+    ,             j = sortedArray.length - 1
+    ,          imax = j
+    ,          jmin = i
+    ;
+
+    metaret improveFirst;
+
+
+    metafun improveFirst(self)
+    {
+        first_found = first_found ||
+            isFirstFound(sortedArray, i, equal, x);
+
+        // Termination tests
+
+        if (i > j)
+            return null;    // Done: `x` not found.
+
+        if (first_found && last_found)
+            return [i, j];  // Done: `x` found.
+
+        // Update
+
+        if (!first_found)
+        {
+            i++;
+
+            imax = Math.min( imax, j );
+
+            var ind = i + ((imax - i) >> 1)
+            , v_ind = sortedArray[ind]
+            ;
+
+            if (less(v_ind, x) ||
+                isFirstFound(sortedArray, ind, equal, x)
+               )
+                i = ind;
+            else
+                imax = ind;
+        }
+
+        metaret improveLast;
+    }
+
+
+    metafun improveLast(self)
+    {
+        last_found = last_found ||
+            isLastFound(sortedArray, j, equal, x);
+
+        // Termination tests already done in `improveFirst`, 
+        // not needed here.
+
+        // Update
+
+        if (!last_found)
+        {
+            j--;
+
+            jmin = Math.max( jmin, i );
+
+            var ind = j - ((j - jmin) >> 1)
+            , v_ind = sortedArray[ind]
+            ;
+
+            if (less(x, v_ind) ||
+                isLastFound(sortedArray, ind, equal, x)
+               )
+                j = ind;
+            else
+                jmin = ind;
+        }
+
+        metaret improveFirst;
+    }
+
+    function isFirstFound( sortedArray, i, equal, x )
+    {
+        return equal(x, sortedArray[i])  &&
+            (i < 1  ||  !equal(x, sortedArray[i - 1]));
+    }
+
+    function isLastFound( sortedArray, j, equal, x)
+    {
+        return equal(x, sortedArray[j])  &&
+            (j > sortedArray.length - 2  || !equal(x, sortedArray[j + 1]));
+    }
+
+}
+
+
+</script>
+<script type="text/javascript" id="metaret-tests">
+var all_tests_passed = false;
+
+// --- Tests with functions declared in script tag(s) with
+// --- type="text/js-metaret-decl"
+
+metaparse();
+
+assert( "'function' === typeof fact" );
+assert( "'function' === typeof isOdd" );
+assert( "'function' === typeof isEven" );
+
+assert( '1 == fact(0)' );
+assert( '1 == fact(1)' );
+assert( '2 == fact(2)' );
+assert( '6 == fact(3)' );
+assert( '24 == fact(4)' );
+
+assert( 'false === isOdd( -4 )' );
+assert( 'true  === isOdd( -3 )' );
+assert( 'false === isOdd( -2 )' );
+assert( 'true  === isOdd( -1 )' );
+assert( 'false === isOdd( 0 )' );
+assert( 'true  === isOdd( 1 )' );
+assert( 'false === isOdd( 2 )' );
+assert( 'true  === isOdd( 3 )' );
+assert( 'false === isOdd( 4 )' );
+assert( 'true  === isOdd( 1001 )' );
+assert( 'false === isOdd( 1002 )' );
+assert( 'true  === isOdd( 1000001 )' );
+assert( 'false === isOdd( 1000002 )' );
+
+// No stack issue because the code has been unrolled
+assert( 'true  === isOdd( 10000001 )' );   
+assert( 'false === isOdd( 10000002 )' );
+
+assert( 'true  === isEven( -4 )' );
+assert( 'false === isEven( -3 )' );
+assert( 'true  === isEven( -2 )' );
+assert( 'false === isEven( -1 )' );
+assert( 'true  === isEven( 0 )' );
+assert( 'false === isEven( 1 )' );
+assert( 'true  === isEven( 2 )' );
+assert( 'false === isEven( 3 )' );
+assert( 'true  === isEven( 4 )' );
+assert( 'false === isEven( 1001 )' );
+assert( 'true  === isEven( 1002 )' );
+assert( 'false === isEven( 1000001 )' );
+assert( 'true  === isEven( 1000002 )' );
+
+// No stack issue because the code has been unrolled
+assert( 'false === isEven( 10000001 )' );   
+assert( 'true  === isEven( 10000002 )' );
+
+// --- Tests with functions declared programmatically
+
+// - Test the local `name2info`
+
+// For test purposes: same name 'fact2' as used below, 
+// but different function (just a sum)
+//
+// Since we are using a `local_name2info`
+// there must not be any impact on the 
+// global declaration 'fact2` further below
+
+var local_name2info = {}
+,   local_fun = MetaFunction(
+        'fact2' 
+
+        , 'self,k,acc'
+
+        , 'acc ||  (acc = 0);  '
+          + 'if (k > 0)  metaret  self, k-1, acc + k;'  // sum
+          + 'else        return acc;'
+
+        , local_name2info
+      )
+;
+
+assert( '0 === local_fun( 0 )' );
+assert( '1 === local_fun( 1 )' );
+assert( '3 === local_fun( 2 )' );
+assert( '6 === local_fun( 3 )' );
+assert( '10 === local_fun( 4 )' );
+
+// No stack issue because the code has been unrolled
+assert( '10000*10001/2 === local_fun( 10000 )' );  
+
+// - Test global declarations with dotted names. 
+
+// For test purposes: same name 'fact2' as used above and below, but
+// different implementation (sum of squares).
+//
+// Since we are using a name space 'some.name.space' there must not be
+// any impact on the above local declaration, and on the similarly
+// named global declarations below.
+
+MetaDecl( 'some.name.space.fact2'
+          , 'self, k, acc'
+          , 'acc  ||  (acc = 0);'
+
+          // sum of squares
+          + 'if (k > 0)  metaret  self, k-1, acc + k * k;' 
+          
+          + 'else        return acc;'
+        );
+
+assert( '0 === some.name.space.fact2( 0 )' );
+assert( '1 === some.name.space.fact2( 1 )' );
+assert( '5 === some.name.space.fact2( 2 )' );
+assert( '14 === some.name.space.fact2( 3 )' );
+assert( '30 === some.name.space.fact2( 4 )' );
+
+ // No stack issue because the code has been unrolled
+assert( '10000 * 10001 * 20001 / 6 === some.name.space.fact2( 10000 )' )
+
+// - Test global declarations 'fact2', 'isEven2' and 'isOdd2' These
+//   implementations are similar as those in the script tag (see
+//   above, at the beginning).
+
+MetaDecl
+( 
+    'fact2'   
+    , 'self,k,acc'
+    , [ 
+        'acc  ||  (acc = 1);'
+        , 'if (k > 1)'
+
+        // factorial
+        , '    metaret self, k - 1, acc * k;'  
+        
+        , 'else'
+        , '    return acc;'
+    ].join( '\n' )
+);
+
+assert( '1 == fact2(0)' );
+assert( '1 == fact2(1)' );
+assert( '2 == fact2(2)' );
+assert( '6 == fact2(3)' );
+assert( '24 == fact2(4)' );
+
+assert( '1 == gcd( 7, 5 )' );
+assert( '5*13 == gcd( 2 * 5 * 7 * 13, 5 * 13 * 19 )' );
+
+// Let us try the "one string" variant
+MetaDecl
+(
+      'metafun isEven2 ( self, n ) {'
+      + ' if (n > 0)'
+      + '    metaret isOdd2, n - 1;'
+      + 'if (n < 0)'
+      + '    metaret self, -n;'
+      + 'return true;'
+      + '}'
+);
+
+// Let us try the "one string" variant with "metafun" omitted
+MetaDecl  
+(
+      'isOdd2(self,n) {'
+      + 'if (n > 0)'
+      + '    metaret isEven2, n - 1;'
+      + 'if (n < 0)'
+      + '    metaret self, -n;'
+      + 'return false;'
+      + '}'
+);
+
+assert( 'false === isOdd2( -4 )' );
+assert( 'true  === isOdd2( -3 )' );
+assert( 'false === isOdd2( -2 )' );
+assert( 'true  === isOdd2( -1 )' );
+assert( 'false === isOdd2( 0 )' );
+assert( 'true  === isOdd2( 1 )' );
+assert( 'false === isOdd2( 2 )' );
+assert( 'true  === isOdd2( 3 )' );
+assert( 'false === isOdd2( 4 )' );
+assert( 'true  === isOdd2( 1001 )' );
+assert( 'false === isOdd2( 1002 )' );
+assert( 'true  === isOdd2( 1000001 )' );
+assert( 'false === isOdd2( 1000002 )' );
+
+// No stack issue because the code has been unrolled
+assert( 'true  === isOdd2( 10000001 )' );  
+assert( 'false === isOdd2( 10000002 )' );
+
+assert( 'true  === isEven2( -4 )' );
+assert( 'false === isEven2( -3 )' );
+assert( 'true  === isEven2( -2 )' );
+assert( 'false === isEven2( -1 )' );
+assert( 'true  === isEven2( 0 )' );
+assert( 'false === isEven2( 1 )' );
+assert( 'true  === isEven2( 2 )' );
+assert( 'false === isEven2( 3 )' );
+assert( 'true  === isEven2( 4 )' );
+assert( 'false === isEven2( 1001 )' );
+assert( 'true  === isEven2( 1002 )' );
+assert( 'false === isEven2( 1000001 )' );
+assert( 'true  === isEven2( 1000002 )' );
+
+// No stack issue because the code has been unrolled
+assert( 'false === isEven2( 10000001 )' );
+assert( 'true  === isEven2( 10000002 )' );
+
+// --- Test again `local_fun` to make sure it as not been affected by
+// --- the global declaration `fact2`
+
+assert( '0 === local_fun( 0 )' );
+assert( '1 === local_fun( 1 )' );
+assert( '3 === local_fun( 2 )' );
+assert( '6 === local_fun( 3 )' );
+assert( '10 === local_fun( 4 )' );
+
+// No stack issue because the code has been unrolled
+assert( '10000*10001/2 === local_fun( 10000 )' );
+
+// --- Test again `some.name.space.fact2` to make sure it as not been
+// --- affected by the global declaration `fact2`
+
+assert( '0 === some.name.space.fact2( 0 )' );
+assert( '1 === some.name.space.fact2( 1 )' );
+assert( '5 === some.name.space.fact2( 2 )' );
+assert( '14 === some.name.space.fact2( 3 )' );
+assert( '30 === some.name.space.fact2( 4 )' );
+
+// No stack issue because the code has been unrolled
+assert( '10000 * 10001 * 20001 / 6 === some.name.space.fact2( 10000 )' );
+
+// --- sortedSearch: mutual recursion between 3 metafuns.
+
+var sortedArray = [ 0, 0, 0, 0, 1, 1, 3, 4, 6, 6, 7, 8, 9, 10, 10, 10,
+    11, 13, 14, 14, 15 ];
+assert( '"0###3" === sortedSearch( v, 0 ).join("###")', sortedArray );
+assert( '"4###5" === sortedSearch( v, 1 ).join("###")', sortedArray );
+assert( 'null === sortedSearch( v, 2 )', sortedArray );
+assert( '"8###9" === sortedSearch( v, 6 ).join("###")', sortedArray );
+assert( 'null === sortedSearch( v, 12 ) ', sortedArray );
+assert( '"18###19" === sortedSearch( v, 14 ).join("###")', sortedArray );
+assert( '"20###20" === sortedSearch( v, 15 ).join("###")', sortedArray );
+
+
+
+
+// ---
+
+console.log('All tests passed.');
+
+all_tests_passed = true;
+
+// ---
+
+function assert(codestring, /*?optional?*/v) 
+{
+    if (!new Function( 'v', 'return ' + codestring + ';' )( v )) 
+        throw new Error( 'Failed test: ' + codestring ); 
+}
+</script>
+</head>
+<body>
+
+<a href="https://github.com/glathoud/js.metaret">
+  <img style="position: fixed; top: 0; right: 0; border: 0; margin: 0; padding: 0;"
+       src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"
+       alt="Fork me on GitHub">
+</a>
+
+<pre><code><strong>article</strong>    <a href="example_development.html">dev example</a>    <a href="example_production.html">prod example</a>     <a href="test.html">core test</a></code></pre>
+
+<h2>Tail metacomposition</h2>
+
+<p style="text-align:right">by <a href="http://glat.info">Guillaume Lathoud</a><span class="print">&nbsp;[0]</span>, March 2013</p>
+
+
+<p>Implementing mutual tail recursion optimization <a href="http://glat.info/jscheck/tomrec.xhtml">without trampoline</a><span class="print">&nbsp;[1]</span>
+- for good performance - led me to write
+quite <a href="http://glat.info/jscheck/tool.tailopt.js">insane
+code</a><span class="print">&nbsp;[2]</span>.</p>
+
+<p>Here is a lighter approach, that extends JavaScript with two
+keywords <code class="prettyprint lang-js">metafun</code>
+and <code class="prettyprint lang-js">metaret</code>, implementing one
+tiny bit of
+Backus' <a href="http://www.stanford.edu/class/cs242/readings/backus.pdf">metacomposition</a><span class="print">&nbsp;[3]</span>.</p>
+
+<h3 id="sec-getting-started" class="auto-anchor">Getting started</h3>
+<ul>
+<li>A very simple example: <a href="example_development.html">development</a> and <a href="example_production.html">production</a>.</li>
+<li><a href="https://github.com/glathoud/js.metaret">Code</a> and <a href="https://github.com/glathoud/js.metaret/blob/master/README.md">documentation</a> on GitHub.</li>
+<li><a href="http://glat.info/mlocjs2014#3">Slides</a> from <a href="http://mloc-js.com/2014">mloc.js 2014</a>.</li>
+<li>Core <a href="test.html">test</a>.</li>
+</ul>
+
+<ul class="print">
+  <li>[0] http://glat.info</li>
+  <li>[1] http://glat.info/jscheck/tomrec.xhtml</li>
+  <li>[2] http://glat.info/jscheck/tool.tailopt.js</li>
+  <li>[3] http://www.stanford.edu/class/cs242/readings/backus.pdf</li>
+</ul>
+
+<h3 id="sec-metadecls" class="auto-anchor">Metafunction declarations</h3>
+<pre class="prettyprint lang-js"><code><script type="text/javascript">
+      (function () {
+        var s = document.getElementById('metaret-decls');
+        document.write('&lt;script type="' + s.getAttribute('type') + '" id="' + s.getAttribute('id') + '"&gt;\n');
+        document.write('\x3Cspan class="prettyprint lang-js"\x3E' + s.textContent + '\x3C/span\x3E');
+        document.write('\n&lt;/script&gt;');
+      })();
+</script></code></pre>
+
+<h3 id="sec-bonus" class="auto-anchor">Bonus</h3>
+
+<p>Thanks to metacomposition, you get anonymous self-recursion for free:
+no need for a Y&nbsp;combinator or <code class="prettyprint lang-js">arguments.callee</code>:
+</p>
+
+<pre class="prettyprint lang-js"><code>
+        metaret self, k - 1, acc * k; // anonymous self-recursion
+
+</code></pre>
+
+<h3 id="sec-impl" class="auto-anchor">Implementation</h3>
+
+<p>Metafunctions are implemented by generating normal JavaScript
+functions, where <code class="prettyprint lang-js">metaret</code>
+call(s) have been unrolled using a <code class="prettyprint
+lang-js">while</code> loop, and <code class="prettyprint
+lang-js">switch</code> statements for mutual recursion.
+</p>
+
+<p>Each <code class="prettyprint lang-js">case</code> contains the
+code for one <code class="prettyprint lang-js">metaret</code> call,
+where variable names have been renamed to prevent collisions. I call
+that "hygienic inlining". (I need to add an example targetted on
+this.)</p>
+
+<h4 id="sec-impl-gencode" class="auto-anchor">Generated code</h4>
+<p>
+<button onclick="var node = document.getElementById('generated-code'); node.className = node.className  ?  ''  :  'screen-hidden';">Show it!</button>&nbsp;(Indentation can be improved.)
+</p>
+
+<div id="generated-code" class="screen-hidden">
+<pre class="prettyprint lang-js"><code><script type="text/javascript">
+      document.write( '// fact\n\n' + fact + '\n\n\n// gcd\n\n' + gcd + '\n\n\n// isOdd\n\n' + isOdd + '\n' );
+</script></code></pre>
+</div>
+
+
+<h3 id="sec-sorted-search" class="auto-anchor">Longer example: Search a sorted array</h3>
+
+<p>Source:</p>
+<pre class="prettyprint lang-js"><code><script type="text/javascript">
+      (function () {
+        var s = document.getElementById('metaret-decls-sortedSearch');
+        document.write('&lt;script type="' + s.getAttribute('type') + '" id="' + s.getAttribute('id') + '"&gt;\n');
+        document.write('\x3Cspan class="prettyprint lang-js"\x3E' + s.textContent + '\x3C/span\x3E');
+        document.write('\n&lt;/script&gt;');
+      })();
+</script></code></pre>
+
+<h4 id="sec-sorted-search-gencode" class="auto-anchor">Generated code</h4>
+<p>
+<button onclick="var node = document.getElementById('generated-code-sortedSearch'); node.className = node.className  ?  ''  :  'screen-hidden';">Show it!</button>&nbsp;(Indentation can be improved.)
+</p>
+
+<div id="generated-code-sortedSearch" class="screen-hidden">
+<pre class="prettyprint lang-js"><code><script type="text/javascript">
+document.write( '' + sortedSearch.getImpl() );
+</script></code></pre>
+</div>
+
+
+<h3 id="sec-tests" class="auto-anchor">Tests</h3>
+<pre class="prettyprint lang-js"><code><script type="text/javascript">
+      (function () {
+        var s = document.getElementById('metaret-tests');
+        document.write('&lt;script type="' + s.getAttribute('type') + '" id="' + s.getAttribute('id') + '"&gt;\n');
+        document.write(s.textContent);
+        document.write('\n&lt;/script&gt;');
+      })();
+</script></code></pre>
+
+<script type="text/javascript">
+(function () {
+    var noli = document.getElementsByClassName( "auto-anchor" );
+    for (var n = noli.length, i = 0; i < n; i++)
+    {
+        var node = noli[ i ]
+        ,     id = node.id
+        , anchor = document.createElement( 'a' )
+        ;
+        anchor.innerHTML = '#';
+        anchor.setAttribute( 'href', '#' + id );
+        anchor.setAttribute( 'class', 'anchor' );
+        node.appendChild( anchor );
+    }
+})();
+</script>
+
+<link href="prettify/prettify.css" type="text/css" rel="stylesheet"/>
+<script type="text/javascript" src="prettify/prettify.js"></script>
+<script type="text/javascript">setTimeout( prettyPrint );</script>
+<script type="text/javascript">if (!all_tests_passed) alert("Some tests failed! Please check the console.");</script>
+
+<script type="text/javascript">
+if (!/\d+\.\d+\.\d+\.\d+|localhost/.test( location.hostname ))
+{
+var _gaq = _gaq || [];  _gaq.push(['_setAccount', 'UA-5516483-1']);  _gaq.push(['_trackPageview']);  (function() {    var ga = document.createElement('script');    ga.src = ('https:' == document.location.protocol ? 'https://ssl' :         'http://www') + '.google-analytics.com/ga.js';    ga.setAttribute('async', 'true');    document.documentElement.firstChild.appendChild(ga);  })();
+}
+</script>
+
+</body>
+</html>

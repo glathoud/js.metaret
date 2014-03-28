@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>example: production</title>
+    <script type="text/javascript" src="jsm_out_mini/example_development.js"></script>
+  </head>
+  <body>
+    <h1>example: production</h1>
+
+    <p>To build, install <a href="http://docs.python.org/3/">Python 3</a> and <a href="https://code.google.com/p/v8/">V8</a>, then run:</p>
+    <pre><code>
+	../js.metaret/jsm_build.py jsm_dev/example_development.jsm 
+    </code></pre> 
+    <p>...which outputs:</p>
+    <ul>
+      <li><a href="jsm_out_build/example_development.js"><code>jsm_out_build/example_development.js</code></a></li>
+      <li><a href="jsm_out_mini/example_development.js"><code>jsm_out_mini/example_development.js</code></a></li>
+    </ul>
+
+    <p>Test:</p>
+    <p>GCD(910,1235)=<script type="text/javascript">document.write(gcd(910,1235));</script>
+
+  </body>
+</html>
