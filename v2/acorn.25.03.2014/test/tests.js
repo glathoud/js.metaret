@@ -27001,7 +27001,7 @@ testFail("throw\n10;", "Illegal newline after throw (1:5)");
 // ____________________ JSM extensions ____________________
 
 test( "metafun f(self,x,y) { metaret self,x-1,y; }"
-      , {"type":"Program","start":0,"end":43,"body":[{"type":"MetafunDeclaration","start":0,"end":43,"id":{"type":"Identifier","start":8,"end":9,"name":"f"},"params":[{"type":"Identifier","start":10,"end":14,"name":"self"},{"type":"Identifier","start":15,"end":16,"name":"x"},{"type":"Identifier","start":17,"end":18,"name":"y"}],"body":{"type":"BlockStatement","start":20,"end":43,"body":[{"type":"MetaretStatement","start":22,"end":41,"argument":{"type":"SequenceExpression","start":30,"end":40,"expressions":[{"type":"Identifier","start":30,"end":34,"name":"self"},{"type":"BinaryExpression","start":35,"end":38,"left":{"type":"Identifier","start":35,"end":36,"name":"x"},"operator":"-","right":{"type":"Literal","start":37,"end":38,"value":1,"raw":"1"}},{"type":"Identifier","start":39,"end":40,"name":"y"}]}}]}}]}
+      , {"type":"Program","start":0,"end":43,"body":[{"type":"JsmMetafunDeclaration","start":0,"end":43,"id":{"type":"Identifier","start":8,"end":9,"name":"f"},"params":[{"type":"Identifier","start":10,"end":14,"name":"self"},{"type":"Identifier","start":15,"end":16,"name":"x"},{"type":"Identifier","start":17,"end":18,"name":"y"}],"body":{"type":"BlockStatement","start":20,"end":43,"body":[{"type":"JsmMetaretStatement","start":22,"end":41,"argument":{"type":"SequenceExpression","start":30,"end":40,"expressions":[{"type":"Identifier","start":30,"end":34,"name":"self"},{"type":"BinaryExpression","start":35,"end":38,"left":{"type":"Identifier","start":35,"end":36,"name":"x"},"operator":"-","right":{"type":"Literal","start":37,"end":38,"value":1,"raw":"1"}},{"type":"Identifier","start":39,"end":40,"name":"y"}]}}]}}]}
       , { jsm: true }
     );
 
@@ -27026,6 +27026,163 @@ test(['metafun gcd(self,a,b) {'
       , '  return a;'
       , '}'
      ].join('\n')
+     , {
+         "type": "Program",
+         "start": 0,
+         "end": 101,
+         "body": [{
+             "type": "JsmMetafunDeclaration",
+             "start": 0,
+             "end": 101,
+             "id": {
+                 "type": "Identifier",
+                 "start": 8,
+                 "end": 11,
+                 "name": "gcd"
+             },
+             "params": [{
+                 "type": "Identifier",
+                 "start": 12,
+                 "end": 16,
+                 "name": "self"
+             }, {
+                 "type": "Identifier",
+                 "start": 17,
+                 "end": 18,
+                 "name": "a"
+             }, {
+                 "type": "Identifier",
+                 "start": 19,
+                 "end": 20,
+                 "name": "b"
+             }],
+             "body": {
+                 "type": "BlockStatement",
+                 "start": 22,
+                 "end": 101,
+                 "body": [{
+                     "type": "IfStatement",
+                     "start": 26,
+                     "end": 54,
+                     "test": {
+                         "type": "BinaryExpression",
+                         "start": 30,
+                         "end": 35,
+                         "left": {
+                             "type": "Identifier",
+                             "start": 30,
+                             "end": 31,
+                             "name": "a"
+                         },
+                         "operator": "<",
+                         "right": {
+                             "type": "Identifier",
+                             "start": 34,
+                             "end": 35,
+                             "name": "b"
+                         }
+                     },
+                     "consequent": {
+                         "type": "JsmMetaretStatement",
+                         "start": 37,
+                         "end": 54,
+                         "argument": {
+                             "type": "SequenceExpression",
+                             "start": 45,
+                             "end": 53,
+                             "expressions": [{
+                                 "type": "Identifier",
+                                 "start": 45,
+                                 "end": 49,
+                                 "name": "self"
+                             }, {
+                                 "type": "Identifier",
+                                 "start": 50,
+                                 "end": 51,
+                                 "name": "b"
+                             }, {
+                                 "type": "Identifier",
+                                 "start": 52,
+                                 "end": 53,
+                                 "name": "a"
+                             }]
+                         }
+                     },
+                     "alternate": null
+                 }, {
+                     "type": "IfStatement",
+                     "start": 57,
+                     "end": 87,
+                     "test": {
+                         "type": "BinaryExpression",
+                         "start": 61,
+                         "end": 66,
+                         "left": {
+                             "type": "Identifier",
+                             "start": 61,
+                             "end": 62,
+                             "name": "a"
+                         },
+                         "operator": ">",
+                         "right": {
+                             "type": "Identifier",
+                             "start": 65,
+                             "end": 66,
+                             "name": "b"
+                         }
+                     },
+                     "consequent": {
+                         "type": "JsmMetaretStatement",
+                         "start": 68,
+                         "end": 87,
+                         "argument": {
+                             "type": "SequenceExpression",
+                             "start": 76,
+                             "end": 86,
+                             "expressions": [{
+                                 "type": "Identifier",
+                                 "start": 76,
+                                 "end": 80,
+                                 "name": "self"
+                             }, {
+                                 "type": "BinaryExpression",
+                                 "start": 81,
+                                 "end": 84,
+                                 "left": {
+                                     "type": "Identifier",
+                                     "start": 81,
+                                     "end": 82,
+                                     "name": "a"
+                                 },
+                                 "operator": "-",
+                                 "right": {
+                                     "type": "Identifier",
+                                     "start": 83,
+                                     "end": 84,
+                                     "name": "b"
+                                 }
+                             }, {
+                                 "type": "Identifier",
+                                 "start": 85,
+                                 "end": 86,
+                                 "name": "a"
+                             }]
+                         }
+                     },
+                     "alternate": null
+                 }, {
+                     "type": "ReturnStatement",
+                     "start": 90,
+                     "end": 99,
+                     "argument": {
+                         "type": "Identifier",
+                         "start": 97,
+                         "end": 98,
+                         "name": "a"
+                     }
+                 }]
+             }
+         }]
+     }
      , { jsm: true }
-     , 
     );

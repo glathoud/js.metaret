@@ -1272,7 +1272,7 @@
 
       if (eat(_semi) || canInsertSemicolon()) node.argument = null;
       else { node.argument = parseExpression(); semicolon(); }
-      return finishNode(node, "MetaretStatement");
+      return finishNode(node, "JsmMetaretStatement");
 
 
     case _return:
@@ -1800,7 +1800,7 @@
       }
     }
 
-        return finishNode(node, (isJsmMetafunction ? 'Metafun' : 'Function') + 
+        return finishNode(node, (isJsmMetafunction ? 'JsmMetafun' : 'Function') + 
                           (isStatement ? "Declaration" : "Expression"));
   }
 
@@ -1862,7 +1862,7 @@
             node.jsmNameArr = jsmNameArr;
             node.name       = jsmNameArr.join( '.' );
             next();
-            return finishNode(node, "DottedIdentifier");
+            return finishNode(node, "JsmDottedIdentifier");
         }
         
 
