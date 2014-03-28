@@ -1,3 +1,7 @@
+if (typeof acorn === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "acorn.25.03.2014/acorn.js" );
+
+
 (function (global)
  {
      var RETURN = 'return'
@@ -67,6 +71,11 @@
 
          }/*}1*/
          ;
+
+
+
+	 var ap = acorn.parse( code );
+
 
          /*dc*/// Detect comments and strings, and produce a "nakedCode"
          /*dc*/// string where they've all been replaced with spaces.

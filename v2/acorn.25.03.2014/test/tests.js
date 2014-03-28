@@ -26996,3 +26996,36 @@ testFail("throw\n10;", "Illegal newline after throw (1:5)");
     if (comments != 1) return "Comment after strict counted twice.";
   }, {onComment: function() {++comments;}});
 })();
+
+
+// ____________________ JSM extensions ____________________
+
+test( "metafun f(self,x,y) { metaret self,x-1,y; }"
+      , {"type":"Program","start":0,"end":43,"body":[{"type":"MetafunDeclaration","start":0,"end":43,"id":{"type":"Identifier","start":8,"end":9,"name":"f"},"params":[{"type":"Identifier","start":10,"end":14,"name":"self"},{"type":"Identifier","start":15,"end":16,"name":"x"},{"type":"Identifier","start":17,"end":18,"name":"y"}],"body":{"type":"BlockStatement","start":20,"end":43,"body":[{"type":"MetaretStatement","start":22,"end":41,"argument":{"type":"SequenceExpression","start":30,"end":40,"expressions":[{"type":"Identifier","start":30,"end":34,"name":"self"},{"type":"BinaryExpression","start":35,"end":38,"left":{"type":"Identifier","start":35,"end":36,"name":"x"},"operator":"-","right":{"type":"Literal","start":37,"end":38,"value":1,"raw":"1"}},{"type":"Identifier","start":39,"end":40,"name":"y"}]}}]}}]}
+      , { jsm: true }
+    );
+
+testFail( "metafun f(self,x,y) { metaret self,x-1,y; }"
+          , "Unexpected token (1:8)"
+        );
+
+testFail( "function f(self,x,y) { metaret self,x-1,y; }"
+          , "Unexpected token (1:31)"
+        );
+
+testFail( "function f(self,x,y) { metaret self,x-1,y; }"
+          , "'metaret' outside of metafun (1:23)"
+          , { jsm : true }
+        );
+
+// more meaningful metafunction
+
+test(['metafun gcd(self,a,b) {'
+      , '  if (a < b) metaret self,b,a;'
+      , '  if (a > b) metaret self,a-b,a;'
+      , '  return a;'
+      , '}'
+     ].join('\n')
+     , { jsm: true }
+     , 
+    );

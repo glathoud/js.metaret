@@ -105,7 +105,10 @@
     sourceFile: null,
     // This value, if given, is stored in every node, whether
     // `locations` is on or off.
-    directSourceFile: null
+      directSourceFile: null,
+
+      // JSM extension of the language (metafun, metaret, inline and dotted function names in function declarations)
+      jsm: false
   };
 
   function setOptions(opts) {
@@ -224,6 +227,9 @@
 
   var inFunction, labels, strict;
 
+    // JSM extension for metafunctions
+    var jsmInMetafun;
+
   // This function is used to raise exceptions on parse errors. It
   // takes an offset integer (into the current `input`) to indicate
   // the location of the error, attaches the position to the end
@@ -279,6 +285,12 @@
   var _while = {keyword: "while", isLoop: true}, _with = {keyword: "with"}, _new = {keyword: "new", beforeExpr: true};
   var _this = {keyword: "this"};
 
+    // JSM: Additional keywords
+    var _jsm_metafun = {keyword: "metafun"}
+    , _jsm_metaret = {keyword: "metaret", beforeExpr: true}
+    , _jsm_inline  = {keyword: "inline"}
+    ;
+
   // The keywords that denote values.
 
   var _null = {keyword: "null", atomValue: null}, _true = {keyword: "true", atomValue: true};
@@ -301,7 +313,15 @@
                       "instanceof": {keyword: "instanceof", binop: 7, beforeExpr: true}, "this": _this,
                       "typeof": {keyword: "typeof", prefix: true, beforeExpr: true},
                       "void": {keyword: "void", prefix: true, beforeExpr: true},
-                      "delete": {keyword: "delete", prefix: true, beforeExpr: true}};
+                      "delete": {keyword: "delete", prefix: true, beforeExpr: true},
+                     };
+
+    // JSM extension
+    var jsmKeywordTypes = {
+	"metafun": _jsm_metafun, "metaret": _jsm_metaret, "inline": _jsm_inline
+    };
+
+    
 
   // Punctuation token types. Again, the `type` property is purely for debugging.
 
@@ -357,6 +377,7 @@
   // predicate from a space-separated string of words.
   //
   // It starts by sorting the words by length.
+
 
   function makePredicate(words) {
     words = words.split(" ");
@@ -416,6 +437,9 @@
   // And the keywords.
 
   var isKeyword = makePredicate("break case catch continue debugger default do else finally for function if return switch throw try var while with null true false instanceof typeof void delete new in this");
+
+    // JSM extension
+    var isKeywordJsm = makePredicate("metafun metaret inline");
 
   // ## Character categories
 
@@ -940,13 +964,17 @@
   // Read an identifier or keyword token. Will check for reserved
   // words when necessary.
 
-  function readWord() {
-    var word = readWord1();
-    var type = _name;
-    if (!containsEsc && isKeyword(word))
-      type = keywordTypes[word];
-    return finishToken(type, word);
-  }
+    function readWord() {
+        var word = readWord1();
+        var type = _name;
+        if (!containsEsc) {
+            if (isKeyword(word))
+                type = keywordTypes[word];
+            else if (options.jsm && isKeywordJsm(word))
+                type = jsmKeywordTypes[word];
+        }
+        return finishToken(type, word);
+    }
 
   // ## Parser
 
@@ -1224,6 +1252,28 @@
       node.consequent = parseStatement();
       node.alternate = eat(_else) ? parseStatement() : null;
       return finishNode(node, "IfStatement");
+
+    case _jsm_inline:
+        next();
+        return parseJsmInline(node);
+
+    case _jsm_metafun:
+        next();
+        return parseJsmMetafun(node, true);
+
+    case _jsm_metaret:
+      if (!jsmInMetafun)
+        raise(tokStart, "'metaret' outside of metafun");
+      next();
+
+      // In `return` (and `break`/`continue`), the keywords with
+      // optional arguments, we eagerly look for a semicolon or the
+      // possibility to insert one.
+
+      if (eat(_semi) || canInsertSemicolon()) node.argument = null;
+      else { node.argument = parseExpression(); semicolon(); }
+      return finishNode(node, "MetaretStatement");
+
 
     case _return:
       if (!inFunction && !options.allowReturnOutsideFunction)
@@ -1698,13 +1748,30 @@
     return parseIdent(true);
   }
 
+    // JSM extension: parse a metafunction
+    function parseJsmMetafun(node, isStatement)
+    {
+        if (!isStatement)
+            throw new Error( 'metafunction can only be declarations, not expressions.' );
+
+        var isJsmMetafunction = true;
+        return parseFunction(node, isStatement, isJsmMetafunction);
+    }
+
   // Parse a function declaration or literal (depending on the
   // `isStatement` parameter).
 
-  function parseFunction(node, isStatement) {
-    if (tokType === _name) node.id = parseIdent();
-    else if (isStatement) unexpected();
-    else node.id = null;
+    function parseFunction(node, isStatement, isJsmMetafunction) {
+        if (!isJsmMetafunction) {
+            if (tokType === _name) node.id = parseIdent();
+            else if (isStatement) unexpected();
+            else node.id = null;
+        }
+        else {
+            // JSM extension: `metafun <identifier or dotted identifier>(...){...}`
+            if (tokType !== _name) unexpected();
+            node.id = parseJsmIdentifierOrDottedIdentifer();
+        }
     node.params = [];
     var first = true;
     expect(_parenL);
@@ -1715,10 +1782,10 @@
 
     // Start a new scope with regard to labels and the `inFunction`
     // flag (restore them to their old value afterwards).
-    var oldInFunc = inFunction, oldLabels = labels;
-    inFunction = true; labels = [];
-    node.body = parseBlock(true);
-    inFunction = oldInFunc; labels = oldLabels;
+        var oldInFunc = inFunction, oldLabels = labels, oldJsmInMetafun = jsmInMetafun;
+        inFunction = true; labels = []; jsmInMetafun = isJsmMetafunction;
+        node.body = parseBlock(true);
+        inFunction = oldInFunc; labels = oldLabels; jsmInMetafun = oldJsmInMetafun;
 
     // If this is a strict mode function, verify that argument names
     // are not repeated, and it does not try to bind the words `eval`
@@ -1733,7 +1800,8 @@
       }
     }
 
-    return finishNode(node, isStatement ? "FunctionDeclaration" : "FunctionExpression");
+        return finishNode(node, (isJsmMetafunction ? 'Metafun' : 'Function') + 
+                          (isStatement ? "Declaration" : "Expression"));
   }
 
   // Parses a comma-separated list of expressions, and returns them as
@@ -1756,11 +1824,18 @@
     return elts;
   }
 
+    // JSM extension: metafunctions support both identifiers and dotted identifiers
+
+    function parseJsmIdentifierOrDottedIdentifer(liberal)
+    {
+        return parseIdent(liberal,/*jsmDotted:*/true);
+    }
+
   // Parse the next token as an identifier. If `liberal` is true (used
   // when parsing properties), it will also convert keywords into
   // identifiers.
 
-  function parseIdent(liberal) {
+    function parseIdent(liberal, jsmDotted) {
     var node = startNode();
     if (liberal && options.forbidReserved == "everywhere") liberal = false;
     if (tokType === _name) {
@@ -1774,11 +1849,30 @@
     } else if (liberal && tokType.keyword) {
       node.name = tokType.keyword;
     } else {
+        
+        if (jsmDotted)
+        {
+            // JSM extension: dotted names allowed for metafunctions
+
+            var jsmNameArr = [ node.name ];
+            next();
+            var jsmRest    = parseIdent( liberal, jsmDotted );
+            jsmNameArr.push.apply( jsmNameArr, jsmRest.jsmNameArr  ||  [ jsmRest.name ] );
+            
+            node.jsmNameArr = jsmNameArr;
+            node.name       = jsmNameArr.join( '.' );
+            next();
+            return finishNode(node, "DottedIdentifier");
+        }
+        
+
+
       unexpected();
     }
     tokRegexpAllowed = false;
     next();
     return finishNode(node, "Identifier");
   }
+
 
 });
