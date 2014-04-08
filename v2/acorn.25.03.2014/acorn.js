@@ -1463,6 +1463,56 @@
     return finishNode(node, "ForInStatement");
   }
 
+    // JSM extension: inline var x = f();  or  inline f();  or  inline x = f();
+
+    function parseJsmInline( node )
+    {
+        if (tokType === _var)
+        {
+            var varDecl = parseStatement();
+            
+            if (varDecl.type !== "VariableDeclaration")  
+                throw new Error("parseJsmInline: incorrect variable declaration.");
+
+            if (varDecl.declarations.length !== 1)  
+                throw new Error("parseJsmInline: VariableDeclaration: only a single variable declaration!");
+
+            var d = varDecl.declarations[ 0 ];
+            node.jsmVarDeclId   = d.id;
+            node.jsmVarDeclInit = d.init;
+
+            if (node.jsmVarDeclInit.type !== "CallExpression")
+                throw new Error("parseJsmInline: VariableDeclaration: only the form 'inline var x = f(); is permitted.");
+        }
+        else
+        {
+            var stmt = parseStatement();
+            if (stmt.type !== "ExpressionStatement")   
+                throw new Error("parseJsmInline: ExpressionStatement: either var or expression stmt.");
+            var expr = stmt.expression
+            ,   expr_type = expr.type
+            ;
+            if (expr_type !== "AssignmentExpression"  &&  expr_type !== "CallExpression")
+                throw new Error("parseJsmInline: ExpressionStatement: either AssignmentExpression or CallExpression!");
+
+            if (expr_type === "AssignmentExpression")
+            {
+                if (expr.left.type !== "Identifier"  ||  expr.right.type !== "CallExpression")
+                    throw new Error("parseJsmInline: ExpressionStatement: only the form 'inline x = f(); is permitted.");
+
+                node.jsmAssignLeft  = expr.left;
+                node.jsmAssignRight = expr.right;
+            }
+            else
+            {
+                node.jsmCall = expr;
+            }
+        }
+        
+        return finishNode(node, "JsmInlineStatement");
+    }
+    
+
   // Parse a list of variable declarations.
 
   function parseVar(node, noIn) {

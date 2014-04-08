@@ -27264,3 +27264,387 @@ test( "metafun f.g.h(self,x) { metaret self,x-1;}"
 testFail( "function f.g.h(x) { return x-1; }"
 , "Unexpected token (1:10)"
 );
+
+
+
+
+
+testFail("inline f(1+x);"
+         , "Unexpected token (1:7)" );
+
+testFail("inline f.g.h(1+x);"
+         , "Unexpected token (1:7)" );
+
+testFail("inline z = f(1+x);"
+         , "Unexpected token (1:7)" );
+
+testFail("inline z = f.g.h(1+x);"
+         , "Unexpected token (1:7)" );
+
+testFail("inline var z = f(1+x);"
+         , "Unexpected token (1:7)" );
+
+testFail("inline var z = f.g.h(1+x);"
+         , "Unexpected token (1:7)" );
+
+test(
+    "inline f(1+x);"
+    , {
+        "type": "Program",
+        "start": 0,
+        "end": 14,
+        "body": [{
+            "type": "JsmInlineStatement",
+            "start": 0,
+            "end": 14,
+            "jsmCall": {
+                "type": "CallExpression",
+                "start": 7,
+                "end": 13,
+                "callee": {
+                    "type": "Identifier",
+                    "start": 7,
+                    "end": 8,
+                    "name": "f"
+                },
+                "arguments": [{
+                    "type": "BinaryExpression",
+                    "start": 9,
+                    "end": 12,
+                    "left": {
+                        "type": "Literal",
+                        "start": 9,
+                        "end": 10,
+                        "value": 1,
+                        "raw": "1"
+                    },
+                    "operator": "+",
+                    "right": {
+                        "type": "Identifier",
+                        "start": 11,
+                        "end": 12,
+                        "name": "x"
+                    }
+                }]
+            }
+        }]
+    }
+    , { jsm: true }
+);
+
+
+test("inline f.g.h(1+x);"
+     , {
+         "type": "Program",
+         "start": 0,
+         "end": 18,
+         "body": [{
+             "type": "JsmInlineStatement",
+             "start": 0,
+             "end": 18,
+             "jsmCall": {
+                 "type": "CallExpression",
+                 "start": 7,
+                 "end": 17,
+                 "callee": {
+                     "type": "MemberExpression",
+                     "start": 7,
+                     "end": 12,
+                     "object": {
+                         "type": "MemberExpression",
+                         "start": 7,
+                         "end": 10,
+                         "object": {
+                             "type": "Identifier",
+                             "start": 7,
+                             "end": 8,
+                             "name": "f"
+                         },
+                         "property": {
+                             "type": "Identifier",
+                             "start": 9,
+                             "end": 10,
+                             "name": "g"
+                         },
+                         "computed": false
+                     },
+                     "property": {
+                         "type": "Identifier",
+                         "start": 11,
+                         "end": 12,
+                         "name": "h"
+                     },
+                     "computed": false
+                 },
+                 "arguments": [{
+                     "type": "BinaryExpression",
+                     "start": 13,
+                     "end": 16,
+                     "left": {
+                         "type": "Literal",
+                         "start": 13,
+                         "end": 14,
+                         "value": 1,
+                         "raw": "1"
+                     },
+                     "operator": "+",
+                     "right": {
+                         "type": "Identifier",
+                         "start": 15,
+                         "end": 16,
+                         "name": "x"
+                     }
+                 }]
+             }
+         }]
+     }
+     , { jsm: true }
+    );
+
+test( "inline z = f(1+x);"
+      , {
+          "type": "Program",
+          "start": 0,
+          "end": 18,
+          "body": [{
+              "type": "JsmInlineStatement",
+              "start": 0,
+              "end": 18,
+              "jsmAssignLeft": {
+                  "type": "Identifier",
+                  "start": 7,
+                  "end": 8,
+                  "name": "z"
+              },
+              "jsmAssignRight": {
+                  "type": "CallExpression",
+                  "start": 11,
+                  "end": 17,
+                  "callee": {
+                      "type": "Identifier",
+                      "start": 11,
+                      "end": 12,
+                      "name": "f"
+                  },
+                  "arguments": [{
+                      "type": "BinaryExpression",
+                      "start": 13,
+                      "end": 16,
+                      "left": {
+                          "type": "Literal",
+                          "start": 13,
+                          "end": 14,
+                          "value": 1,
+                          "raw": "1"
+                      },
+                      "operator": "+",
+                      "right": {
+                          "type": "Identifier",
+                          "start": 15,
+                          "end": 16,
+                          "name": "x"
+                      }
+                  }]
+              }
+          }]
+      }
+      , { jsm : true }
+    );
+
+test( "inline z = f.g.h(1+x);"
+      , {
+          "type": "Program",
+          "start": 0,
+          "end": 22,
+          "body": [{
+              "type": "JsmInlineStatement",
+              "start": 0,
+              "end": 22,
+              "jsmAssignLeft": {
+                  "type": "Identifier",
+                  "start": 7,
+                  "end": 8,
+                  "name": "z"
+              },
+              "jsmAssignRight": {
+                  "type": "CallExpression",
+                  "start": 11,
+                  "end": 21,
+                  "callee": {
+                      "type": "MemberExpression",
+                      "start": 11,
+                      "end": 16,
+                      "object": {
+                          "type": "MemberExpression",
+                          "start": 11,
+                          "end": 14,
+                          "object": {
+                              "type": "Identifier",
+                              "start": 11,
+                              "end": 12,
+                              "name": "f"
+                          },
+                          "property": {
+                              "type": "Identifier",
+                              "start": 13,
+                              "end": 14,
+                              "name": "g"
+                          },
+                          "computed": false
+                      },
+                      "property": {
+                          "type": "Identifier",
+                          "start": 15,
+                          "end": 16,
+                          "name": "h"
+                      },
+                      "computed": false
+                  },
+                  "arguments": [{
+                      "type": "BinaryExpression",
+                      "start": 17,
+                      "end": 20,
+                      "left": {
+                          "type": "Literal",
+                          "start": 17,
+                          "end": 18,
+                          "value": 1,
+                          "raw": "1"
+                      },
+                      "operator": "+",
+                      "right": {
+                          "type": "Identifier",
+                          "start": 19,
+                          "end": 20,
+                          "name": "x"
+                      }
+                  }]
+              }
+          }]
+      }
+      , { jsm : true }
+    );
+
+test( "inline var z = f(1+x);"
+      , {
+    "type": "Program",
+    "start": 0,
+    "end": 22,
+    "body": [{
+        "type": "JsmInlineStatement",
+        "start": 0,
+        "end": 22,
+        "jsmVarDeclId": {
+            "type": "Identifier",
+            "start": 11,
+            "end": 12,
+            "name": "z"
+        },
+        "jsmVarDeclInit": {
+            "type": "CallExpression",
+            "start": 15,
+            "end": 21,
+            "callee": {
+                "type": "Identifier",
+                "start": 15,
+                "end": 16,
+                "name": "f"
+            },
+            "arguments": [{
+                "type": "BinaryExpression",
+                "start": 17,
+                "end": 20,
+                "left": {
+                    "type": "Literal",
+                    "start": 17,
+                    "end": 18,
+                    "value": 1,
+                    "raw": "1"
+                },
+                "operator": "+",
+                "right": {
+                    "type": "Identifier",
+                    "start": 19,
+                    "end": 20,
+                    "name": "x"
+                }
+            }]
+        }
+    }]
+}
+      , { jsm : true }
+    );
+
+test( "inline var z = f.g.h(1+x);"
+      , {
+    "type": "Program",
+    "start": 0,
+    "end": 26,
+    "body": [{
+        "type": "JsmInlineStatement",
+        "start": 0,
+        "end": 26,
+        "jsmVarDeclId": {
+            "type": "Identifier",
+            "start": 11,
+            "end": 12,
+            "name": "z"
+        },
+        "jsmVarDeclInit": {
+            "type": "CallExpression",
+            "start": 15,
+            "end": 25,
+            "callee": {
+                "type": "MemberExpression",
+                "start": 15,
+                "end": 20,
+                "object": {
+                    "type": "MemberExpression",
+                    "start": 15,
+                    "end": 18,
+                    "object": {
+                        "type": "Identifier",
+                        "start": 15,
+                        "end": 16,
+                        "name": "f"
+                    },
+                    "property": {
+                        "type": "Identifier",
+                        "start": 17,
+                        "end": 18,
+                        "name": "g"
+                    },
+                    "computed": false
+                },
+                "property": {
+                    "type": "Identifier",
+                    "start": 19,
+                    "end": 20,
+                    "name": "h"
+                },
+                "computed": false
+            },
+            "arguments": [{
+                "type": "BinaryExpression",
+                "start": 21,
+                "end": 24,
+                "left": {
+                    "type": "Literal",
+                    "start": 21,
+                    "end": 22,
+                    "value": 1,
+                    "raw": "1"
+                },
+                "operator": "+",
+                "right": {
+                    "type": "Identifier",
+                    "start": 23,
+                    "end": 24,
+                    "name": "x"
+                }
+            }]
+        }
+    }]
+}
+      , { jsm : true }
+    );
