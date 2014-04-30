@@ -1,5 +1,10 @@
+/*global acorn need$ load*/
+
 if (typeof acorn === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "acorn.25.03.2014/acorn.js" );
+
+if (typeof acorn.walk === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "acorn.25.03.2014/util/walk.js" );
 
 
 (function (global)
@@ -69,20 +74,31 @@ if (typeof acorn === 'undefined')
              , bracketArr               : []
              , bracketTree              : []
 
+             /*dc*/// Raw result of acorn.parse
+             , rawAP : null
+
          }/*}1*/
          ;
 
 
 
-	 var ap = acorn.parse( code );
+	 var /*vd*/cA/**/ = ret.commentArr
+         ,   /*vd*/ap/**/ = ret.rawAP = acorn.parse( code, { jsm : true, onComment : pushComment } )
+         ;
+
+         function pushComment( b, t, start, end  )
+         /*{1.1*/{
+             cA.push( { begin : start, str : code.substring( start, end ) } );
+         }/*}1.1*/
 
 
-         /*dc*/// Detect comments and strings, and produce a "nakedCode"
-         /*dc*/// string where they've all been replaced with spaces.
-
+         /*dc*/// Walk the tree and extract what we need for metaret.js and inline.js
+         
          var /*vd*/sA/**/ = ret.strArr
-         ,   /*vd*/cA/**/ = ret.commentArr
          ,  /*vd*/rxA/**/ = ret.regexpArr
+         ;
+
+         acorn.walk()
          , /*vd*/nakedCodeArr/**/   = []
          , /*vd*/searchPosition/**/ = 0
          ;
