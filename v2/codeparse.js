@@ -94,82 +94,72 @@ if (typeof acorn.walk === 'undefined')
 
          /*dc*/// Walk the tree and extract what we need for metaret.js and inline.js
          
-         var /*vd*/sA/**/ = ret.strArr
-         ,  /*vd*/rxA/**/ = ret.regexpArr
+         var tmp
+         ,   /*vd*/caA/**/       = ret.callArr
+         ,   /*vd*/dA/**/        = ret.dotArr
+         ,   /*vd*/dcaA/**/      = ret.dotcallArr
+         ,    /*vd*/iA/**/ = ret.identifierArr
+         ,   /*vd*/rxA/**/ = ret.regexpArr
+         ,    /*vd*/sA/**/ = ret.strArr
          ;
 
-         acorn.walk()
-         , /*vd*/nakedCodeArr/**/   = []
-         , /*vd*/searchPosition/**/ = 0
-         ;
-         while (true)
-         /*{2*/{
-             /*dc*/// Search for a string or comment, whichever comes first
+         acorn.walk.simple( ap, {
+             CallExpression : meet_CallExpression
+             , Identifier : meet_Identifier
+             , Literal : meet_Literal
+             , MemberExpression : meet_MemberExpression
+         });
 
-             var /*vd*/sq/**/ = code.indexOf( /*dq*/"'"/**/ , searchPosition )
-             ,   /*vd*/dq/**/ = code.indexOf( /*sq*/'"'/**/ , searchPosition )
-             ,   /*vd*/sc/**/ = code.indexOf( /*sq*/'/*'/**/, searchPosition )
-             ,   /*vd*/dc/**/ = code.indexOf( /*sq*/'//'/**/, searchPosition )
-             ,   /*vd*/rr/**/ = code.indexOf( /*sq*/'/'/**/,  searchPosition )
-		 ;
-	     /*dc*/// Do not see a divide operator `/` as the beginning of a regexp
-	     if (-1 < rr  &&  !/*rr*//^\/(?![\*\/])(\\[^\r\n]|[^\\\r\n])+?\/[gmi]?//**/.test(code.substring(rr)))
-		 rr = -1;
-	     
-             var /*vd*/four/**/ = [ sq, dq, sc, dc, rr ]
-             ,   /*vd*/begin/**/ = +Infinity
-             ,   /*vd*/ind/**/  = -1
-             ;
-             for (var /*vd*/n/**/ = four.length, /*vd*/i/**/ = 0; i < n; i++)
-             /*{2.1*/{
-                 var /*vd*/v/**/ = four[ i ];
-                 if (-1 < v  &&  v < begin)
-                 /*{2.1.1*/{
-                     begin = v;
-                     ind   = i;
-                 }/*}2.1.1*/
-             }/*}2.1*/
+         
+         console.log('xxx iA',iA)
 
-             if (ind < 0)
-             /*{2.2*/{
-                 /*dc*/// Not found
+         return ret;
 
-                 nakedCodeArr.push( code.substring( searchPosition ) );
-                 break;
-             }/*}2.2*/
+         function meet_CallExpression( node )
+         {
+             var callee = node.callee;
+             if (callee.type === "Identifier")
+             {
+                 caA.push( { begin : callee.start, str : callee.name, name : callee.name, acornNode : node } );
+             }
+             else if (callee.type === "MemberExpression")
+             {
+                 var name = callee.property.name;
+                 dcaA.push( { begin : callee.start - 1, str : '.' + /*xxx spaces?*/ + name + /*xxx spaces?*/ '(', name : name, acornNode : node } );
+             }            
+             else
+                 throw new Error( "bug" );
+         }
 
-             /*dc*/// Found: find its end
+         function meet_Identifier( node )
+         {
+             iA.push( { begin : node.start, str : node.name, name : node.name, acornNode : node } );
+         }
 
-             var /*vd*/rest/**/  = code.substring( begin )
-
-             , /*vd*/rx/**/ =   ind === 0  ?  /*rr*//^[\s\S]*?[^\\]\'//**/
-                 :    ind === 1  ?  /*rr*//^[\s\S]*?[^\\]\"//**/
-                 :    ind === 2  ?  /*rr*//^\/\*[\s\S]*?\*\///**/
-                 :    ind === 3  ?  /*rr*//^\/\/([^\r\n])*//**/
-                 :                  /*rr*//^\/(?![\*\/])(\\[^\r\n]|[^\\\r\n])+?\/[gmi]?//**/
-
-             , /*vd*/mo/**/    = rx.exec( rest )
-             , /*vd*/delta/**/ = mo  ?  mo.index + mo[ 0 ].length  :  rest.length
-             , /*vd*/end/**/   = begin + delta
+         function meet_Literal( node ) 
+         {
+             var v = node.value
+             , wto = null
              ;
              
-             /*dc*/// Store
+             if ('string' === typeof v)    wto = sA;
+             else if (v instanceof RegExp) wto = rxA;
 
-             (ind < 2  ?  sA  :  ind < 4  ?  cA  :  rxA).push( /*{2.3*/{ begin : begin,  str : code.substring( begin, end ) }/*}2.3*/ );
-
-             /*dc*/// Prepare for identifier search
-
-             nakedCodeArr.push(
-                 code.substring( searchPosition, begin )
-                 , str_repli( /*sq*/' '/**/, delta )
-             );
-
-             /*dc*/// Prepare for the next search
-
-             searchPosition = end;
-
-         }/*}2*/
+             if (wto)
+                 wto.push( { begin : node.start, str : node.raw, acornNode : node } );
+         }
          
+         function meet_MemberExpression( node )
+         {
+             var p = node.property;
+             if (p.type === "Identifier")
+             {
+                 dA.push( { begin : p.start, str : p.name, name : p.name, acornNode : p } );
+             }
+             
+         }
+         
+
          /*dc*/// Detect identifiers and reserved words
          
          var /*vd*/reservedSet/**/ = /*{2a*/{}/*}2a*/;
@@ -177,50 +167,6 @@ if (typeof acorn.walk === 'undefined')
              reservedSet[ reservedArr[ i ] ] = 1;
          
          var /*vd*/resA/**/      = ret.reservedArr
-         ,   /*vd*/caA/**/       = ret.callArr
-         ,   /*vd*/dA/**/        = ret.dotArr
-         ,   /*vd*/dcaA/**/      = ret.dotcallArr
-         ,   /*vd*/iA/**/        = ret.identifierArr
-         ,   /*vd*/nakedCode/**/ = nakedCodeArr.join( /*sq*/''/**/ )
-         ,   /*vd*/rx/**/        = /*rr*//(\.\s*)?(\b[_a-zA-Z]\w*\b)(\s*\()?/g/**/
-         
-         ,   /*vd*/mo/**/
-         ;
-         while (mo = rx.exec( nakedCode ))
-         /*{3*/{
-             var  /*vd*/str/**/ = mo[ 0 ]
-             ,    /*vd*/dot/**/ = mo[ 1 ]
-             ,   /*vd*/name/**/ = mo[ 2 ]
-             ,   /*vd*/call/**/ = mo[ 3 ]
-             ,   /*vd*/arr/**/  = (
-                 name in reservedSet  ?  resA  
-                     : dot && call    ?  dcaA
-                     : dot            ?    dA
-                     : call           ?   caA
-                     :                     iA
-             )
-             ,   /*vd*/begin/**/ = mo.index
-             ,   /*vd*/x/**/     = /*{3.a1*/{ str : str,  begin : begin , name : name }/*}3.a1*/ 
-             ;             
-             arr.push( x );
-
-         }/*}3*/
-         
-         
-         /*dc*/// Curly brackets (blocks of code or objects).
-         
-         /*dc*/// - First, white out each regexp.
-         var /*vd*/nakedCodeNoRx/**/ = nakedCode;
-         for (var /*vd*/i/**/ = rxA.length; i--;)
-         /*{6*/{
-             var /*vd*/x/**/ = rxA[ i ]
-             , /*vd*/len/**/ = x.str.length
-             ;
-             nakedCodeNoRx = nakedCodeNoRx.substring( 0, x.begin ) + 
-                 str_repli( /*sq*/' '/**/, len ) + 
-                 nakedCodeNoRx.substring( x.begin + len )
-             ;
-         }/*}6*/
          
          /*dc*/// - Second, find bracket pairs.
 
