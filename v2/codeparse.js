@@ -48,8 +48,8 @@ if (typeof acorn.walk === 'undefined')
              , commentArr  : []
              , regexpArr   : []
 
-             , reservedArr       : []
-             , reservedObj       : /*{1.1*/{}/*}1.1*/
+             // , reservedArr       : []
+             // , reservedObj       : /*{1.1*/{}/*}1.1*/
 
              , callArr           : []
              , dotArr            : []
@@ -78,6 +78,11 @@ if (typeof acorn.walk === 'undefined')
              , rawAP : null
 
          }/*}1*/
+
+
+         /*dc*/// Detect comments, and produce a "nakedCode"
+         /*dc*/// string where they've all been replaced with spaces.
+         , nakedCode = code
          ;
 
 
@@ -89,6 +94,7 @@ if (typeof acorn.walk === 'undefined')
          function pushComment( b, t, start, end  )
          /*{1.1*/{
              cA.push( { begin : start, str : code.substring( start, end ) } );
+             nakedCode = nakedCode.substring( 0, start ) + str_repli( ' ', end - start ) + nakedCode.substring( end );
          }/*}1.1*/
 
 
@@ -101,6 +107,10 @@ if (typeof acorn.walk === 'undefined')
          ,    /*vd*/iA/**/ = ret.identifierArr
          ,   /*vd*/rxA/**/ = ret.regexpArr
          ,    /*vd*/sA/**/ = ret.strArr
+
+         /*dc*/// Detect strings and RegExps, and produce a "nakedCodeNoStrNoRx"
+         /*dc*/// string where they've all been replaced with spaces.
+         , nakedCodeNoStrNoRx = nakedCode
          ;
 
          acorn.walk.simple( ap, {
@@ -109,11 +119,6 @@ if (typeof acorn.walk === 'undefined')
              , Literal : meet_Literal
              , MemberExpression : meet_MemberExpression
          });
-
-         
-         console.log('xxx iA',iA)
-
-         return ret;
 
          function meet_CallExpression( node )
          {
@@ -124,8 +129,28 @@ if (typeof acorn.walk === 'undefined')
              }
              else if (callee.type === "MemberExpression")
              {
-                 var name = callee.property.name;
-                 dcaA.push( { begin : callee.start - 1, str : '.' + /*xxx spaces?*/ + name + /*xxx spaces?*/ '(', name : name, acornNode : node } );
+                 var cp = callee.property
+                 , name = cp.name
+                 , dotI = nakedCode.lastIndexOf( '.', cp.start )
+                 , parI = nakedCode.indexOf( '(', cp.end )
+                 ;
+                 if (dotI < 0  ||  parI < 0)
+                     throw new Error( 'meet_CallExpression bug');
+
+                 dcaA.push( { begin : dotI, str : code.substring( dotI, parI + 1 ), name : name, acornNode : node } );
+
+                 for (var i = dA.length; i--;)
+                 {
+                     if (cp === dA[ i ].acornNode)
+                     {
+                         dA.splice( i, 1 );
+                         break;
+                     }
+                     else if (dA[ i ].begin < cp.start)
+                     {
+                         break;
+                     }
+                 }
              }            
              else
                  throw new Error( "bug" );
@@ -140,34 +165,28 @@ if (typeof acorn.walk === 'undefined')
          {
              var v = node.value
              , wto = null
+             , isString
+             , isRegExp
              ;
              
-             if ('string' === typeof v)    wto = sA;
-             else if (v instanceof RegExp) wto = rxA;
+             if (isString = ('string' === typeof v))    wto = sA;
+             else if (isRegExp = (v instanceof RegExp)) wto = rxA;
 
              if (wto)
                  wto.push( { begin : node.start, str : node.raw, acornNode : node } );
+
+             if (isString  ||  isRegExp)
+                 nakedCodeNoStrNoRx = nakedCodeNoStrNoRx.substring( 0, node.start ) + str_repli( ' ', node.end - node.start ) + nakedCodeNoStrNoRx.substring( node.end );
          }
          
          function meet_MemberExpression( node )
          {
              var p = node.property;
-             if (p.type === "Identifier")
-             {
+             if (!node.computed  &&  p.type === "Identifier")
                  dA.push( { begin : p.start, str : p.name, name : p.name, acornNode : p } );
-             }
-             
          }
          
 
-         /*dc*/// Detect identifiers and reserved words
-         
-         var /*vd*/reservedSet/**/ = /*{2a*/{}/*}2a*/;
-         for (var /*vd*/i/**/ = reservedArr.length; i--;)  
-             reservedSet[ reservedArr[ i ] ] = 1;
-         
-         var /*vd*/resA/**/      = ret.reservedArr
-         
          /*dc*/// - Second, find bracket pairs.
 
          var /*vd*/bcA/**/ = ret.bracketcurlyArr
@@ -205,10 +224,10 @@ if (typeof acorn.walk === 'undefined')
          }/*}7d*/ ) )
          ;
          
-         find_bracket( find_bracket_cfg, nakedCodeNoRx, code, bA );
+         find_bracket( find_bracket_cfg, nakedCodeNoStrNoRx, code, bA );
                  
          build_bracket_tree( bA, ret.bracketTree );
-         build_bracket_sep_split( bA, nakedCodeNoRx, code, reservedArr );
+         build_bracket_sep_split( bA, nakedCodeNoStrNoRx, code, reservedArr );
          build_bracket_var_leftstr_rightstr( bA, cA );
 
          /*dc*/// Mark which identifier instances are var declarations.
@@ -277,21 +296,7 @@ if (typeof acorn.walk === 'undefined')
              iOR[ str ] = reversed( iO[ str ] );
              
          }/*}5.1*/}/*}5*/
-
-
-         /*dc*/// Reserved words: a few derived values, for convenience
-         var /*vd*/rA/**/ = ret.reservedArr
-         ,   /*vd*/rO/**/ = ret.reservedObj
-         ;
-         for (var /*vd*/n/**/ = rA.length, /*vd*/i/**/ = 0; i < n ; i++)
-         /*{6a*/{
-             var /*vd*/x/**/ = rA[ i ];
-             (
-	      rO[ x.name ] !== _emptyObj[ x.name ]  ? rO[ x.name ] :  (rO[ x.name ] = [])
-             )
-                 .push( x.begin );
-         }/*}6a*/
-                  
+                
 
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
@@ -361,7 +366,31 @@ if (typeof acorn.walk === 'undefined')
          ret.allTree = allTree;
          
          return ret;
-             
+
+         /*dc*/// Detect identifiers and reserved words
+         
+         /* xxx reservedArr/Set first not thought as necessary outside, now that we are using acorn
+         // var /*vd*/reservedSet/**/ = /*{2a*/{}/*}2a*/;
+         // for (var /*vd*/i/**/ = reservedArr.length; i--;)  
+         //     reservedSet[ reservedArr[ i ] ] = 1;
+         // 
+         // var /*vd*/resA/**/      = ret.reservedArr
+         // */
+
+
+         // /*dc*/// Reserved words: a few derived values, for convenience
+         // var /*vd*/rA/**/ = ret.reservedArr
+         // ,   /*vd*/rO/**/ = ret.reservedObj
+         // ;
+         // for (var /*vd*/n/**/ = rA.length, /*vd*/i/**/ = 0; i < n ; i++)
+         // /*{6a*/{
+         //     var /*vd*/x/**/ = rA[ i ];
+         //     (
+	 //      rO[ x.name ] !== _emptyObj[ x.name ]  ? rO[ x.name ] :  (rO[ x.name ] = [])
+         //     )
+         //         .push( x.begin );
+         // }/*}6a*/
+
      }/*}0*/
 
      // --- Detail
@@ -402,13 +431,13 @@ if (typeof acorn.walk === 'undefined')
      }
 
 
-     function build_bracket_sep_split( /*array*/bA, /*string*/nakedCodeNoRx, /*string*/code, /*array of string*/reservedArr )
+     function build_bracket_sep_split( /*array*/bA, /*string*/nakedCodeNoStrNoRx, /*string*/code, /*array of string*/reservedArr )
      {
          for (var i = bA.length; i--;)
          {
              var      x = bA[ i ]
              ,     kids = x.bracketchildren
-             , nakedOne = nakedCodeNoRx.substring( x.begin, x.end )
+             , nakedOne = nakedCodeNoStrNoRx.substring( x.begin, x.end )
              ,   offset = x.begin;
              ;
              // Whitespace open and close
@@ -456,7 +485,7 @@ if (typeof acorn.walk === 'undefined')
                  ,   end    = after .index
                  ,   str    = code.substring( begin, end )
                  ;
-                 if (!str  ||  /^\s*$/.test(nakedCodeNoRx.substring( begin, end )))
+                 if (!str  ||  /^\s*$/.test(nakedCodeNoStrNoRx.substring( begin, end )))
                      continue;
                  
                  sS.push( { 
@@ -534,10 +563,10 @@ if (typeof acorn.walk === 'undefined')
      }
 
 
-     function find_bracket( /*array*/cfgA, /*string*/nakedCodeNoRx, /*string*/code, /*array*/bA )
+     function find_bracket( /*array*/cfgA, /*string*/nakedCodeNoStrNoRx, /*string*/code, /*array*/bA )
      {
          // First, find all open & close occurences, in a single pass
-         // to keep the order they appear in `nakedCodeNoRx`.
+         // to keep the order they appear in `nakedCodeNoStrNoRx`.
          
          var rx = new RegExp(
              cfgA.map( function (o) { 
@@ -563,7 +592,7 @@ if (typeof acorn.walk === 'undefined')
          ,   mo
          ,   error
          ;
-         while (mo = rx.exec( nakedCodeNoRx ))
+         while (mo = rx.exec( nakedCodeNoStrNoRx ))
          {
              var ind2 = -1;
              for (var i = mo.length; i--;)
