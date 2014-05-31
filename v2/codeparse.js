@@ -47,10 +47,6 @@ if (typeof acorn.walk === 'undefined')
              strArr : []
              , commentArr  : []
              , regexpArr   : []
-
-             // , reservedArr       : []
-             // , reservedObj       : /*{1.1*/{}/*}1.1*/
-
              , callArr           : []
              , dotArr            : []
              , dotcallArr        : []
@@ -88,13 +84,13 @@ if (typeof acorn.walk === 'undefined')
 
 
 	 var /*vd*/cA/**/ = ret.commentArr
-         ,   /*vd*/ap/**/ = ret.rawAP = acorn.parse( code, { jsm : true, onComment : pushComment } )
+         ,   /*vd*/ap/**/ = ret.rawAP = acorn.parse( code, /*{1.0*/{ jsm : true, onComment : pushComment }/*}1.0*/ )
          ;
 
          function pushComment( b, t, start, end  )
          /*{1.1*/{
-             cA.push( { begin : start, str : code.substring( start, end ) } );
-             nakedCode = nakedCode.substring( 0, start ) + str_repli( ' ', end - start ) + nakedCode.substring( end );
+             cA.push( /*{1.1.1*/{ begin : start, str : code.substring( start, end ) }/*}1.1.1*/ );
+             nakedCode = nakedCode.substring( 0, start ) + str_repli( /*sq*/' '/**/, end - start ) + nakedCode.substring( end );
          }/*}1.1*/
 
 
@@ -110,85 +106,168 @@ if (typeof acorn.walk === 'undefined')
 
          /*dc*/// Detect strings and RegExps, and produce a "nakedCodeNoStrNoRx"
          /*dc*/// string where they've all been replaced with spaces.
-         , nakedCodeNoStrNoRx = nakedCode
+         , /*vd*/nakedCodeNoStrNoRx/**/ = nakedCode
          ;
 
-         acorn.walk.simple( ap, {
-             CallExpression : meet_CallExpression
-             , Identifier : meet_Identifier
-             , Literal : meet_Literal
-             , MemberExpression : meet_MemberExpression
-         });
+         acorn.walk.simple( ap, /*{1.2*/{
+             CallExpression        : meet_CallExpression
+             , FunctionDeclaration : meet_FunctionDeclaration
+             , FunctionExpression  : meet_FunctionExpression
+             , Identifier          : meet_Identifier
+             , Literal             : meet_Literal
+             , MemberExpression    : meet_MemberExpression
+             , NewExpression       : meet_CallExpression
+             , ObjectExpression    : meet_ObjectExpression
+             , VariableDeclaration : meet_VariableDeclaration
+         }/*}1.2*/);
 
+         caA .sort( compare_begin );
+         dA  .sort( compare_begin );
+         dcaA.sort( compare_begin );
+         iA  .sort( compare_begin );
+         rxA .sort( compare_begin );
+         sA  .sort( compare_begin );
+         
          function meet_CallExpression( node )
-         {
-             var callee = node.callee;
-             if (callee.type === "Identifier")
-             {
-                 caA.push( { begin : callee.start, str : callee.name, name : callee.name, acornNode : node } );
-             }
-             else if (callee.type === "MemberExpression")
-             {
-                 var cp = callee.property
-                 , name = cp.name
-                 , dotI = nakedCode.lastIndexOf( '.', cp.start )
-                 , parI = nakedCode.indexOf( '(', cp.end )
+         /*{1.3*/{
+             var /*vd*/callee/**/ = node.callee;
+             if (callee.type === /*dq*/"Identifier"/**/)
+             /*{1.3.1*/{
+                 
+                 var /*vd*/begin/**/ = callee.start
+                 ,   /*vd*/parI/**/  = nakedCode.indexOf( /*dq*/"("/**/, callee.end )
+                 ;
+                 if (parI < 0)
+                     throw new Error( /*sq*/'meet_CallExpression bug'/**/ );
+                 
+                 var /*vd*/str/**/ = code.substring( begin, parI + 1 );
+                 
+                 caA.push( /*{1.3.1.1*/{ begin : begin, str : str, name : callee.name, acornNode : node }/*}1.3.1.1*/ );
+
+                 for (var i = iA.length; i--;)
+                 /*{1.3.1.2*/{
+                     if (callee === iA[ i ].acornNode)
+                     /*{1.3.1.2.1*/{
+                         iA.splice( i, 1 );
+                         break;
+                     }/*}1.3.1.2.1*/
+                     else if (iA[ i ].begin < callee.start)
+                     /*{1.3.1.2.2*/{
+                         break;
+                     }/*}1.3.1.2.2*/
+                 }/*}1.3.1.2*/
+             }/*}1.3.1*/
+             else if (callee.type === /*dq*/"MemberExpression"/**/)
+             /*{1.3.2*/{
+                 var /*vd*/cp/**/ = callee.property
+                 , /*vd*/name/**/ = cp.name
+                 , /*vd*/dotI/**/ = nakedCode.lastIndexOf( /*sq*/'.'/**/, cp.start )
+                 , /*vd*/parI/**/ = nakedCode.indexOf( /*dq*/"("/**/, cp.end )
                  ;
                  if (dotI < 0  ||  parI < 0)
-                     throw new Error( 'meet_CallExpression bug');
+                     throw new Error( /*sq*/'meet_CallExpression bug'/**/ );
 
-                 dcaA.push( { begin : dotI, str : code.substring( dotI, parI + 1 ), name : name, acornNode : node } );
+                 dcaA.push( /*{1.3.2.1*/{ begin : dotI, str : code.substring( dotI, parI + 1 ), name : name, acornNode : node }/*}1.3.2.1*/ );
 
-                 for (var i = dA.length; i--;)
-                 {
+                 for (var /*vd*/i/**/ = dA.length; i--;)
+                 /*{1.3.2.2*/{
                      if (cp === dA[ i ].acornNode)
-                     {
+                     /*{1.3.2.2.1*/{
                          dA.splice( i, 1 );
                          break;
-                     }
+                     }/*}1.3.2.2.1*/
                      else if (dA[ i ].begin < cp.start)
-                     {
+                     /*{1.3.2.2.2*/{
                          break;
-                     }
-                 }
-             }            
+                     }/*}1.3.2.2.2*/
+                 }/*}1.3.2.2*/
+             }/*}1.3.2*/            
              else
-                 throw new Error( "bug" );
+                 throw new Error( /*dq*/"bug"/**/ );
+         }/*}1.3*/
+
+         function meet_FunctionDeclaration( node )
+         {
+             var /*vd*/name/**/ = node.id.name;
+             (name  ||  0).substring.call.a;
+
+             var /*vd*/begin/**/ = node.id.start;
+             begin.toPrecision.call.a;
+
+             var /*vd*/parI/**/ = nakedCode.indexOf( /*dq*/"("/**/, node.id.end )
+             ,   /*vd*/str/**/  = nakedCode.substring( begin, parI + 1 )
+             ;
+             
+             caA.push( /*{1.3.1.1*/{ begin : begin, str : str, name : name, acornNode : node }/*}1.3.1.1*/ );
+
+             node.params.forEach( meet_Identifier );
+         }
+
+         function meet_FunctionExpression( node )
+         {
+             node.params.forEach( meet_Identifier );
          }
 
          function meet_Identifier( node )
-         {
+         /*{1.4*/{
              iA.push( { begin : node.start, str : node.name, name : node.name, acornNode : node } );
-         }
+         }/*}1.4*/
 
          function meet_Literal( node ) 
-         {
-             var v = node.value
-             , wto = null
-             , isString
-             , isRegExp
+         /*{1.5*/{
+             var /*vd*/v/**/ = node.value
+             , /*vd*/wto/**/ = null
+             , /*vd*/isString/**/
+             , /*vd*/isRegExp/**/
              ;
              
-             if (isString = ('string' === typeof v))    wto = sA;
+             if (isString = (/*sq*/'string'/**/ === typeof v))    wto = sA;
              else if (isRegExp = (v instanceof RegExp)) wto = rxA;
 
              if (wto)
-                 wto.push( { begin : node.start, str : node.raw, acornNode : node } );
+                 wto.push( /*{1.5.1*/{ begin : node.start, str : node.raw, acornNode : node }/*}1.5.1*/ );
 
              if (isString  ||  isRegExp)
-                 nakedCodeNoStrNoRx = nakedCodeNoStrNoRx.substring( 0, node.start ) + str_repli( ' ', node.end - node.start ) + nakedCodeNoStrNoRx.substring( node.end );
-         }
+             /*{1.5.2*/{
+                 nakedCodeNoStrNoRx = nakedCodeNoStrNoRx.substring( 0, node.start ) + str_repli( /*sq*/' '/**/, node.end - node.start ) + 
+                     nakedCodeNoStrNoRx.substring( node.end );
+             }/*}1.5.2*/
+
+         }/*}1.5*/
          
          function meet_MemberExpression( node )
-         {
+         /*{1.6*/{
              var p = node.property;
-             if (!node.computed  &&  p.type === "Identifier")
-                 dA.push( { begin : p.start, str : p.name, name : p.name, acornNode : p } );
-         }
+             if (!node.computed  &&  p.type === /*dq*/"Identifier"/**/)
+             /*{1.6.1*/{
+              
+                 var /*vd*/dotI/**/ = nakedCode.lastIndexOf( /*sq*/'.'/**/, p.start );
+                 if (dotI < 0)
+                     throw new Error( /*sq*/'meet_MemberExpression bug'/**/ );
+
+                 dA.push( /*{1.6.1.1*/{ begin : dotI, str : code.substring( dotI, p.start + p.name.length ), name : p.name, acornNode : p }/*}1.6.1.1*/ );
+
+             }/*}1.6.1*/
+         }/*}1.6*/
          
+         function meet_ObjectExpression( node )
+         /*{1.65*/{
+             node.properties.forEach( function (p) /*{1.65.1*/{
+                 var k = p.key;
+                 if (k.type === /*dq*/"Identifier"/**/)
+                     meet_Identifier( k );
+                 else
+                     throw new Error( /*dq*/"Whatever"/**/ );
+             }/*}1.65.1*/);
+         }/*}1.65*/
 
+         function meet_VariableDeclaration( node )
+         /*{1.7*/{
+             node.declarations.forEach( function (n) /*{1.7.1*/{ meet_Identifier( n.id ); }/*}1.7.1*/ );
+         }/*}1.7*/
+         
          /*dc*/// - Second, find bracket pairs.
-
+         
          var /*vd*/bcA/**/ = ret.bracketcurlyArr
          ,   /*vd*/brA/**/ = ret.bracketroundArr
          ,   /*vd*/bsA/**/ = ret.bracketsquareArr
@@ -367,6 +446,8 @@ if (typeof acorn.walk === 'undefined')
          
          return ret;
 
+     }/*}0*/
+
          /*dc*/// Detect identifiers and reserved words
          
          /* xxx reservedArr/Set first not thought as necessary outside, now that we are using acorn
@@ -391,7 +472,6 @@ if (typeof acorn.walk === 'undefined')
          //         .push( x.begin );
          // }/*}6a*/
 
-     }/*}0*/
 
      // --- Detail
 

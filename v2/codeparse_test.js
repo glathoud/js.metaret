@@ -19,7 +19,6 @@ function codeparse_test()
     assert( 'arrEqual( result.commentArr, expected.commentArr )' );
     assert( 'arrEqual( result.regexpArr, expected.regexpArr )' );
     assert( 'arrEqual( result.strArr, expected.strArr )' );
-    assert( 'arrEqual( result.reservedArr, expected.reservedArr )' );
     assert( 'arrEqual( result.callArr, expected.callArr )' );
     assert( 'arrEqual( result.dotArr, expected.dotArr )' );
     assert( 'arrEqual( result.dotcallArr, expected.dotcallArr )' );
@@ -41,7 +40,6 @@ function codeparse_test()
         ,   cA = []
         ,  rxA = []
         ,  vdA = []
-        , resA = []
         ,  caA = []
         ,   dA = []
         , dcaA = []
@@ -51,7 +49,6 @@ function codeparse_test()
                    , commentArr : cA
                    , regexpArr  : rxA
                    , vardeclArr : vdA
-                   , reservedArr : resA
                    , callArr       : caA
                    , dotArr        : dA
                    , dotcallArr    : dcaA
@@ -134,7 +131,7 @@ function codeparse_test()
         var rx_word = /(\.\s*)?(\b[_a-zA-Z]\w*\b)(\s*\()?/g
         ,   mo_word
 
-        var reservedArr = codeparse.getDefaultReservedArr();
+        var reservedArr = codeparse.getDefaultReservedArr().concat( [ 'undefined', 'null', 'true', 'false' ] );
         var reservedObj = {};
         for (var i = reservedArr.length; i--;)  
             reservedObj[ reservedArr[ i ] ] = 1;
@@ -147,7 +144,7 @@ function codeparse_test()
             ,  call = mo_word[ 3 ]
             ;
             (
-                name in reservedObj  ?  resA
+                name in reservedObj  ?  []
                 : dot && call        ?  dcaA
                     : dot            ?    dA
                     : call           ?   caA
