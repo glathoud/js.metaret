@@ -78,7 +78,7 @@ if (typeof acorn.walk === 'undefined')
 
          /*dc*/// Detect comments, and produce a "nakedCode"
          /*dc*/// string where they've all been replaced with spaces.
-         , nakedCode = code
+         , /*vd*/nakedCode/**/ = code
          ;
 
 
@@ -96,7 +96,7 @@ if (typeof acorn.walk === 'undefined')
 
          /*dc*/// Walk the tree and extract what we need for metaret.js and inline.js
          
-         var tmp
+         var /*vd*/tmp/**/
          ,   /*vd*/caA/**/       = ret.callArr
          ,   /*vd*/dA/**/        = ret.dotArr
          ,   /*vd*/dcaA/**/      = ret.dotcallArr
@@ -144,7 +144,7 @@ if (typeof acorn.walk === 'undefined')
                  
                  caA.push( /*{1.3.1.1*/{ begin : begin, str : str, name : callee.name, acornNode : node }/*}1.3.1.1*/ );
 
-                 for (var i = iA.length; i--;)
+                 for (var /*vd*/i/**/ = iA.length; i--;)
                  /*{1.3.1.2*/{
                      if (callee === iA[ i ].acornNode)
                      /*{1.3.1.2.1*/{
@@ -187,7 +187,7 @@ if (typeof acorn.walk === 'undefined')
          }/*}1.3*/
 
          function meet_FunctionDeclaration( node )
-         {
+         /*{1.35*/{
              var /*vd*/name/**/ = node.id.name;
              (name  ||  0).substring.call.a;
 
@@ -198,19 +198,19 @@ if (typeof acorn.walk === 'undefined')
              ,   /*vd*/str/**/  = nakedCode.substring( begin, parI + 1 )
              ;
              
-             caA.push( /*{1.3.1.1*/{ begin : begin, str : str, name : name, acornNode : node }/*}1.3.1.1*/ );
+             caA.push( /*{1.35.1*/{ begin : begin, str : str, name : name, acornNode : node }/*}1.35.1*/ );
 
              node.params.forEach( meet_Identifier );
-         }
+         }/*}1.35*/
 
          function meet_FunctionExpression( node )
-         {
+         /*{1.37*/{
              node.params.forEach( meet_Identifier );
-         }
+         }/*}1.37*/
 
          function meet_Identifier( node )
          /*{1.4*/{
-             iA.push( { begin : node.start, str : node.name, name : node.name, acornNode : node } );
+             iA.push( /*{1.41*/{ begin : node.start, str : node.name, name : node.name, acornNode : node }/*}1.41*/ );
          }/*}1.4*/
 
          function meet_Literal( node ) 
@@ -237,7 +237,7 @@ if (typeof acorn.walk === 'undefined')
          
          function meet_MemberExpression( node )
          /*{1.6*/{
-             var p = node.property;
+             var /*vd*/p/**/ = node.property;
              if (!node.computed  &&  p.type === /*dq*/"Identifier"/**/)
              /*{1.6.1*/{
               
@@ -253,7 +253,7 @@ if (typeof acorn.walk === 'undefined')
          function meet_ObjectExpression( node )
          /*{1.65*/{
              node.properties.forEach( function (p) /*{1.65.1*/{
-                 var k = p.key;
+                 var /*vd*/k/**/ = p.key;
                  if (k.type === /*dq*/"Identifier"/**/)
                      meet_Identifier( k );
                  else
