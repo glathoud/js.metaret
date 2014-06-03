@@ -1,10 +1,10 @@
-/*global need$ load codeparse lp2fmtree console print JSON*/
+/*global need$ load codeparse cp2fmtree console print JSON*/
 
 if (typeof codeparse === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "codeparse.js" );
 
-if (typeof lp2fmtree === 'undefined')
-    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lp2fmtree.js" );
+if (typeof cp2fmtree === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "cp2fmtree.js" );
 
 (function (global) {
 
@@ -59,10 +59,10 @@ if (typeof lp2fmtree === 'undefined')
         
         // Parse this piece of code: find inline statements.
 
-        var      lp = codeparse( code, CODEPARSE_OPT )
-        ,        fm = lp2fmtree( lp )
+        var      cp = codeparse( code, CODEPARSE_OPT )
+        ,        fm = cp2fmtree( cp )
         
-        ,       all = lp.all
+        ,       all = cp.all
         , inlineArr = all
             .map( function (o, ind) { 
                 var ret = getInlineInfo( o, ind, all, code ); 
@@ -105,7 +105,7 @@ if (typeof lp2fmtree === 'undefined')
             code_info   : opt_code_info  // e.g. path of the file
             , inlineArr : inlineArr
             , lastname2fmarr : lastname2fmarr
-            , lp : lp
+            , cp : cp
             , fm : fm
         };
         
@@ -187,7 +187,7 @@ if (typeof lp2fmtree === 'undefined')
             // https://github.com/glathoud/js.metaret/issues/10
             var matchBegin   = one.fmCallMatch.begin
             ,   matchEnd     = one.fmCallMatch.end
-            ,   argumentsArr = lp.identifierObj[ 'arguments' ]  ||  []
+            ,   argumentsArr = cp.identifierObj[ 'arguments' ]  ||  []
             ;
             if (argumentsArr.some( function (x) { return matchBegin <= x  &&  x < matchEnd; } ))
                 throw new Error( 'inline error: it is forbidden to use `arguments` in the body of the function to be inlined.' );
@@ -206,7 +206,7 @@ if (typeof lp2fmtree === 'undefined')
 
             // Quick implementation to support imbricated inlines.
             // https://github.com/glathoud/js.metaret/issues/6
-            inline( getInlineCodeHygienic( lp.identifierObj, fm, one ), workspace, /*opt_code_info:*/null, error_inline_stack ) + 
+            inline( getInlineCodeHygienic( cp.identifierObj, fm, one ), workspace, /*opt_code_info:*/null, error_inline_stack ) + 
                 
             newcode.substring( end )
             ;
@@ -325,14 +325,14 @@ if (typeof lp2fmtree === 'undefined')
         , body_length = body_end - body_begin
         , toReplace = []
 
-        , body_lp = codeparse( body, CODEPARSE_OPT )
+        , body_cp = codeparse( body, CODEPARSE_OPT )
         ;
         
         // Prepare: Will replace variable names
 
-        for (var i = body_lp.identifierArr.length; i--;)
+        for (var i = body_cp.identifierArr.length; i--;)
         {
-            var ident = body_lp.identifierArr[ i ]
+            var ident = body_cp.identifierArr[ i ]
             ,  newstr = paramN_map[ ident.name ]  ||  vardeclN_map[ ident.name ]
             ;
             if (newstr)
@@ -341,9 +341,9 @@ if (typeof lp2fmtree === 'undefined')
         
         // Prepare: Will replace function names in calls
 
-        for (var i = body_lp.callArr.length; i--;)
+        for (var i = body_cp.callArr.length; i--;)
         {
-            var call = body_lp.callArr[ i ]
+            var call = body_cp.callArr[ i ]
             , newstr = paramN_map[ call.name ]  ||  vardeclN_map[ call.name ]
             ;
             if (newstr)
@@ -352,9 +352,9 @@ if (typeof lp2fmtree === 'undefined')
         
         // Prepare: Will replace returns
 
-        for (var i = body_lp.bracketextraArr.length; i--;)
+        for (var i = body_cp.bracketextraArr.length; i--;)
         {
-            var brack = body_lp.bracketextraArr[ i ];
+            var brack = body_cp.bracketextraArr[ i ];
             if (brack.typebracket !== RETURN)
                 continue;
             
@@ -412,9 +412,9 @@ if (typeof lp2fmtree === 'undefined')
         ,   var_decl_undef_set = {}
         ;
 
-        for (var n = body_lp.bracketextraArr.length, i = 0; i < n; i++)
+        for (var n = body_cp.bracketextraArr.length, i = 0; i < n; i++)
         {
-            var brack = body_lp.bracketextraArr[ i ];
+            var brack = body_cp.bracketextraArr[ i ];
             if (brack.typebracket !== VAR)
              continue;
             

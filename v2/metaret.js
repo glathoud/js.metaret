@@ -1,4 +1,4 @@
-/*global document console load codeparse need$ lp2fmtree JSON*/
+/*global document console load codeparse need$ cp2fmtree JSON*/
 
 // Guillaume Lathoud, 2011, 2013, MIT License, see ./LICENSE.TXT
 // 
@@ -33,8 +33,8 @@
 if (typeof codeparse === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "codeparse.js" );
 
-if (typeof lp2fmtree === 'undefined')
-    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lp2fmtree.js" );
+if (typeof cp2fmtree === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "cp2fmtree.js" );
 
 ;(function (global) {
 
@@ -96,8 +96,8 @@ if (typeof lp2fmtree === 'undefined')
                 continue;
             
             var metacode = sString  ?  s  :  s.textContent  ||  s.innerText
-            ,   lp       = codeparse( metacode, CODEPARSE_OPT )
-            ,   fmtree   = lp2fmtree( lp )
+            ,   cp       = codeparse( metacode, CODEPARSE_OPT )
+            ,   fmtree   = cp2fmtree( cp )
             ;
             rec_decl( fmtree, /*isTop:*/true, name2info, ret, opt );
         }
@@ -182,8 +182,8 @@ if (typeof lp2fmtree === 'undefined')
         // https://github.com/glathoud/js.metaret/issues/11
         if (!is_fun)
         {
-            var body_lp = codeparse( body )
-            ,   body_argumentsArr = body_lp.identifierObj[ 'arguments' ]  ||  []
+            var body_cp = codeparse( body )
+            ,   body_argumentsArr = body_cp.identifierObj[ 'arguments' ]  ||  []
             ;
             if (body_argumentsArr.length)
                 throw new Error( 'metafun error: it is forbidden to use `arguments` in the body of the metafun (because the body of the metafun may end up being inlined within a `while` loop).' );
@@ -619,8 +619,8 @@ if (typeof lp2fmtree === 'undefined')
 
     function _extractVar( /*string*/body )
     {
-        var lp = codeparse( body, CODEPARSE_OPT )
-        ,   iA = lp.identifierArr
+        var cp = codeparse( body, CODEPARSE_OPT )
+        ,   iA = cp.identifierArr
         , ret = []
         ;
         for (var n = iA.length, i = 0; i < n; i++)
@@ -639,8 +639,8 @@ if (typeof lp2fmtree === 'undefined')
 
     function _checkExtractMetaret( /*string*/body, /*string*/self, /*string*/selfName )
     {
-        var lp = codeparse( body, CODEPARSE_OPT )
-        ,  beA = lp.bracketextraArr
+        var cp = codeparse( body, CODEPARSE_OPT )
+        ,  beA = cp.bracketextraArr
         ,  ret = []
         ;
 

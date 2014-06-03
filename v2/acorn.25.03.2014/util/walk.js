@@ -287,6 +287,19 @@
   };
   base.Identifier = base.Literal = ignore;
 
+    // ---BEGIN: JSM extension (see also ../acorn.js)
+  base.JsmMetafunDeclaration = function(node, st, c) {
+    c(node, st, "Function");
+  };
+  base.JsmFunctionDeclaration = function(node, st, c) {
+    c(node, st, "Function");
+  };
+  base.JsmMetaretStatement = function(node, st, c) {
+    c(node.argument, st, "Expression");
+  };
+    // ---END: JSM extension (see also ../acorn.js)
+
+
   // A custom walker that keeps track of the scope chain and the
   // variables defined in it.
   function makeScope(prev, isCatch) {

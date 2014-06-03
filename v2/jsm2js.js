@@ -1,12 +1,12 @@
-/*global metaparse jsm2js lp2fmtree codeparse need$ load*/
+/*global metaparse jsm2js cp2fmtree codeparse need$ load*/
 
 // Support both use cases: browser development (example: jsm_dev) and
 // command-line transformation (example: jsm_dev -> jsm_out).
 if (typeof codeparse === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "codeparse.js" );
 
-if (typeof lp2fmtree === 'undefined')
-    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lp2fmtree.js" );
+if (typeof cp2fmtree === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "cp2fmtree.js" );
 
 if (typeof metaparse === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "metaret.js" );
@@ -83,9 +83,9 @@ if (typeof metaparse === 'undefined')
     {
         CONST  ||  (CONST = metaparse.get_CONST());
         
-        var lp = codeparse( jscode, CONST.CODEPARSE_OPT )
-        ,   fm = lp2fmtree( lp )
-        ,   rO = lp.reservedObj
+        var cp = codeparse( jscode, CONST.CODEPARSE_OPT )
+        ,   fm = cp2fmtree( cp )
+        ,   rO = cp.reservedObj
         ,   mfunArr = (rO[ CONST.METAFUN ]  ||  []).map( enrich )
         ,   mretArr = (rO[ CONST.METARET ]  ||  []).map( enrich )
         ;

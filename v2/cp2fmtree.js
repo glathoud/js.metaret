@@ -17,18 +17,18 @@
 
     // ---------- Public API
 
-    global.lp2fmtree = lp2fmtree;
+    global.cp2fmtree = cp2fmtree;
 
     // ---------- Public API implementation
 
-    function lp2fmtree( lp, /*?array of string?*/namespace, /*?object?*/workspace, /*?fm?*/parent )
+    function cp2fmtree( cp, /*?array of string?*/namespace, /*?object?*/workspace, /*?fm?*/parent )
     // Input:  object returned by `codeparse`.
     // 
     // Output: array of function/metafun declaration trees.
     //
     // Comment:
     // 
-    // `lp2fmtree` is used by ./metaret.js to support local metafuns
+    // `cp2fmtree` is used by ./metaret.js to support local metafuns
     // e.g. `metafun b` in:
     // 
     // {{{ 
@@ -53,7 +53,7 @@
         namespace  ||  (namespace = []);
         workspace  ||  (workspace = { iAnonymous : 0, lastname2fmarr : {} });
         
-        var at = lp  instanceof Array  ?  lp  :  lp.allTree
+        var at = cp  instanceof Array  ?  cp  :  cp.allTree
         ,  ret = []
         ;
         if (isTopLevel)
@@ -147,7 +147,7 @@
                 // Support for local metafunctions: look at the
                 // metafuns and functions within the body.
                 
-                var children = next.children  ?  lp2fmtree( next.children, fullname_arr, workspace, /*parent:*/out )  :  [];
+                var children = next.children  ?  cp2fmtree( next.children, fullname_arr, workspace, /*parent:*/out )  :  [];
                 
                 // Remove children code from the body.
                 
@@ -178,15 +178,15 @@
             {
                 // Useful to find functions e.g. within `(...)`:
                 // `(function (global) { ... })(this);`
-                ret.push.apply( ret, lp2fmtree( one.children, namespace, workspace ) );
+                ret.push.apply( ret, cp2fmtree( one.children, namespace, workspace ) );
             }
         }
 
         // When done with the tree, walk it from the top
         if (isTopLevel)
         {
-            find_out_who_has_what( ret, [].concat( lp.vardeclArr ), 'vardecl' );
-            find_out_who_has_what( ret, lp.identifierArr.filter( function (x) { return !x.isVardecl; } ), 'varuse' );
+            find_out_who_has_what( ret, [].concat( cp.vardeclArr ), 'vardecl' );
+            find_out_who_has_what( ret, cp.identifierArr.filter( function (x) { return !x.isVardecl; } ), 'varuse' );
 
             // Now we can find closures. Useful e.g. to shorten local names (see ./minify.js)
             find_decluse( ret );

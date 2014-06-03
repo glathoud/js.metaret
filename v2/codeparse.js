@@ -70,6 +70,11 @@ if (typeof acorn.walk === 'undefined')
              , bracketArr               : []
              , bracketTree              : []
 
+             /*dc*/// JSM extensions
+             , jsmFunctionArr : []
+             , jsmMetafunArr  : []
+             , jsmMetaretArr  : []
+
              /*dc*/// Raw result of acorn.parse
              , rawAP : null
 
@@ -104,21 +109,28 @@ if (typeof acorn.walk === 'undefined')
          ,   /*vd*/rxA/**/ = ret.regexpArr
          ,    /*vd*/sA/**/ = ret.strArr
 
+         ,   /*vd*/jFA/**/  = ret.jsmFunctionArr
+         ,   /*vd*/jMFA/**/ = ret.jsmMetafunArr
+         ,   /*vd*/jMRA/**/ = ret.jsmMetaretArr
+         
          /*dc*/// Detect strings and RegExps, and produce a "nakedCodeNoStrNoRx"
          /*dc*/// string where they've all been replaced with spaces.
          , /*vd*/nakedCodeNoStrNoRx/**/ = nakedCode
          ;
 
          acorn.walk.simple( ap, /*{1.2*/{
-             CallExpression        : meet_CallExpression
-             , FunctionDeclaration : meet_FunctionDeclaration
-             , FunctionExpression  : meet_FunctionExpression
-             , Identifier          : meet_Identifier
-             , Literal             : meet_Literal
-             , MemberExpression    : meet_MemberExpression
-             , NewExpression       : meet_CallExpression
-             , ObjectExpression    : meet_ObjectExpression
-             , VariableDeclaration : meet_VariableDeclaration
+             CallExpression          : meet_CallExpression
+             , FunctionDeclaration   : meet_FunctionDeclaration
+             , FunctionExpression    : meet_FunctionExpression
+             , Identifier            : meet_Identifier
+             , JsmMetafunDeclaration : meet_JsmMetafunDeclaration
+             , JsmMetafunExpression  : meet_JsmMetafunExpression
+             , JsmMetaretStatement   : meet_JsmMetaretStatement
+             , Literal               : meet_Literal
+             , MemberExpression      : meet_MemberExpression
+             , NewExpression         : meet_CallExpression
+             , ObjectExpression      : meet_ObjectExpression
+             , VariableDeclaration   : meet_VariableDeclaration
          }/*}1.2*/);
 
          caA .sort( compare_begin );
@@ -207,6 +219,21 @@ if (typeof acorn.walk === 'undefined')
          /*{1.37*/{
              node.params.forEach( meet_Identifier );
          }/*}1.37*/
+
+         function meet_JsmMetafunDeclaration( node )
+         /*{1.381*/{
+             'xxx'
+         }/*}1.381*/
+
+         function meet_JsmMetafunExpression( node )
+         /*{1.382*/{
+             'xxx'
+         }/*}1.382*/
+
+         function meet_JsmMetaretStatement( node )
+         /*{1.383*/{
+             'xxx'
+         }/*}1.383*/
 
          function meet_Identifier( node )
          /*{1.4*/{
