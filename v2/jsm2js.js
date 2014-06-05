@@ -1,4 +1,4 @@
-/*global metaparse jsm2js cp2fmtree codeparse need$ load*/
+/*global metaparse jsm2js cp2fmtree codeparse need$ load console*/
 
 // Support both use cases: browser development (example: jsm_dev) and
 // command-line transformation (example: jsm_dev -> jsm_out).
@@ -85,21 +85,21 @@ if (typeof metaparse === 'undefined')
         
         var cp = codeparse( jscode, CONST.CODEPARSE_OPT )
         ,   fm = cp2fmtree( cp )
-        ,   rO = cp.reservedObj
-        ,   mfunArr = (rO[ CONST.METAFUN ]  ||  []).map( enrich )
-        ,   mretArr = (rO[ CONST.METARET ]  ||  []).map( enrich )
+        ,   mretArr = cp.jsmMetaretArr  ||  []
+        ,   mfunArr = cp.jsmMetafunArr  ||  []
         ;
         
         if (mfunArr.length  ||  mretArr.length)
         {
             // Consider looking at `mfunArr` and `mretArr`
             // for detailed information useful to debug.
-
-            throw new Error( 'jsm2js:check_leftover: found remaining `metafun` and/or `metaret` within function(s): ' + 
-                             (
-                                 (mfunArr.concat( mretArr ).map( function (x) { return x.containing_function.fullname; }))
-                                     .join(',')
-                             ) +
+            
+            if ('undefined' !== typeof console)
+            {
+                console.error( 'mfunArr:', mfunArr );
+                console.error( 'mretArr:', mretArr );
+            }
+            throw new Error( 'jsm2js:check_leftover: found remaining `metafun` and/or `metaret` within function(s): ' +
                              ' - Please check for basic errors. For example a `metaret` can only be used from within a `metafun`.' +
                              ' See also github issue #9: https://github.com/glathoud/js.metaret/issues/9'
                            );

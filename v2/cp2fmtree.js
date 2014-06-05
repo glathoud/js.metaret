@@ -1,9 +1,10 @@
 (function (global) {
 
     // xxx common constants in a separate file
-    var METAFUN        = 'metafun'
-    ,   METARET        = 'metaret'
-    ,   FUNCTION       = 'function'
+    var METAFUN        = 'jsmMetafun'
+    ,   METARET        = 'jsmMetaret'
+    ,   FUNCTION_EXPRESSION       = 'FunctionExpression'
+    ,   FUNCTION_DECLARATION       = 'FunctionDeclaration'
     ,   RESERVED       = 'reserved'
 
     ,   CALL    = 'call'
@@ -65,8 +66,8 @@
 
             // Detect a named function/metafunction declaration,
             
-            var isFunction     = one.name === FUNCTION
-            ,   isMetafunction = one.name === METAFUN
+            var isFunction     = one.type === FUNCTION_EXPRESSION  ||  one.type === FUNCTION_DECLARATION
+            ,   isMetafunction = one.type === METAFUN
 
             ,   isAnonymousFunction = isFunction  &&  at[ i+1 ].type === TYPE_BRACKET
             ;
@@ -89,29 +90,21 @@
                 }
                 else
                 {
-                    // Fetch the name of the function or metafunction.
-                    // Dots are supported (subnamespace).
-                    do {
-                        next = at[ ++i ];
-                        dotnode_arr.push( next );
-                        dot_arr.push( next.name );
-                    } while (
-                        next.type !== DOTCALL  &&  next.type !== CALL
-                    )
+                    dot_arr = one.name.split( '.' );
                 }
                 
-                var param_node = next = at[ ++i ];
-                var param_arr = param_node.sepSplit.map( strip_comment_and_space )
-                ,   param_set = {}
+                if (one.children.length !== 2)
+                    throw new Error( 'Unexpected metafun declaration or function declaration' );
+
+                var param_node = one.children[ 0 ]
+                ,   param_arr  = param_node.sepSplit.map( strip_comment_and_space )
+                ,   param_set  = {}
                 ;
                 for (var pi = param_arr.length; pi--;)
                     param_set[ param_arr[ pi ] ] = 1;
                                
 
-                while (next.type !== TYPE_BRACKET  ||  next.typebracket !== TYPEBRACKET_CURLY)
-                    next = at[ ++i ];
-
-                var body_node = next 
+                var body_node = one.children[ 1 ]
                 ,   end       = body_node.end
                 ,   body      = body_node.str
 
@@ -147,7 +140,7 @@
                 // Support for local metafunctions: look at the
                 // metafuns and functions within the body.
                 
-                var children = next.children  ?  cp2fmtree( next.children, fullname_arr, workspace, /*parent:*/out )  :  [];
+                var children = body_node.children  ?  cp2fmtree( body_node.children, fullname_arr, workspace, /*parent:*/out )  :  [];
                 
                 // Remove children code from the body.
                 

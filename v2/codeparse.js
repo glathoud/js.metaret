@@ -70,8 +70,10 @@ if (typeof acorn.walk === 'undefined')
              , bracketArr               : []
              , bracketTree              : []
 
+             , functionDeclarationArr : []
+             , functionExpressionArr : []
+
              /*dc*/// JSM extensions
-             , jsmFunctionArr : []
              , jsmMetafunArr  : []
              , jsmMetaretArr  : []
 
@@ -109,7 +111,9 @@ if (typeof acorn.walk === 'undefined')
          ,   /*vd*/rxA/**/ = ret.regexpArr
          ,    /*vd*/sA/**/ = ret.strArr
 
-         ,   /*vd*/jFA/**/  = ret.jsmFunctionArr
+         ,   /*vd*/fdA/**/  = ret.functionDeclarationArr
+         ,   /*vd*/feA/**/  = ret.functionExpressionArr
+
          ,   /*vd*/jMFA/**/ = ret.jsmMetafunArr
          ,   /*vd*/jMRA/**/ = ret.jsmMetaretArr
          
@@ -125,7 +129,6 @@ if (typeof acorn.walk === 'undefined')
              , Identifier            : meet_Identifier
              , JsmMetafunDeclaration : meet_JsmMetafunDeclaration
              , JsmMetafunExpression  : meet_JsmMetafunExpression
-             , JsmMetaretStatement   : meet_JsmMetaretStatement
              , Literal               : meet_Literal
              , MemberExpression      : meet_MemberExpression
              , NewExpression         : meet_CallExpression
@@ -213,27 +216,30 @@ if (typeof acorn.walk === 'undefined')
              caA.push( /*{1.35.1*/{ begin : begin, str : str, name : name, acornNode : node }/*}1.35.1*/ );
 
              node.params.forEach( meet_Identifier );
+
+             fdA.push( /*{1.35.2*/{ begin : node.start, str : nakedCode.substring( node.start, node.end ), type : node.type, name : name, acornNode : node }/*}1.35.2*/ );
          }/*}1.35*/
 
          function meet_FunctionExpression( node )
          /*{1.37*/{
              node.params.forEach( meet_Identifier );
+
+             feA.push( /*{1.35.2*/{ begin : node.start, str : nakedCode.substring( node.start, node.end ), type : node.type, name : name, acornNode : node }/*}1.35.2*/ );
          }/*}1.37*/
 
          function meet_JsmMetafunDeclaration( node )
          /*{1.381*/{
-             'xxx'
+
+             var /*vd*/name/**/ = node.id.name;
+             (name  ||  0).substring.call.a;
+
+             jMFA.push( /*{1.3811*/{ begin : node.start, str : nakedCode.substring( node.start, node.end ), type : node.type, name : name, acornNode : node }/*}1.3811*/ );
          }/*}1.381*/
 
          function meet_JsmMetafunExpression( node )
          /*{1.382*/{
-             'xxx'
+             
          }/*}1.382*/
-
-         function meet_JsmMetaretStatement( node )
-         /*{1.383*/{
-             'xxx'
-         }/*}1.383*/
 
          function meet_Identifier( node )
          /*{1.4*/{
@@ -335,6 +341,9 @@ if (typeof acorn.walk === 'undefined')
          build_bracket_tree( bA, ret.bracketTree );
          build_bracket_sep_split( bA, nakedCodeNoStrNoRx, code, reservedArr );
          build_bracket_var_leftstr_rightstr( bA, cA );
+
+
+         jMRA.push.apply( jMRA, bA.filter( function (b) /*{7ee*/{ return b.typebracket === /*sq*/'metaret'/**/; }/*}7ee*/ ) );
 
          /*dc*/// Mark which identifier instances are var declarations.
          
