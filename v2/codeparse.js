@@ -91,7 +91,11 @@ if (typeof acorn.walk === 'undefined')
 
 
 	 var /*vd*/cA/**/ = ret.commentArr
-         ,   /*vd*/ap/**/ = ret.rawAP = acorn.parse( code, /*{1.0*/{ jsm : true, onComment : pushComment }/*}1.0*/ )
+         ,   /*vd*/ap/**/ = ret.rawAP = acorn.parse( code, /*{1.0*/{ jsm : true
+                                                                     , onComment : pushComment
+                                                                     , jsmAllowMetaretOutsideFunction : opt  &&  opt.jsmAllowMetaretOutsideFunction
+                                                                     , allowReturnOutsideFunction     : opt  &&  opt.allowReturnOutsideFunction
+                                                                   }/*}1.0*/ )
          ;
 
          function pushComment( b, t, start, end  )

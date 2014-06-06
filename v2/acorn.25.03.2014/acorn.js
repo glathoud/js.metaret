@@ -1262,7 +1262,7 @@
         return parseJsmMetafun(node, true);
 
     case _jsm_metaret:
-      if (!jsmInMetafun)
+      if (!jsmInMetafun  &&  !options.jsmAllowMetaretOutsideFunction)
         raise(tokStart, "'metaret' outside of metafun");
       next();
 

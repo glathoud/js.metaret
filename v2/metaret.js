@@ -46,6 +46,8 @@ if (typeof cp2fmtree === 'undefined')
     , EXTRA_RESERVED_ARR = [ METAFUN, METARET ]
     ,  EXTRA_BRACKET_ARR  = [ { open : METARET, close : ';', typebracket : METARET, ignore_unbalanced : true } ]
     ,     CODEPARSE_OPT = { extraReservedArr : EXTRA_RESERVED_ARR, extraBracketArr : EXTRA_BRACKET_ARR }
+    ,     ALLOW_RET_OPT = { jsmAllowMetaretOutsideFunction : true, allowReturnOutsideFunction : true }
+    , CODEPARSE_ALLOW_RET_OPT = mixOwn( {}, CODEPARSE_OPT, ALLOW_RET_OPT )
     ;
 
     // ---------- Public API
@@ -182,7 +184,7 @@ if (typeof cp2fmtree === 'undefined')
         // https://github.com/glathoud/js.metaret/issues/11
         if (!is_fun)
         {
-            var body_cp = codeparse( body )
+            var body_cp = codeparse( body, ALLOW_RET_OPT )
             ,   body_argumentsArr = body_cp.identifierObj[ 'arguments' ]  ||  []
             ;
             if (body_argumentsArr.length)
@@ -619,7 +621,7 @@ if (typeof cp2fmtree === 'undefined')
 
     function _extractVar( /*string*/body )
     {
-        var cp = codeparse( body, CODEPARSE_OPT )
+        var cp = codeparse( body, CODEPARSE_ALLOW_RET_OPT )
         ,   iA = cp.identifierArr
         , ret = []
         ;
@@ -639,7 +641,7 @@ if (typeof cp2fmtree === 'undefined')
 
     function _checkExtractMetaret( /*string*/body, /*string*/self, /*string*/selfName )
     {
-        var cp = codeparse( body, CODEPARSE_OPT )
+        var cp = codeparse( body, CODEPARSE_ALLOW_RET_OPT )
         ,  beA = cp.bracketextraArr
         ,  ret = []
         ;
@@ -1053,6 +1055,19 @@ if (typeof cp2fmtree === 'undefined')
             ?  (fm.vardeclObj[ name ]  ?  fm  :  decl_scope( name, fm.parent ))
         :  null  // global variable
         ;
+    }
+
+    function mixOwn( /*...*/ )
+    {
+        var ret = arguments[ 0 ];
+        for (var i = 1, n = arguments.length; i < n; i++)
+        {
+            var one = arguments[ i ];
+            for (var k in one) { if (one.hasOwnProperty( k )) {
+                ret[ k ] = one[ k ];
+            }}
+        }
+        return ret;
     }
     
 })(this);
