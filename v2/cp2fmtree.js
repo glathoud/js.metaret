@@ -3,8 +3,8 @@
     // xxx common constants in a separate file
     var METAFUN        = 'jsmMetafun'
     ,   METARET        = 'jsmMetaret'
-    ,   FUNCTION_EXPRESSION       = 'FunctionExpression'
-    ,   FUNCTION_DECLARATION       = 'FunctionDeclaration'
+    ,   FUNCTION_EXPRESSION       = 'functionExpression'
+    ,   FUNCTION_DECLARATION       = 'functionDeclaration'
     ,   RESERVED       = 'reserved'
 
     ,   CALL    = 'call'
@@ -69,12 +69,11 @@
             var isFunction     = one.type === FUNCTION_EXPRESSION  ||  one.type === FUNCTION_DECLARATION
             ,   isMetafunction = one.type === METAFUN
 
-            ,   isAnonymousFunction = isFunction  &&  at[ i+1 ].type === TYPE_BRACKET
+            ,   isAnonymousFunction = isFunction  &&  !one.name
             ;
 
 
-            if (((isFunction  ||  isMetafunction)  &&  at[ i+1 ].type !== TYPE_BRACKET)  ||
-                isAnonymousFunction)
+            if (isAnonymousFunction  ||  isFunction  ||  (isMetafunction  &&  at[ i+1 ].type !== TYPE_BRACKET))
             {
                 var begin = one.begin
                 ,   end
@@ -93,10 +92,21 @@
                     dot_arr = one.name.split( '.' );
                 }
                 
-                if (one.children.length !== 2)
+                var ocnc = one.children.filter( function (c) { return c.type !== 'comment'; } )
+                ,   c0   = ocnc[ 0 ]
+                ;
+                if (c0.type === 'call')
+                {
+                    if (c0.name !== one.name)
+                        throw new Error( 'Inconsistency! Probably a bug here.' );
+
+                    ocnc.shift();
+                }
+                
+                if (ocnc.length !== 2)
                     throw new Error( 'Unexpected metafun declaration or function declaration' );
 
-                var param_node = one.children[ 0 ]
+                var param_node = ocnc[ 0 ]
                 ,   param_arr  = param_node.sepSplit.map( strip_comment_and_space )
                 ,   param_set  = {}
                 ;
@@ -104,7 +114,7 @@
                     param_set[ param_arr[ pi ] ] = 1;
                                
 
-                var body_node = one.children[ 1 ]
+                var body_node = ocnc[ 1 ]
                 ,   end       = body_node.end
                 ,   body      = body_node.str
 

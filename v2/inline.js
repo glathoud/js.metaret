@@ -12,7 +12,12 @@ if (typeof cp2fmtree === 'undefined')
     , CODEPARSE_OPT = { 
         extraReservedArr  : [ INLINE ]
     }
-
+    , CODEPARSE_OPT_BODY = {
+        extraReservedArr  : [ INLINE ]
+        , jsmAllowMetaretOutsideFunction : true
+        , allowReturnOutsideFunction : true 
+    }
+    
     , VARASSIGN = 'varassign'
     ,    ASSIGN = 'assign'
     ,      CALL = 'call'
@@ -325,7 +330,7 @@ if (typeof cp2fmtree === 'undefined')
         , body_length = body_end - body_begin
         , toReplace = []
 
-        , body_cp = codeparse( body, CODEPARSE_OPT )
+        , body_cp = codeparse( body, CODEPARSE_OPT_BODY )
         ;
         
         // Prepare: Will replace variable names

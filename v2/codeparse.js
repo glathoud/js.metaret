@@ -76,6 +76,7 @@ if (typeof acorn.walk === 'undefined')
              /*dc*/// JSM extensions
              , jsmMetafunArr  : []
              , jsmMetaretArr  : []
+             , jsmInlineArr   : []
 
              /*dc*/// Raw result of acorn.parse
              , rawAP : null
@@ -120,6 +121,7 @@ if (typeof acorn.walk === 'undefined')
 
          ,   /*vd*/jMFA/**/ = ret.jsmMetafunArr
          ,   /*vd*/jMRA/**/ = ret.jsmMetaretArr
+         ,   /*vd*/jINA/**/ = ret.jsmInlineArr
          
          /*dc*/// Detect strings and RegExps, and produce a "nakedCodeNoStrNoRx"
          /*dc*/// string where they've all been replaced with spaces.
@@ -131,6 +133,7 @@ if (typeof acorn.walk === 'undefined')
              , FunctionDeclaration   : meet_FunctionDeclaration
              , FunctionExpression    : meet_FunctionExpression
              , Identifier            : meet_Identifier
+             , JsmInlineStatement    : meet_JsmInlineStatement
              , JsmMetafunDeclaration : meet_JsmMetafunDeclaration
              , JsmMetafunExpression  : meet_JsmMetafunExpression
              , Literal               : meet_Literal
@@ -200,7 +203,11 @@ if (typeof acorn.walk === 'undefined')
                          break;
                      }/*}1.3.2.2.2*/
                  }/*}1.3.2.2*/
-             }/*}1.3.2*/            
+             }/*}1.3.2*/     
+             else if (callee.type === /*dq*/"FunctionExpression"/**/)
+             /*{1.3.3*/{
+                 /*dc*/// No need to do anything here
+             }/*}1.3.3*/
              else
                  throw new Error( /*dq*/"bug"/**/ );
          }/*}1.3*/
@@ -228,8 +235,28 @@ if (typeof acorn.walk === 'undefined')
          /*{1.37*/{
              node.params.forEach( meet_Identifier );
 
-             feA.push( /*{1.35.2*/{ begin : node.start, str : nakedCode.substring( node.start, node.end ), type : node.type, name : name, acornNode : node }/*}1.35.2*/ );
+             var /*vd*/begin/**/ = node.start
+             ,   /*vd*/end/**/   = node.end
+             ,   /*vd*/str/**/
+             ;
+             while (!/*rr*//^function//**/.test( str = nakedCode.substring( begin, end )))
+             /*{1.37.1*/{
+                 var /*vd*/mo_begin/**/ = /*rr*//^\s*\(\s*//**/.exec( str )
+                 ,   /*vd*/mo_end/**/   = /*rr*//\s*\)\s*$//**/.exec( str )
+                 ;
+                 begin += mo_begin[ 0 ].length;
+                 end   -= mo_end[ 0 ].length;
+                 if (begin > end)
+                     throw new Error( /*sq*/'bug'/**/)
+             }/*}1.37.1*/
+             
+             feA.push( /*{1.37.2*/{ begin : begin, str : str, type : node.type, name : name, acornNode : node }/*}1.37.2*/ );
          }/*}1.37*/
+
+         function meet_JsmInlineStatement( node)
+         /*{1.380*/{
+             jINA.push( /*{1.380.1*/{ begin : node.start, end : node.end, str : nakedCode.substring( node.start, node.end ), type : node.type, name : /*sq*/'inline'/**/, acornNode : node }/*}1.380.1*/ );
+         }/*}1.380*/
 
          function meet_JsmMetafunDeclaration( node )
          /*{1.381*/{

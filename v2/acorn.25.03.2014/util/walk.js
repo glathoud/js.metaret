@@ -297,6 +297,22 @@
   base.JsmMetaretStatement = function(node, st, c) {
     c(node.argument, st, "Expression");
   };
+  base.JsmInlineStatement = function(node, st, c) {
+      if (node.jsmVarDeclId)
+      {
+          c(node.jsmVarDeclId, st);
+          c(node.jsmVarDeclInit, st);
+      }
+      else if (node.jsmAssignLeft)
+      {
+          c(node.jsmAssignLeft, st);
+          c(node.jsmAssignRight, st);
+      }
+      else
+      {
+          c(node.jsmCall, st);
+      }     
+  };
     // ---END: JSM extension (see also ../acorn.js)
 
 
