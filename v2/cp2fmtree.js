@@ -73,7 +73,7 @@
             ;
 
 
-            if (isAnonymousFunction  ||  isFunction  ||  (isMetafunction  &&  at[ i+1 ].type !== TYPE_BRACKET))
+            if (isAnonymousFunction  ||  isFunction  ||  isMetafunction)
             {
                 var begin = one.begin
                 ,   end

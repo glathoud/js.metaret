@@ -231,10 +231,18 @@ if (typeof cp2fmtree === 'undefined')
         ,   identifier   // identifier (optional)
         ,   call         // call       (mandatory)
         ,   args         // call args  (mandatory)
+
+        ,   oc_length = o.children.length
+
+        ,   oc_0 = o.children[ 0 ]
+        ,   oc_1 = o.children[ 1 ]
+        ,   oc_2 = o.children[ 2 ]
         ;
 
-        if ((call = all[ ind+1 ]).type === CALL  &&  
-            (args = all[ ind+2 ]).type === BRACKET  &&  args.typebracket === ROUND)
+        if (oc_length === 2  &&  
+            (call = oc_0).type === CALL  &&  
+            (args = oc_1).type === BRACKET  &&  args.typebracket === ROUND
+           )
         {
             return {
                 o            : o
@@ -245,9 +253,10 @@ if (typeof cp2fmtree === 'undefined')
             };
         }
 
-        if ((identifier = all[ ind+1 ]).type === IDENTIFIER  &&  
-            (call = all[ ind+2 ]).type === CALL  &&  
-            (args = all[ ind+3 ]).type === BRACKET  &&  args.typebracket === ROUND  &&  
+        if (oc_length === 3  &&
+            (identifier = oc_0).type  === IDENTIFIER  &&  
+            (call = oc_1).type === CALL  &&  
+            (args = oc_2).type === BRACKET  &&  args.typebracket === ROUND  &&
             /=/.test( code.substring( identifier.end, call.begin )))
         {
             return {
@@ -261,11 +270,12 @@ if (typeof cp2fmtree === 'undefined')
         }
 
         var vc;
-        if ((v = all[ ind+1 ]).type === BRACKET   &&  v.typebracket === VAR  &&
-            (vc = v.children).length === 4  &&
-            (identifier = vc[ 1 ]).type === VARDECL  &&  
-            (call       = vc[ 2 ]).type === CALL  &&  
-            (args       = vc[ 3 ]).type === BRACKET  &&  args.typebracket === ROUND  &&  
+        if (oc_length === 1  &&
+            (v = oc_0).type === BRACKET   &&  v.typebracket === VAR  &&
+            (vc = v.children).length === 3  &&
+            (identifier = vc[ 0 ]).type === VARDECL  &&  
+            (call       = vc[ 1 ]).type === CALL  &&  
+            (args       = vc[ 2 ]).type === BRACKET  &&  args.typebracket === ROUND  &&  
             /=/.test( code.substring( identifier.end, call.begin )))
         {
             return {

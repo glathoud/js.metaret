@@ -97,7 +97,7 @@
         // 
         //  * to inline any function that does not have any closure.
         // 
-        assert( "2 === inline( 'function f() { return g(); function g() { var ret = inline i(); return ret; } }  function h() { function i() { \"i-body\"; } }' ).match( /i-body/g ).length" );
+        assert( "2 === inline( 'function f() { return g(); function g() { inline var ret = i(); return ret; } }  function h() { function i() { \"i-body\"; } }' ).match( /i-body/g ).length" );
         //  * to share bound variables as long as they are defined
         // within a scope shared by the source body and the target
         // inline location.
@@ -124,12 +124,12 @@
         // https://github.com/glathoud/js.metaret/issues/9
         // error messages for beginner
 
-        ensure_error( 'var jscode = jsm2js("function () { metaret; }");'
+        ensure_error( 'var jscode = jsm2js("function f() { metaret; }");'
                       , function (error) 
                       { 
                           var msg = '' + error;
-                          return /\berror\b/i.test( msg )  &&  /\bjsm2js\b/i.test( msg )  && /\bmetafun\b/i.test( msg )  &&  /\bmetaret\b/i.test( msg )  &&
-                              /leftover/i.test( msg );
+                          return /\bsyntaxerror\b/i.test( msg )  && /\bmetaret\b/i.test( msg )  &&
+                              /\boutside\b/i.test( msg )  &&  /\bmetafun\b/i.test( msg );
                       }
                     );
 
