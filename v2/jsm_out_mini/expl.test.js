@@ -8,6 +8,17 @@
 
         
 
+        // https://github.com/glathoud/js.metaret/issues/16
+        // RegExp parsing should work fine based on acorn.
+        
+        var cp = codeparse( 'var a = b / c; var d = e / f;' );
+        if (0 !== cp.regexpArr.length)
+            throw new Error( 'RegExp: false positive!' );
+
+        var cp = codeparse('a = b' + '\n' + '/hi/g.exec(c).map(d);' );  // Based on the remarks at the beginning of section 7 of the ECMAscript 5 spec.
+        if (0 !== cp.regexpArr.length)
+            throw new Error( 'RegExp: false positive!' );
+        
         // ---
 
         'undefined' !== typeof console  &&  console.log('All tests passed.');
