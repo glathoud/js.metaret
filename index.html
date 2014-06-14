@@ -14,8 +14,10 @@ h1, h2, h3 { margin-top: 3em; }
 .anchor { margin-left: 0.5em; }
 @media only screen { .screen-hidden, .print { display: none; } }
 </style>
-<script type="text/javascript" src="lightparse.js"></script>
-<script type="text/javascript" src="lp2fmtree.js"></script>
+<script type="text/javascript" src="acorn.25.03.2014/acorn.js"></script>
+<script type="text/javascript" src="acorn.25.03.2014/util/walk.js"></script>
+<script type="text/javascript" src="codeparse.js"></script>
+<script type="text/javascript" src="cp2fmtree.js"></script>
 <script type="text/javascript" src="metaret.js"></script>
 <script type="text/js-metaret-decl" id="metaret-decls">
 /* 
@@ -33,9 +35,9 @@ code in an hygienic manner (renaming variables to avoid collisions).
 Inlining also reduces the number of function calls to a bare minimum,
 which improves runtime performance in many cases.
 
-Sources: <a href="metaret.js">metaret.js</a>  and  <a href="lightparse.js">lightparse.js</a> - MIT <a href="LICENSE.TXT">license</a>
+Sources: <a href="metaret.js">metaret.js</a>  and  <a href="codeparse.js">codeparse.js</a> - MIT <a href="LICENSE.TXT">license</a>
 
-Tests: The present page, and <a href="lightparse_test.html">lightparse_test.html</a>
+Tests: The present page, and <a href="codeparse_test.html">codeparse_test.html</a>
 
 */
 

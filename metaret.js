@@ -1,4 +1,4 @@
-/*global document console load lightparse need$ lp2fmtree JSON*/
+/*global document console load codeparse need$ cp2fmtree JSON*/
 
 // Guillaume Lathoud, 2011, 2013, MIT License, see ./LICENSE.TXT
 // 
@@ -30,11 +30,11 @@
 //
 // [tomrec] http://glat.info/jscheck/tomrec_prod.html
 
-if (typeof lightparse === 'undefined')
-    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lightparse.js" );
+if (typeof codeparse === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "codeparse.js" );
 
-if (typeof lp2fmtree === 'undefined')
-    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lp2fmtree.js" );
+if (typeof cp2fmtree === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "cp2fmtree.js" );
 
 ;(function (global) {
 
@@ -45,7 +45,9 @@ if (typeof lp2fmtree === 'undefined')
     , METARET        = 'metaret'
     , EXTRA_RESERVED_ARR = [ METAFUN, METARET ]
     ,  EXTRA_BRACKET_ARR  = [ { open : METARET, close : ';', typebracket : METARET, ignore_unbalanced : true } ]
-    ,     LIGHTPARSE_OPT = { extraReservedArr : EXTRA_RESERVED_ARR, extraBracketArr : EXTRA_BRACKET_ARR }
+    ,     CODEPARSE_OPT = { extraReservedArr : EXTRA_RESERVED_ARR, extraBracketArr : EXTRA_BRACKET_ARR }
+    ,     ALLOW_RET_OPT = { jsmAllowMetaretOutsideFunction : true, allowReturnOutsideFunction : true }
+    , CODEPARSE_ALLOW_RET_OPT = mixOwn( {}, CODEPARSE_OPT, ALLOW_RET_OPT )
     ;
 
     // ---------- Public API
@@ -55,13 +57,13 @@ if (typeof lp2fmtree === 'undefined')
     global.metaparse     = metaparse;     // Returns nothing. Search for script tags with type="text/js-metaret", parse and apply them.
 
     // convenience access to constants
-    metaparse.get_LIGHTPARSE_OPT = metaparse_get_LIGHTPARSE_OPT;
+    metaparse.get_CODEPARSE_OPT = metaparse_get_CODEPARSE_OPT;
     metaparse.get_CONST          = metaparse_get_CONST;
 
-    function metaparse_get_LIGHTPARSE_OPT() 
+    function metaparse_get_CODEPARSE_OPT() 
     {
         // Safe deep copy using a hammer.
-        return JSON.parse( JSON.stringify( LIGHTPARSE_OPT ) ); 
+        return JSON.parse( JSON.stringify( CODEPARSE_OPT ) ); 
     }
 
     function metaparse_get_CONST()
@@ -69,7 +71,7 @@ if (typeof lp2fmtree === 'undefined')
         return {
             'METAFUN'   : METAFUN
             , 'METARET' : METARET
-            , 'LIGHTPARSE_OPT' : metaparse_get_LIGHTPARSE_OPT()
+            , 'CODEPARSE_OPT' : metaparse_get_CODEPARSE_OPT()
         };
     }
     
@@ -96,8 +98,8 @@ if (typeof lp2fmtree === 'undefined')
                 continue;
             
             var metacode = sString  ?  s  :  s.textContent  ||  s.innerText
-            ,   lp       = lightparse( metacode, LIGHTPARSE_OPT )
-            ,   fmtree   = lp2fmtree( lp )
+            ,   cp       = codeparse( metacode, CODEPARSE_OPT )
+            ,   fmtree   = cp2fmtree( cp )
             ;
             rec_decl( fmtree, /*isTop:*/true, name2info, ret, opt );
         }
@@ -182,8 +184,8 @@ if (typeof lp2fmtree === 'undefined')
         // https://github.com/glathoud/js.metaret/issues/11
         if (!is_fun)
         {
-            var body_lp = lightparse( body )
-            ,   body_argumentsArr = body_lp.identifierObj[ 'arguments' ]  ||  []
+            var body_cp = codeparse( body, ALLOW_RET_OPT )
+            ,   body_argumentsArr = body_cp.identifierObj[ 'arguments' ]  ||  []
             ;
             if (body_argumentsArr.length)
                 throw new Error( 'metafun error: it is forbidden to use `arguments` in the body of the metafun (because the body of the metafun may end up being inlined within a `while` loop).' );
@@ -619,8 +621,8 @@ if (typeof lp2fmtree === 'undefined')
 
     function _extractVar( /*string*/body )
     {
-        var lp = lightparse( body, LIGHTPARSE_OPT )
-        ,   iA = lp.identifierArr
+        var cp = codeparse( body, CODEPARSE_ALLOW_RET_OPT )
+        ,   iA = cp.identifierArr
         , ret = []
         ;
         for (var n = iA.length, i = 0; i < n; i++)
@@ -639,8 +641,8 @@ if (typeof lp2fmtree === 'undefined')
 
     function _checkExtractMetaret( /*string*/body, /*string*/self, /*string*/selfName )
     {
-        var lp = lightparse( body, LIGHTPARSE_OPT )
-        ,  beA = lp.bracketextraArr
+        var cp = codeparse( body, CODEPARSE_ALLOW_RET_OPT )
+        ,  beA = cp.bracketextraArr
         ,  ret = []
         ;
 
@@ -826,10 +828,10 @@ if (typeof lp2fmtree === 'undefined')
         ;
         for (var i = metaretArr.length; i--; )   // Downward order important
         {
-            var metaret = metaretArr[ i ]
+            var oneMetaret = metaretArr[ i ]
 
-            , before    = ret.slice( 0, metaret.start )
-            , after     = ret.slice( metaret.end )
+            , before    = ret.slice( 0, oneMetaret.start )
+            , after     = ret.slice( oneMetaret.end )
             ;
 
             // If there was a comment right on the metaret line,
@@ -843,25 +845,25 @@ if (typeof lp2fmtree === 'undefined')
                 after         =  after.substring( after_comment.length );
             }
             
-            var code = prepareCode( metaret, after_comment );
+            var code = prepareCode( oneMetaret, after_comment );
             
             ret = before + code + after;
         }
         
         return ret;
 
-        function prepareCode( metaret, after_comment )
+        function prepareCode( oneMetaret, after_comment )
         {
             var code   = []
-            , info     = name2info_get( name2info, metaret.action, metaret.namespace_arr )
+            , info     = name2info_get( name2info, oneMetaret.action, oneMetaret.namespace_arr )
             , paramArr = info.paramArr
-            , exprArr  = metaret.exprArr
+            , exprArr  = oneMetaret.exprArr
             ;
             
             if (paramArr.length !== exprArr.length)
             {
                 throw new Error( 'MetaFunction : _replaceMetaretWithContinue : prepareCode : Invalid number of metaret arguments, action  "' + 
-                                 metaret.action + '" expects ' + paramArr.length + ' arguments, but ' + exprArr.length + ' were given.'
+                                 oneMetaret.action + '" expects ' + paramArr.length + ' arguments, but ' + exprArr.length + ' were given.'
                                );
             }
 
@@ -899,10 +901,10 @@ if (typeof lp2fmtree === 'undefined')
 
                 var nameArr  = label_or_nameArr;
 
-                if (metaret.action === metaretArr.selfName)
+                if (oneMetaret.action === metaretArr.selfName)
                 {
                     // Actually a self-recursion (switch style)
-                    code.push( 'continue ' + nameArr.switchLabel + '; // --- stay in: ' + metaret.action );
+                    code.push( 'continue ' + nameArr.switchLabel + '; // --- stay in: ' + oneMetaret.action );
                 }
                 else
                 {
@@ -911,11 +913,11 @@ if (typeof lp2fmtree === 'undefined')
                     if (0 > switch_ind)
                     {
                         throw new Error('MetaFunction : _replaceMetaretWithContinue : prepareCode : Found a bug! Could not find the switch index of action "' +
-                                        metaret.action + '"' 
+                                        oneMetaret.action + '"' 
                                        );
                     }
                     
-                    code.push( nameArr.switch_ind_name + ' = ' + switch_ind + '; // --- go to: ' + metaret.action );
+                    code.push( nameArr.switch_ind_name + ' = ' + switch_ind + '; // --- go to: ' + oneMetaret.action );
                     code.push( 'continue ' + nameArr.switchLabel + ';' );
                 }
             }   
@@ -1053,6 +1055,19 @@ if (typeof lp2fmtree === 'undefined')
             ?  (fm.vardeclObj[ name ]  ?  fm  :  decl_scope( name, fm.parent ))
         :  null  // global variable
         ;
+    }
+
+    function mixOwn( /*...*/ )
+    {
+        var ret = arguments[ 0 ];
+        for (var i = 1, n = arguments.length; i < n; i++)
+        {
+            var one = arguments[ i ];
+            for (var k in one) { if (one.hasOwnProperty( k )) {
+                ret[ k ] = one[ k ];
+            }}
+        }
+        return ret;
     }
     
 })(this);

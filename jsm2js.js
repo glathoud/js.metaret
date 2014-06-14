@@ -1,12 +1,12 @@
-/*global metaparse jsm2js lp2fmtree lightparse need$ load*/
+/*global metaparse jsm2js cp2fmtree codeparse need$ load console*/
 
 // Support both use cases: browser development (example: jsm_dev) and
 // command-line transformation (example: jsm_dev -> jsm_out).
-if (typeof lightparse === 'undefined')
-    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lightparse.js" );
+if (typeof codeparse === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "codeparse.js" );
 
-if (typeof lp2fmtree === 'undefined')
-    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lp2fmtree.js" );
+if (typeof cp2fmtree === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "cp2fmtree.js" );
 
 if (typeof metaparse === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "metaret.js" );
@@ -83,23 +83,23 @@ if (typeof metaparse === 'undefined')
     {
         CONST  ||  (CONST = metaparse.get_CONST());
         
-        var lp = lightparse( jscode, CONST.LIGHTPARSE_OPT )
-        ,   fm = lp2fmtree( lp )
-        ,   rO = lp.reservedObj
-        ,   mfunArr = (rO[ CONST.METAFUN ]  ||  []).map( enrich )
-        ,   mretArr = (rO[ CONST.METARET ]  ||  []).map( enrich )
+        var cp = codeparse( jscode, CONST.CODEPARSE_OPT )
+        ,   fm = cp2fmtree( cp )
+        ,   mretArr = cp.jsmMetaretArr  ||  []
+        ,   mfunArr = cp.jsmMetafunArr  ||  []
         ;
         
         if (mfunArr.length  ||  mretArr.length)
         {
             // Consider looking at `mfunArr` and `mretArr`
             // for detailed information useful to debug.
-
-            throw new Error( 'jsm2js:check_leftover: found remaining `metafun` and/or `metaret` within function(s): ' + 
-                             (
-                                 (mfunArr.concat( mretArr ).map( function (x) { return x.containing_function.fullname; }))
-                                     .join(',')
-                             ) +
+            
+            if ('undefined' !== typeof console)
+            {
+                console.error( 'mfunArr:', mfunArr );
+                console.error( 'mretArr:', mretArr );
+            }
+            throw new Error( 'jsm2js:check_leftover: found remaining `metafun` and/or `metaret` within function(s): ' +
                              ' - Please check for basic errors. For example a `metaret` can only be used from within a `metafun`.' +
                              ' See also github issue #9: https://github.com/glathoud/js.metaret/issues/9'
                            );

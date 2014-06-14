@@ -1,12 +1,12 @@
-/*global minify need$ load lightparse lp2fmtree*/
+/*global minify need$ load codeparse cp2fmtree*/
 
 // Support both use cases: browser development (example: jsm_dev) and
 // command-line transformation (example: jsm_dev -> jsm_out).
-    if (typeof lightparse === 'undefined')
-        (typeof need$ !== 'undefined'  ?  need$  :  load)( "lightparse.js" );
+if (typeof codeparse === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "codeparse.js" );
 
-if (typeof lp2fmtree === 'undefined')
-    (typeof need$ !== 'undefined'  ?  need$  :  load)( "lp2fmtree.js" );
+if (typeof cp2fmtree === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "cp2fmtree.js" );
 
 (function (global) {
 
@@ -26,21 +26,21 @@ if (typeof lp2fmtree === 'undefined')
         var current = code.length
         ,   newcode = code
 
-        ,      lp = lightparse( code )
-        ,  fmtree = lp2fmtree( lp )
-        ,  unused = fmtree2unused( lp, fmtree )
+        ,      cp = codeparse( code )
+        ,  fmtree = cp2fmtree( cp )
+        ,  unused = fmtree2unused( cp, fmtree )
         ;
         remove_unused( unused );
 
-        lp     = lightparse( newcode );
-        fmtree = lp2fmtree( lp );
-        remove_comments( lp.commentArr );
+        cp     = codeparse( newcode );
+        fmtree = cp2fmtree( cp );
+        remove_comments( cp.commentArr );
 
         // xxx        newcode = shorten_local_names( newcode );
 
-        lp     = lightparse( newcode );
-        fmtree = lp2fmtree( lp );
-        minify_all( lp.all );
+        cp     = codeparse( newcode );
+        fmtree = cp2fmtree( cp );
+        minify_all( cp.all );
 
 
         return newcode.replace( /^\s+/, '' );
@@ -127,7 +127,7 @@ if (typeof lp2fmtree === 'undefined')
         }
 
 
-        function fmtree2unused( lp, fmtree, unused )
+        function fmtree2unused( cp, fmtree, unused )
         {
             unused || (unused = []);
 
@@ -136,15 +136,15 @@ if (typeof lp2fmtree === 'undefined')
                 var fm = fmtree[ i ];
                 if (fm.lastname  &&  !fm.isAnonymousFunction  &&  // if has a name
                     fm.parent  &&                                 // ...and not a global declaration...
-                    !lp.identifierObj[ fm.lastname ] &&          // ...and is never used
-		    !lp.callObj[ fm.lastname ])
+                    !cp.identifierObj[ fm.lastname ] &&          // ...and is never used
+		    !cp.callObj[ fm.lastname ])
                 {
                     unused.push( fm );
                 }
                 else if (fm.children)
                 {
                     // Walk deeper
-                    fmtree2unused( lp, fm.children, unused );
+                    fmtree2unused( cp, fm.children, unused );
                 }
             }
             
@@ -164,7 +164,7 @@ if (typeof lp2fmtree === 'undefined')
         {
             // Top-level: functional
 
-            var fmtree = lp2fmtree( lightparse( code ) )
+            var fmtree = cp2fmtree( codeparse( code ) )
             ,   allIds = walk_get_all_idnames( fmtree )
             ;
 

@@ -12,12 +12,12 @@ from jsm_build import main
 from jsm_const import D8
 
 
-ret = subprocess.check_output( [ D8, '-e', 'load("lightparse_test.js");print(lightparse_test());' ],
+ret = subprocess.check_output( [ D8, '-e', 'load("codeparse_test.js");print(codeparse_test());' ],
                                stderr=subprocess.STDOUT,
                                universal_newlines = True
                                ).strip()
-assert ret == 'true', 'lightparse_test failed'
-print("--- lightparse_test succeeded ---")
+assert ret == 'true', 'codeparse_test failed'
+print("--- codeparse_test succeeded ---")
 
 main( [ 'jsm_dev/example_development.jsm' ] )
 main( [ 'jsm_dev/expl.js' ] )
