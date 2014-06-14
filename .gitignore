@@ -7,5 +7,7 @@ _notes.org
 */*.ps
 jsm_out
 jsm_out*/*
+v2/jsm_out
+v2/jsm_out*/*
 __pycache__
 *.pyc

@@ -250,7 +250,7 @@ if (typeof acorn.walk === 'undefined')
                      throw new Error( /*sq*/'bug'/**/)
              }/*}1.37.1*/
              
-             feA.push( /*{1.37.2*/{ begin : begin, str : str, type : node.type, name : name, acornNode : node }/*}1.37.2*/ );
+             feA.push( /*{1.37.2*/{ begin : begin, str : str, type : node.type, name : node.id ? node.id.name : /*sq*/''/**/, acornNode : node }/*}1.37.2*/ );
          }/*}1.37*/
 
          function meet_JsmInlineStatement( node)

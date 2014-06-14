@@ -24,7 +24,7 @@ var need$, read;
 
 
 {
-/*global metaparse jsm2js lp2fmtree codeparse need$ load*/
+/*global metaparse jsm2js cp2fmtree codeparse need$ load console*/
 
 // Support both use cases: browser development (example: jsm_dev) and
 // command-line transformation (example: jsm_dev -> jsm_out).
@@ -34,6 +34,8 @@ if (typeof codeparse === 'undefined')
 
 
 {
+/*global acorn need$ load*/
+
 if (typeof acorn === 'undefined')
     
 //#BUILD_BEGIN_FILE: "acorn.25.03.2014/acorn.js"
@@ -147,7 +149,10 @@ if (typeof acorn === 'undefined')
     sourceFile: null,
     // This value, if given, is stored in every node, whether
     // `locations` is on or off.
-    directSourceFile: null
+      directSourceFile: null,
+
+      // JSM extension of the language (metafun, metaret, inline and dotted function names in function declarations)
+      jsm: false
   };
 
   function setOptions(opts) {
@@ -266,6 +271,9 @@ if (typeof acorn === 'undefined')
 
   var inFunction, labels, strict;
 
+    // JSM extension for metafunctions
+    var jsmInMetafun;
+
   // This function is used to raise exceptions on parse errors. It
   // takes an offset integer (into the current `input`) to indicate
   // the location of the error, attaches the position to the end
@@ -321,6 +329,12 @@ if (typeof acorn === 'undefined')
   var _while = {keyword: "while", isLoop: true}, _with = {keyword: "with"}, _new = {keyword: "new", beforeExpr: true};
   var _this = {keyword: "this"};
 
+    // JSM: Additional keywords
+    var _jsm_metafun = {keyword: "metafun"}
+    , _jsm_metaret = {keyword: "metaret", beforeExpr: true}
+    , _jsm_inline  = {keyword: "inline"}
+    ;
+
   // The keywords that denote values.
 
   var _null = {keyword: "null", atomValue: null}, _true = {keyword: "true", atomValue: true};
@@ -343,7 +357,15 @@ if (typeof acorn === 'undefined')
                       "instanceof": {keyword: "instanceof", binop: 7, beforeExpr: true}, "this": _this,
                       "typeof": {keyword: "typeof", prefix: true, beforeExpr: true},
                       "void": {keyword: "void", prefix: true, beforeExpr: true},
-                      "delete": {keyword: "delete", prefix: true, beforeExpr: true}};
+                      "delete": {keyword: "delete", prefix: true, beforeExpr: true},
+                     };
+
+    // JSM extension
+    var jsmKeywordTypes = {
+	"metafun": _jsm_metafun, "metaret": _jsm_metaret, "inline": _jsm_inline
+    };
+
+    
 
   // Punctuation token types. Again, the `type` property is purely for debugging.
 
@@ -399,6 +421,7 @@ if (typeof acorn === 'undefined')
   // predicate from a space-separated string of words.
   //
   // It starts by sorting the words by length.
+
 
   function makePredicate(words) {
     words = words.split(" ");
@@ -458,6 +481,9 @@ if (typeof acorn === 'undefined')
   // And the keywords.
 
   var isKeyword = makePredicate("break case catch continue debugger default do else finally for function if return switch throw try var while with null true false instanceof typeof void delete new in this");
+
+    // JSM extension
+    var isKeywordJsm = makePredicate("metafun metaret inline");
 
   // ## Character categories
 
@@ -982,13 +1008,17 @@ if (typeof acorn === 'undefined')
   // Read an identifier or keyword token. Will check for reserved
   // words when necessary.
 
-  function readWord() {
-    var word = readWord1();
-    var type = _name;
-    if (!containsEsc && isKeyword(word))
-      type = keywordTypes[word];
-    return finishToken(type, word);
-  }
+    function readWord() {
+        var word = readWord1();
+        var type = _name;
+        if (!containsEsc) {
+            if (isKeyword(word))
+                type = keywordTypes[word];
+            else if (options.jsm && isKeywordJsm(word))
+                type = jsmKeywordTypes[word];
+        }
+        return finishToken(type, word);
+    }
 
   // ## Parser
 
@@ -1267,6 +1297,28 @@ if (typeof acorn === 'undefined')
       node.alternate = eat(_else) ? parseStatement() : null;
       return finishNode(node, "IfStatement");
 
+    case _jsm_inline:
+        next();
+        return parseJsmInline(node);
+
+    case _jsm_metafun:
+        next();
+        return parseJsmMetafun(node, true);
+
+    case _jsm_metaret:
+      if (!jsmInMetafun  &&  !options.jsmAllowMetaretOutsideFunction)
+        raise(tokStart, "'metaret' outside of metafun");
+      next();
+
+      // In `return` (and `break`/`continue`), the keywords with
+      // optional arguments, we eagerly look for a semicolon or the
+      // possibility to insert one.
+
+      if (eat(_semi) || canInsertSemicolon()) node.argument = null;
+      else { node.argument = parseExpression(); semicolon(); }
+      return finishNode(node, "JsmMetaretStatement");
+
+
     case _return:
       if (!inFunction && !options.allowReturnOutsideFunction)
         raise(tokStart, "'return' outside of function");
@@ -1454,6 +1506,56 @@ if (typeof acorn === 'undefined')
     labels.pop();
     return finishNode(node, "ForInStatement");
   }
+
+    // JSM extension: inline var x = f();  or  inline f();  or  inline x = f();
+
+    function parseJsmInline( node )
+    {
+        if (tokType === _var)
+        {
+            var varDecl = parseStatement();
+            
+            if (varDecl.type !== "VariableDeclaration")  
+                throw new Error("parseJsmInline: incorrect variable declaration.");
+
+            if (varDecl.declarations.length !== 1)  
+                throw new Error("parseJsmInline: VariableDeclaration: only a single variable declaration!");
+
+            var d = varDecl.declarations[ 0 ];
+            node.jsmVarDeclId   = d.id;
+            node.jsmVarDeclInit = d.init;
+
+            if (node.jsmVarDeclInit.type !== "CallExpression")
+                throw new Error("parseJsmInline: VariableDeclaration: only the form 'inline var x = f(); is permitted.");
+        }
+        else
+        {
+            var stmt = parseStatement();
+            if (stmt.type !== "ExpressionStatement")   
+                throw new Error("parseJsmInline: ExpressionStatement: either var or expression stmt.");
+            var expr = stmt.expression
+            ,   expr_type = expr.type
+            ;
+            if (expr_type !== "AssignmentExpression"  &&  expr_type !== "CallExpression")
+                throw new Error("parseJsmInline: ExpressionStatement: either AssignmentExpression or CallExpression!");
+
+            if (expr_type === "AssignmentExpression")
+            {
+                if (expr.left.type !== "Identifier"  ||  expr.right.type !== "CallExpression")
+                    throw new Error("parseJsmInline: ExpressionStatement: only the form 'inline x = f(); is permitted.");
+
+                node.jsmAssignLeft  = expr.left;
+                node.jsmAssignRight = expr.right;
+            }
+            else
+            {
+                node.jsmCall = expr;
+            }
+        }
+        
+        return finishNode(node, "JsmInlineStatement");
+    }
+    
 
   // Parse a list of variable declarations.
 
@@ -1740,13 +1842,30 @@ if (typeof acorn === 'undefined')
     return parseIdent(true);
   }
 
+    // JSM extension: parse a metafunction
+    function parseJsmMetafun(node, isStatement)
+    {
+        if (!isStatement)
+            throw new Error( 'metafunction can only be declarations, not expressions.' );
+
+        var isJsmMetafunction = true;
+        return parseFunction(node, isStatement, isJsmMetafunction);
+    }
+
   // Parse a function declaration or literal (depending on the
   // `isStatement` parameter).
 
-  function parseFunction(node, isStatement) {
-    if (tokType === _name) node.id = parseIdent();
-    else if (isStatement) unexpected();
-    else node.id = null;
+    function parseFunction(node, isStatement, isJsmMetafunction) {
+        if (!isJsmMetafunction) {
+            if (tokType === _name) node.id = parseIdent();
+            else if (isStatement) unexpected();
+            else node.id = null;
+        }
+        else {
+            // JSM extension: `metafun <identifier or dotted identifier>(...){...}`
+            if (tokType !== _name) unexpected();
+            node.id = parseJsmIdentifierOrDottedIdentifer();
+        }
     node.params = [];
     var first = true;
     expect(_parenL);
@@ -1757,10 +1876,10 @@ if (typeof acorn === 'undefined')
 
     // Start a new scope with regard to labels and the `inFunction`
     // flag (restore them to their old value afterwards).
-    var oldInFunc = inFunction, oldLabels = labels;
-    inFunction = true; labels = [];
-    node.body = parseBlock(true);
-    inFunction = oldInFunc; labels = oldLabels;
+        var oldInFunc = inFunction, oldLabels = labels, oldJsmInMetafun = jsmInMetafun;
+        inFunction = true; labels = []; jsmInMetafun = isJsmMetafunction;
+        node.body = parseBlock(true);
+        inFunction = oldInFunc; labels = oldLabels; jsmInMetafun = oldJsmInMetafun;
 
     // If this is a strict mode function, verify that argument names
     // are not repeated, and it does not try to bind the words `eval`
@@ -1775,7 +1894,8 @@ if (typeof acorn === 'undefined')
       }
     }
 
-    return finishNode(node, isStatement ? "FunctionDeclaration" : "FunctionExpression");
+        return finishNode(node, (isJsmMetafunction ? 'JsmMetafun' : 'Function') + 
+                          (isStatement ? "Declaration" : "Expression"));
   }
 
   // Parses a comma-separated list of expressions, and returns them as
@@ -1798,11 +1918,18 @@ if (typeof acorn === 'undefined')
     return elts;
   }
 
+    // JSM extension: metafunctions support both identifiers and dotted identifiers
+
+    function parseJsmIdentifierOrDottedIdentifer(liberal)
+    {
+        return parseIdent(liberal,/*jsmDotted:*/true);
+    }
+
   // Parse the next token as an identifier. If `liberal` is true (used
   // when parsing properties), it will also convert keywords into
   // identifiers.
 
-  function parseIdent(liberal) {
+    function parseIdent(liberal, jsmDotted) {
     var node = startNode();
     if (liberal && options.forbidReserved == "everywhere") liberal = false;
     if (tokType === _name) {
@@ -1816,18 +1943,407 @@ if (typeof acorn === 'undefined')
     } else if (liberal && tokType.keyword) {
       node.name = tokType.keyword;
     } else {
-      unexpected();
+        unexpected();
     }
     tokRegexpAllowed = false;
     next();
+
+	
+	if (jsmDotted  &&  eat( _dot ))
+        {
+            // JSM extension: dotted names allowed for metafunctions
+	    
+            var jsmNameArr = [ node.name ];
+            var jsmRest    = parseIdent( liberal, jsmDotted );
+            jsmNameArr.push.apply( jsmNameArr, jsmRest.jsmNameArr  ||  [ jsmRest.name ] );
+            
+            node.jsmNameArr = jsmNameArr;
+            node.name       = jsmNameArr.join( '.' );
+            return finishNode(node, "JsmDottedIdentifier");
+        }
+        
+
     return finishNode(node, "Identifier");
   }
+
 
 });
 
 }
 
 //#BUILD_END_FILE: "acorn.25.03.2014/acorn.js"
+
+
+
+if (typeof acorn.walk === 'undefined')
+    
+//#BUILD_BEGIN_FILE: "acorn.25.03.2014/util/walk.js"
+
+
+{
+// AST walker module for Mozilla Parser API compatible trees
+
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object") return mod(exports); // CommonJS
+  if (typeof define == "function" && define.amd) return define(["exports"], mod); // AMD
+  mod((this.acorn || (this.acorn = {})).walk = {}); // Plain browser env
+})(function(exports) {
+  "use strict";
+
+  // A simple walk is one where you simply specify callbacks to be
+  // called on specific nodes. The last two arguments are optional. A
+  // simple use would be
+  //
+  //     walk.simple(myTree, {
+  //         Expression: function(node) { ... }
+  //     });
+  //
+  // to do something with all expressions. All Parser API node types
+  // can be used to identify node types, as well as Expression,
+  // Statement, and ScopeBody, which denote categories of nodes.
+  //
+  // The base argument can be used to pass a custom (recursive)
+  // walker, and state can be used to give this walked an initial
+  // state.
+  exports.simple = function(node, visitors, base, state) {
+    if (!base) base = exports.base;
+    function c(node, st, override) {
+      var type = override || node.type, found = visitors[type];
+      base[type](node, st, c);
+      if (found) found(node, st);
+    }
+    c(node, state);
+  };
+
+  // An ancestor walk builds up an array of ancestor nodes (including
+  // the current node) and passes them to the callback as the state parameter.
+  exports.ancestor = function(node, visitors, base, state) {
+    if (!base) base = exports.base;
+    if (!state) state = [];
+    function c(node, st, override) {
+      var type = override || node.type, found = visitors[type];
+      if (node != st[st.length - 1]) {
+        st = st.slice();
+        st.push(node);
+      }
+      base[type](node, st, c);
+      if (found) found(node, st);
+    }
+    c(node, state);
+  };
+
+  // A recursive walk is one where your functions override the default
+  // walkers. They can modify and replace the state parameter that's
+  // threaded through the walk, and can opt how and whether to walk
+  // their child nodes (by calling their third argument on these
+  // nodes).
+  exports.recursive = function(node, state, funcs, base) {
+    var visitor = funcs ? exports.make(funcs, base) : base;
+    function c(node, st, override) {
+      visitor[override || node.type](node, st, c);
+    }
+    c(node, state);
+  };
+
+  function makeTest(test) {
+    if (typeof test == "string")
+      return function(type) { return type == test; };
+    else if (!test)
+      return function() { return true; };
+    else
+      return test;
+  }
+
+  function Found(node, state) { this.node = node; this.state = state; }
+
+  // Find a node with a given start, end, and type (all are optional,
+  // null can be used as wildcard). Returns a {node, state} object, or
+  // undefined when it doesn't find a matching node.
+  exports.findNodeAt = function(node, start, end, test, base, state) {
+    test = makeTest(test);
+    try {
+      if (!base) base = exports.base;
+      var c = function(node, st, override) {
+        var type = override || node.type;
+        if ((start == null || node.start <= start) &&
+            (end == null || node.end >= end))
+          base[type](node, st, c);
+        if (test(type, node) &&
+            (start == null || node.start == start) &&
+            (end == null || node.end == end))
+          throw new Found(node, st);
+      };
+      c(node, state);
+    } catch (e) {
+      if (e instanceof Found) return e;
+      throw e;
+    }
+  };
+
+  // Find the innermost node of a given type that contains the given
+  // position. Interface similar to findNodeAt.
+  exports.findNodeAround = function(node, pos, test, base, state) {
+    test = makeTest(test);
+    try {
+      if (!base) base = exports.base;
+      var c = function(node, st, override) {
+        var type = override || node.type;
+        if (node.start > pos || node.end < pos) return;
+        base[type](node, st, c);
+        if (test(type, node)) throw new Found(node, st);
+      };
+      c(node, state);
+    } catch (e) {
+      if (e instanceof Found) return e;
+      throw e;
+    }
+  };
+
+  // Find the outermost matching node after a given position.
+  exports.findNodeAfter = function(node, pos, test, base, state) {
+    test = makeTest(test);
+    try {
+      if (!base) base = exports.base;
+      var c = function(node, st, override) {
+        if (node.end < pos) return;
+        var type = override || node.type;
+        if (node.start >= pos && test(type, node)) throw new Found(node, st);
+        base[type](node, st, c);
+      };
+      c(node, state);
+    } catch (e) {
+      if (e instanceof Found) return e;
+      throw e;
+    }
+  };
+
+  // Find the outermost matching node before a given position.
+  exports.findNodeBefore = function(node, pos, test, base, state) {
+    test = makeTest(test);
+    if (!base) base = exports.base;
+    var max;
+    var c = function(node, st, override) {
+      if (node.start > pos) return;
+      var type = override || node.type;
+      if (node.end <= pos && (!max || max.node.end < node.end) && test(type, node))
+        max = new Found(node, st);
+      base[type](node, st, c);
+    };
+    c(node, state);
+    return max;
+  };
+
+  // Used to create a custom walker. Will fill in all missing node
+  // type properties with the defaults.
+  exports.make = function(funcs, base) {
+    if (!base) base = exports.base;
+    var visitor = {};
+    for (var type in base) visitor[type] = base[type];
+    for (var type in funcs) visitor[type] = funcs[type];
+    return visitor;
+  };
+
+  function skipThrough(node, st, c) { c(node, st); }
+  function ignore(_node, _st, _c) {}
+
+  // Node walkers.
+
+  var base = exports.base = {};
+  base.Program = base.BlockStatement = function(node, st, c) {
+    for (var i = 0; i < node.body.length; ++i)
+      c(node.body[i], st, "Statement");
+  };
+  base.Statement = skipThrough;
+  base.EmptyStatement = ignore;
+  base.ExpressionStatement = function(node, st, c) {
+    c(node.expression, st, "Expression");
+  };
+  base.IfStatement = function(node, st, c) {
+    c(node.test, st, "Expression");
+    c(node.consequent, st, "Statement");
+    if (node.alternate) c(node.alternate, st, "Statement");
+  };
+  base.LabeledStatement = function(node, st, c) {
+    c(node.body, st, "Statement");
+  };
+  base.BreakStatement = base.ContinueStatement = ignore;
+  base.WithStatement = function(node, st, c) {
+    c(node.object, st, "Expression");
+    c(node.body, st, "Statement");
+  };
+  base.SwitchStatement = function(node, st, c) {
+    c(node.discriminant, st, "Expression");
+    for (var i = 0; i < node.cases.length; ++i) {
+      var cs = node.cases[i];
+      if (cs.test) c(cs.test, st, "Expression");
+      for (var j = 0; j < cs.consequent.length; ++j)
+        c(cs.consequent[j], st, "Statement");
+    }
+  };
+  base.ReturnStatement = function(node, st, c) {
+    if (node.argument) c(node.argument, st, "Expression");
+  };
+  base.ThrowStatement = function(node, st, c) {
+    c(node.argument, st, "Expression");
+  };
+  base.TryStatement = function(node, st, c) {
+    c(node.block, st, "Statement");
+    if (node.handler) c(node.handler.body, st, "ScopeBody");
+    if (node.finalizer) c(node.finalizer, st, "Statement");
+  };
+  base.WhileStatement = function(node, st, c) {
+    c(node.test, st, "Expression");
+    c(node.body, st, "Statement");
+  };
+  base.DoWhileStatement = base.WhileStatement;
+  base.ForStatement = function(node, st, c) {
+    if (node.init) c(node.init, st, "ForInit");
+    if (node.test) c(node.test, st, "Expression");
+    if (node.update) c(node.update, st, "Expression");
+    c(node.body, st, "Statement");
+  };
+  base.ForInStatement = function(node, st, c) {
+    c(node.left, st, "ForInit");
+    c(node.right, st, "Expression");
+    c(node.body, st, "Statement");
+  };
+  base.ForInit = function(node, st, c) {
+    if (node.type == "VariableDeclaration") c(node, st);
+    else c(node, st, "Expression");
+  };
+  base.DebuggerStatement = ignore;
+
+  base.FunctionDeclaration = function(node, st, c) {
+    c(node, st, "Function");
+  };
+  base.VariableDeclaration = function(node, st, c) {
+    for (var i = 0; i < node.declarations.length; ++i) {
+      var decl = node.declarations[i];
+      if (decl.init) c(decl.init, st, "Expression");
+    }
+  };
+
+  base.Function = function(node, st, c) {
+    c(node.body, st, "ScopeBody");
+  };
+  base.ScopeBody = function(node, st, c) {
+    c(node, st, "Statement");
+  };
+
+  base.Expression = skipThrough;
+  base.ThisExpression = ignore;
+  base.ArrayExpression = function(node, st, c) {
+    for (var i = 0; i < node.elements.length; ++i) {
+      var elt = node.elements[i];
+      if (elt) c(elt, st, "Expression");
+    }
+  };
+  base.ObjectExpression = function(node, st, c) {
+    for (var i = 0; i < node.properties.length; ++i)
+      c(node.properties[i].value, st, "Expression");
+  };
+  base.FunctionExpression = base.FunctionDeclaration;
+  base.SequenceExpression = function(node, st, c) {
+    for (var i = 0; i < node.expressions.length; ++i)
+      c(node.expressions[i], st, "Expression");
+  };
+  base.UnaryExpression = base.UpdateExpression = function(node, st, c) {
+    c(node.argument, st, "Expression");
+  };
+  base.BinaryExpression = base.AssignmentExpression = base.LogicalExpression = function(node, st, c) {
+    c(node.left, st, "Expression");
+    c(node.right, st, "Expression");
+  };
+  base.ConditionalExpression = function(node, st, c) {
+    c(node.test, st, "Expression");
+    c(node.consequent, st, "Expression");
+    c(node.alternate, st, "Expression");
+  };
+  base.NewExpression = base.CallExpression = function(node, st, c) {
+    c(node.callee, st, "Expression");
+    if (node.arguments) for (var i = 0; i < node.arguments.length; ++i)
+      c(node.arguments[i], st, "Expression");
+  };
+  base.MemberExpression = function(node, st, c) {
+    c(node.object, st, "Expression");
+    if (node.computed) c(node.property, st, "Expression");
+  };
+  base.Identifier = base.Literal = ignore;
+
+    // ---BEGIN: JSM extension (see also ../acorn.js)
+  base.JsmMetafunDeclaration = function(node, st, c) {
+    c(node, st, "Function");
+  };
+  base.JsmFunctionDeclaration = function(node, st, c) {
+    c(node, st, "Function");
+  };
+  base.JsmMetaretStatement = function(node, st, c) {
+    c(node.argument, st, "Expression");
+  };
+  base.JsmInlineStatement = function(node, st, c) {
+      if (node.jsmVarDeclId)
+      {
+          c(node.jsmVarDeclId, st);
+          c(node.jsmVarDeclInit, st);
+      }
+      else if (node.jsmAssignLeft)
+      {
+          c(node.jsmAssignLeft, st);
+          c(node.jsmAssignRight, st);
+      }
+      else
+      {
+          c(node.jsmCall, st);
+      }     
+  };
+    // ---END: JSM extension (see also ../acorn.js)
+
+
+  // A custom walker that keeps track of the scope chain and the
+  // variables defined in it.
+  function makeScope(prev, isCatch) {
+    return {vars: Object.create(null), prev: prev, isCatch: isCatch};
+  }
+  function normalScope(scope) {
+    while (scope.isCatch) scope = scope.prev;
+    return scope;
+  }
+  exports.scopeVisitor = exports.make({
+    Function: function(node, scope, c) {
+      var inner = makeScope(scope);
+      for (var i = 0; i < node.params.length; ++i)
+        inner.vars[node.params[i].name] = {type: "argument", node: node.params[i]};
+      if (node.id) {
+        var decl = node.type == "FunctionDeclaration";
+        (decl ? normalScope(scope) : inner).vars[node.id.name] =
+          {type: decl ? "function" : "function name", node: node.id};
+      }
+      c(node.body, inner, "ScopeBody");
+    },
+    TryStatement: function(node, scope, c) {
+      c(node.block, scope, "Statement");
+      if (node.handler) {
+        var inner = makeScope(scope, true);
+        inner.vars[node.handler.param.name] = {type: "catch clause", node: node.handler.param};
+        c(node.handler.body, inner, "ScopeBody");
+      }
+      if (node.finalizer) c(node.finalizer, scope, "Statement");
+    },
+    VariableDeclaration: function(node, scope, c) {
+      var target = normalScope(scope);
+      for (var i = 0; i < node.declarations.length; ++i) {
+        var decl = node.declarations[i];
+        target.vars[decl.id.name] = {type: "var", node: decl.id};
+        if (decl.init) c(decl.init, scope, "Expression");
+      }
+    }
+  });
+
+});
+
+}
+
+//#BUILD_END_FILE: "acorn.25.03.2014/util/walk.js"
 
 
 
@@ -1872,10 +2388,6 @@ if (typeof acorn === 'undefined')
              strArr : []
              , commentArr  : []
              , regexpArr   : []
-
-             , reservedArr       : []
-             , reservedObj       : /*{1.1*/{}/*}1.1*/
-
              , callArr           : []
              , dotArr            : []
              , dotcallArr        : []
@@ -1899,140 +2411,268 @@ if (typeof acorn === 'undefined')
              , bracketArr               : []
              , bracketTree              : []
 
+             , functionDeclarationArr : []
+             , functionExpressionArr : []
+
+             /*dc*/// JSM extensions
+             , jsmMetafunArr  : []
+             , jsmMetaretArr  : []
+             , jsmInlineArr   : []
+
+             /*dc*/// Raw result of acorn.parse
+             , rawAP : null
+
          }/*}1*/
-         ;
 
-         /*dc*/// Detect comments and strings, and produce a "nakedCode"
+
+         /*dc*/// Detect comments, and produce a "nakedCode"
          /*dc*/// string where they've all been replaced with spaces.
-
-         var /*vd*/sA/**/ = ret.strArr
-         ,   /*vd*/cA/**/ = ret.commentArr
-         ,  /*vd*/rxA/**/ = ret.regexpArr
-         , /*vd*/nakedCodeArr/**/   = []
-         , /*vd*/searchPosition/**/ = 0
+         , /*vd*/nakedCode/**/ = code
          ;
-         while (true)
-         /*{2*/{
-             /*dc*/// Search for a string or comment, whichever comes first
 
-             var /*vd*/sq/**/ = code.indexOf( /*dq*/"'"/**/ , searchPosition )
-             ,   /*vd*/dq/**/ = code.indexOf( /*sq*/'"'/**/ , searchPosition )
-             ,   /*vd*/sc/**/ = code.indexOf( /*sq*/'/*'/**/, searchPosition )
-             ,   /*vd*/dc/**/ = code.indexOf( /*sq*/'//'/**/, searchPosition )
-             ,   /*vd*/rr/**/ = code.indexOf( /*sq*/'/'/**/,  searchPosition )
-		 ;
-	     /*dc*/// Do not see a divide operator `/` as the beginning of a regexp
-	     if (-1 < rr  &&  !/*rr*//^\/(?![\*\/])(\\[^\r\n]|[^\\\r\n])+?\/[gmi]?//**/.test(code.substring(rr)))
-		 rr = -1;
-	     
-             var /*vd*/four/**/ = [ sq, dq, sc, dc, rr ]
-             ,   /*vd*/begin/**/ = +Infinity
-             ,   /*vd*/ind/**/  = -1
-             ;
-             for (var /*vd*/n/**/ = four.length, /*vd*/i/**/ = 0; i < n; i++)
-             /*{2.1*/{
-                 var /*vd*/v/**/ = four[ i ];
-                 if (-1 < v  &&  v < begin)
-                 /*{2.1.1*/{
-                     begin = v;
-                     ind   = i;
-                 }/*}2.1.1*/
-             }/*}2.1*/
 
-             if (ind < 0)
-             /*{2.2*/{
-                 /*dc*/// Not found
 
-                 nakedCodeArr.push( code.substring( searchPosition ) );
-                 break;
-             }/*}2.2*/
+	 var /*vd*/cA/**/ = ret.commentArr
+         ,   /*vd*/ap/**/ = ret.rawAP = acorn.parse( code, /*{1.0*/{ jsm : true
+                                                                     , onComment : pushComment
+                                                                     , jsmAllowMetaretOutsideFunction : opt  &&  opt.jsmAllowMetaretOutsideFunction
+                                                                     , allowReturnOutsideFunction     : opt  &&  opt.allowReturnOutsideFunction
+                                                                   }/*}1.0*/ )
+         ;
 
-             /*dc*/// Found: find its end
+         function pushComment( b, t, start, end  )
+         /*{1.1*/{
+             cA.push( /*{1.1.1*/{ begin : start, str : code.substring( start, end ) }/*}1.1.1*/ );
+             nakedCode = nakedCode.substring( 0, start ) + str_repli( /*sq*/' '/**/, end - start ) + nakedCode.substring( end );
+         }/*}1.1*/
 
-             var /*vd*/rest/**/  = code.substring( begin )
 
-             , /*vd*/rx/**/ =   ind === 0  ?  /*rr*//^[\s\S]*?[^\\]\'//**/
-                 :    ind === 1  ?  /*rr*//^[\s\S]*?[^\\]\"//**/
-                 :    ind === 2  ?  /*rr*//^\/\*[\s\S]*?\*\///**/
-                 :    ind === 3  ?  /*rr*//^\/\/([^\r\n])*//**/
-                 :                  /*rr*//^\/(?![\*\/])(\\[^\r\n]|[^\\\r\n])+?\/[gmi]?//**/
-
-             , /*vd*/mo/**/    = rx.exec( rest )
-             , /*vd*/delta/**/ = mo  ?  mo.index + mo[ 0 ].length  :  rest.length
-             , /*vd*/end/**/   = begin + delta
-             ;
-             
-             /*dc*/// Store
-
-             (ind < 2  ?  sA  :  ind < 4  ?  cA  :  rxA).push( /*{2.3*/{ begin : begin,  str : code.substring( begin, end ) }/*}2.3*/ );
-
-             /*dc*/// Prepare for identifier search
-
-             nakedCodeArr.push(
-                 code.substring( searchPosition, begin )
-                 , str_repli( /*sq*/' '/**/, delta )
-             );
-
-             /*dc*/// Prepare for the next search
-
-             searchPosition = end;
-
-         }/*}2*/
+         /*dc*/// Walk the tree and extract what we need for metaret.js and inline.js
          
-         /*dc*/// Detect identifiers and reserved words
-         
-         var /*vd*/reservedSet/**/ = /*{2a*/{}/*}2a*/;
-         for (var /*vd*/i/**/ = reservedArr.length; i--;)  
-             reservedSet[ reservedArr[ i ] ] = 1;
-         
-         var /*vd*/resA/**/      = ret.reservedArr
+         var /*vd*/tmp/**/
          ,   /*vd*/caA/**/       = ret.callArr
          ,   /*vd*/dA/**/        = ret.dotArr
          ,   /*vd*/dcaA/**/      = ret.dotcallArr
-         ,   /*vd*/iA/**/        = ret.identifierArr
-         ,   /*vd*/nakedCode/**/ = nakedCodeArr.join( /*sq*/''/**/ )
-         ,   /*vd*/rx/**/        = /*rr*//(\.\s*)?(\b[_a-zA-Z]\w*\b)(\s*\()?/g/**/
-         
-         ,   /*vd*/mo/**/
-         ;
-         while (mo = rx.exec( nakedCode ))
-         /*{3*/{
-             var  /*vd*/str/**/ = mo[ 0 ]
-             ,    /*vd*/dot/**/ = mo[ 1 ]
-             ,   /*vd*/name/**/ = mo[ 2 ]
-             ,   /*vd*/call/**/ = mo[ 3 ]
-             ,   /*vd*/arr/**/  = (
-                 name in reservedSet  ?  resA  
-                     : dot && call    ?  dcaA
-                     : dot            ?    dA
-                     : call           ?   caA
-                     :                     iA
-             )
-             ,   /*vd*/begin/**/ = mo.index
-             ,   /*vd*/x/**/     = /*{3.a1*/{ str : str,  begin : begin , name : name }/*}3.a1*/ 
-             ;             
-             arr.push( x );
+         ,    /*vd*/iA/**/ = ret.identifierArr
+         ,   /*vd*/rxA/**/ = ret.regexpArr
+         ,    /*vd*/sA/**/ = ret.strArr
 
-         }/*}3*/
+         ,   /*vd*/fdA/**/  = ret.functionDeclarationArr
+         ,   /*vd*/feA/**/  = ret.functionExpressionArr
+
+         ,   /*vd*/jMFA/**/ = ret.jsmMetafunArr
+         ,   /*vd*/jMRA/**/ = ret.jsmMetaretArr
+         ,   /*vd*/jINA/**/ = ret.jsmInlineArr
          
+         /*dc*/// Detect strings and RegExps, and produce a "nakedCodeNoStrNoRx"
+         /*dc*/// string where they've all been replaced with spaces.
+         , /*vd*/nakedCodeNoStrNoRx/**/ = nakedCode
+         ;
+
+         acorn.walk.simple( ap, /*{1.2*/{
+             CallExpression          : meet_CallExpression
+             , FunctionDeclaration   : meet_FunctionDeclaration
+             , FunctionExpression    : meet_FunctionExpression
+             , Identifier            : meet_Identifier
+             , JsmInlineStatement    : meet_JsmInlineStatement
+             , JsmMetafunDeclaration : meet_JsmMetafunDeclaration
+             , JsmMetafunExpression  : meet_JsmMetafunExpression
+             , Literal               : meet_Literal
+             , MemberExpression      : meet_MemberExpression
+             , NewExpression         : meet_CallExpression
+             , ObjectExpression      : meet_ObjectExpression
+             , VariableDeclaration   : meet_VariableDeclaration
+         }/*}1.2*/);
+
+         caA .sort( compare_begin );
+         dA  .sort( compare_begin );
+         dcaA.sort( compare_begin );
+         iA  .sort( compare_begin );
+         rxA .sort( compare_begin );
+         sA  .sort( compare_begin );
          
-         /*dc*/// Curly brackets (blocks of code or objects).
-         
-         /*dc*/// - First, white out each regexp.
-         var /*vd*/nakedCodeNoRx/**/ = nakedCode;
-         for (var /*vd*/i/**/ = rxA.length; i--;)
-         /*{6*/{
-             var /*vd*/x/**/ = rxA[ i ]
-             , /*vd*/len/**/ = x.str.length
+         function meet_CallExpression( node )
+         /*{1.3*/{
+             var /*vd*/callee/**/ = node.callee;
+             if (callee.type === /*dq*/"Identifier"/**/)
+             /*{1.3.1*/{
+                 
+                 var /*vd*/begin/**/ = callee.start
+                 ,   /*vd*/parI/**/  = nakedCode.indexOf( /*dq*/"("/**/, callee.end )
+                 ;
+                 if (parI < 0)
+                     throw new Error( /*sq*/'meet_CallExpression bug'/**/ );
+                 
+                 var /*vd*/str/**/ = code.substring( begin, parI + 1 );
+                 
+                 caA.push( /*{1.3.1.1*/{ begin : begin, str : str, name : callee.name, acornNode : node }/*}1.3.1.1*/ );
+
+                 for (var /*vd*/i/**/ = iA.length; i--;)
+                 /*{1.3.1.2*/{
+                     if (callee === iA[ i ].acornNode)
+                     /*{1.3.1.2.1*/{
+                         iA.splice( i, 1 );
+                         break;
+                     }/*}1.3.1.2.1*/
+                     else if (iA[ i ].begin < callee.start)
+                     /*{1.3.1.2.2*/{
+                         break;
+                     }/*}1.3.1.2.2*/
+                 }/*}1.3.1.2*/
+             }/*}1.3.1*/
+             else if (callee.type === /*dq*/"MemberExpression"/**/)
+             /*{1.3.2*/{
+                 var /*vd*/cp/**/ = callee.property
+                 , /*vd*/name/**/ = cp.name
+                 , /*vd*/dotI/**/ = nakedCode.lastIndexOf( /*sq*/'.'/**/, cp.start )
+                 , /*vd*/parI/**/ = nakedCode.indexOf( /*dq*/"("/**/, cp.end )
+                 ;
+                 if (dotI < 0  ||  parI < 0)
+                     throw new Error( /*sq*/'meet_CallExpression bug'/**/ );
+
+                 dcaA.push( /*{1.3.2.1*/{ begin : dotI, str : code.substring( dotI, parI + 1 ), name : name, acornNode : node }/*}1.3.2.1*/ );
+
+                 for (var /*vd*/i/**/ = dA.length; i--;)
+                 /*{1.3.2.2*/{
+                     if (cp === dA[ i ].acornNode)
+                     /*{1.3.2.2.1*/{
+                         dA.splice( i, 1 );
+                         break;
+                     }/*}1.3.2.2.1*/
+                     else if (dA[ i ].begin < cp.start)
+                     /*{1.3.2.2.2*/{
+                         break;
+                     }/*}1.3.2.2.2*/
+                 }/*}1.3.2.2*/
+             }/*}1.3.2*/     
+             else if (callee.type === /*dq*/"FunctionExpression"/**/)
+             /*{1.3.3*/{
+                 /*dc*/// No need to do anything here
+             }/*}1.3.3*/
+             else
+                 throw new Error( /*dq*/"bug"/**/ );
+         }/*}1.3*/
+
+         function meet_FunctionDeclaration( node )
+         /*{1.35*/{
+             var /*vd*/name/**/ = node.id.name;
+             (name  ||  0).substring.call.a;
+
+             var /*vd*/begin/**/ = node.id.start;
+             begin.toPrecision.call.a;
+
+             var /*vd*/parI/**/ = nakedCode.indexOf( /*dq*/"("/**/, node.id.end )
+             ,   /*vd*/str/**/  = nakedCode.substring( begin, parI + 1 )
              ;
-             nakedCodeNoRx = nakedCodeNoRx.substring( 0, x.begin ) + 
-                 str_repli( /*sq*/' '/**/, len ) + 
-                 nakedCodeNoRx.substring( x.begin + len )
+             
+             caA.push( /*{1.35.1*/{ begin : begin, str : str, name : name, acornNode : node }/*}1.35.1*/ );
+
+             node.params.forEach( meet_Identifier );
+
+             fdA.push( /*{1.35.2*/{ begin : node.start, str : nakedCode.substring( node.start, node.end ), type : node.type, name : name, acornNode : node }/*}1.35.2*/ );
+         }/*}1.35*/
+
+         function meet_FunctionExpression( node )
+         /*{1.37*/{
+             node.params.forEach( meet_Identifier );
+
+             var /*vd*/begin/**/ = node.start
+             ,   /*vd*/end/**/   = node.end
+             ,   /*vd*/str/**/
              ;
-         }/*}6*/
+             while (!/*rr*//^function//**/.test( str = nakedCode.substring( begin, end )))
+             /*{1.37.1*/{
+                 var /*vd*/mo_begin/**/ = /*rr*//^\s*\(\s*//**/.exec( str )
+                 ,   /*vd*/mo_end/**/   = /*rr*//\s*\)\s*$//**/.exec( str )
+                 ;
+                 begin += mo_begin[ 0 ].length;
+                 end   -= mo_end[ 0 ].length;
+                 if (begin > end)
+                     throw new Error( /*sq*/'bug'/**/)
+             }/*}1.37.1*/
+             
+             feA.push( /*{1.37.2*/{ begin : begin, str : str, type : node.type, name : node.id ? node.id.name : /*sq*/''/**/, acornNode : node }/*}1.37.2*/ );
+         }/*}1.37*/
+
+         function meet_JsmInlineStatement( node)
+         /*{1.380*/{
+             jINA.push( /*{1.380.1*/{ begin : node.start, end : node.end, str : nakedCode.substring( node.start, node.end ), type : node.type, name : /*sq*/'inline'/**/, acornNode : node }/*}1.380.1*/ );
+         }/*}1.380*/
+
+         function meet_JsmMetafunDeclaration( node )
+         /*{1.381*/{
+
+             var /*vd*/name/**/ = node.id.name;
+             (name  ||  0).substring.call.a;
+
+             jMFA.push( /*{1.3811*/{ begin : node.start, str : nakedCode.substring( node.start, node.end ), type : node.type, name : name, acornNode : node }/*}1.3811*/ );
+         }/*}1.381*/
+
+         function meet_JsmMetafunExpression( node )
+         /*{1.382*/{
+             
+         }/*}1.382*/
+
+         function meet_Identifier( node )
+         /*{1.4*/{
+             iA.push( /*{1.41*/{ begin : node.start, str : node.name, name : node.name, acornNode : node }/*}1.41*/ );
+         }/*}1.4*/
+
+         function meet_Literal( node ) 
+         /*{1.5*/{
+             var /*vd*/v/**/ = node.value
+             , /*vd*/wto/**/ = null
+             , /*vd*/isString/**/
+             , /*vd*/isRegExp/**/
+             ;
+             
+             if (isString = (/*sq*/'string'/**/ === typeof v))    wto = sA;
+             else if (isRegExp = (v instanceof RegExp)) wto = rxA;
+
+             if (wto)
+                 wto.push( /*{1.5.1*/{ begin : node.start, str : node.raw, acornNode : node }/*}1.5.1*/ );
+
+             if (isString  ||  isRegExp)
+             /*{1.5.2*/{
+                 nakedCodeNoStrNoRx = nakedCodeNoStrNoRx.substring( 0, node.start ) + str_repli( /*sq*/' '/**/, node.end - node.start ) + 
+                     nakedCodeNoStrNoRx.substring( node.end );
+             }/*}1.5.2*/
+
+         }/*}1.5*/
+         
+         function meet_MemberExpression( node )
+         /*{1.6*/{
+             var /*vd*/p/**/ = node.property;
+             if (!node.computed  &&  p.type === /*dq*/"Identifier"/**/)
+             /*{1.6.1*/{
+              
+                 var /*vd*/dotI/**/ = nakedCode.lastIndexOf( /*sq*/'.'/**/, p.start );
+                 if (dotI < 0)
+                     throw new Error( /*sq*/'meet_MemberExpression bug'/**/ );
+
+                 dA.push( /*{1.6.1.1*/{ begin : dotI, str : code.substring( dotI, p.start + p.name.length ), name : p.name, acornNode : p }/*}1.6.1.1*/ );
+
+             }/*}1.6.1*/
+         }/*}1.6*/
+         
+         function meet_ObjectExpression( node )
+         /*{1.65*/{
+             node.properties.forEach( function (p) /*{1.65.1*/{
+                 var /*vd*/k/**/ = p.key;
+                 if (k.type === /*dq*/"Identifier"/**/)
+                     meet_Identifier( k );
+                 else
+                     throw new Error( /*dq*/"Whatever"/**/ );
+             }/*}1.65.1*/);
+         }/*}1.65*/
+
+         function meet_VariableDeclaration( node )
+         /*{1.7*/{
+             node.declarations.forEach( function (n) /*{1.7.1*/{ meet_Identifier( n.id ); }/*}1.7.1*/ );
+         }/*}1.7*/
          
          /*dc*/// - Second, find bracket pairs.
-
+         
          var /*vd*/bcA/**/ = ret.bracketcurlyArr
          ,   /*vd*/brA/**/ = ret.bracketroundArr
          ,   /*vd*/bsA/**/ = ret.bracketsquareArr
@@ -2068,11 +2708,14 @@ if (typeof acorn === 'undefined')
          }/*}7d*/ ) )
          ;
          
-         find_bracket( find_bracket_cfg, nakedCodeNoRx, code, bA );
+         find_bracket( find_bracket_cfg, nakedCodeNoStrNoRx, code, bA );
                  
          build_bracket_tree( bA, ret.bracketTree );
-         build_bracket_sep_split( bA, nakedCodeNoRx, code, reservedArr );
+         build_bracket_sep_split( bA, nakedCodeNoStrNoRx, code, reservedArr );
          build_bracket_var_leftstr_rightstr( bA, cA );
+
+
+         jMRA.push.apply( jMRA, bA.filter( function (b) /*{7ee*/{ return b.typebracket === /*sq*/'metaret'/**/; }/*}7ee*/ ) );
 
          /*dc*/// Mark which identifier instances are var declarations.
          
@@ -2140,21 +2783,7 @@ if (typeof acorn === 'undefined')
              iOR[ str ] = reversed( iO[ str ] );
              
          }/*}5.1*/}/*}5*/
-
-
-         /*dc*/// Reserved words: a few derived values, for convenience
-         var /*vd*/rA/**/ = ret.reservedArr
-         ,   /*vd*/rO/**/ = ret.reservedObj
-         ;
-         for (var /*vd*/n/**/ = rA.length, /*vd*/i/**/ = 0; i < n ; i++)
-         /*{6a*/{
-             var /*vd*/x/**/ = rA[ i ];
-             (
-	      rO[ x.name ] !== _emptyObj[ x.name ]  ? rO[ x.name ] :  (rO[ x.name ] = [])
-             )
-                 .push( x.begin );
-         }/*}6a*/
-                  
+                
 
          /*dc*/// All elements, in both first-to-last and reverse orders.
          /*dc*/// Also add a `type` field to each element.
@@ -2224,8 +2853,33 @@ if (typeof acorn === 'undefined')
          ret.allTree = allTree;
          
          return ret;
-             
+
      }/*}0*/
+
+         /*dc*/// Detect identifiers and reserved words
+         
+         /* xxx reservedArr/Set first not thought as necessary outside, now that we are using acorn
+         // var /*vd*/reservedSet/**/ = /*{2a*/{}/*}2a*/;
+         // for (var /*vd*/i/**/ = reservedArr.length; i--;)  
+         //     reservedSet[ reservedArr[ i ] ] = 1;
+         // 
+         // var /*vd*/resA/**/      = ret.reservedArr
+         // */
+
+
+         // /*dc*/// Reserved words: a few derived values, for convenience
+         // var /*vd*/rA/**/ = ret.reservedArr
+         // ,   /*vd*/rO/**/ = ret.reservedObj
+         // ;
+         // for (var /*vd*/n/**/ = rA.length, /*vd*/i/**/ = 0; i < n ; i++)
+         // /*{6a*/{
+         //     var /*vd*/x/**/ = rA[ i ];
+         //     (
+	 //      rO[ x.name ] !== _emptyObj[ x.name ]  ? rO[ x.name ] :  (rO[ x.name ] = [])
+         //     )
+         //         .push( x.begin );
+         // }/*}6a*/
+
 
      // --- Detail
 
@@ -2265,13 +2919,13 @@ if (typeof acorn === 'undefined')
      }
 
 
-     function build_bracket_sep_split( /*array*/bA, /*string*/nakedCodeNoRx, /*string*/code, /*array of string*/reservedArr )
+     function build_bracket_sep_split( /*array*/bA, /*string*/nakedCodeNoStrNoRx, /*string*/code, /*array of string*/reservedArr )
      {
          for (var i = bA.length; i--;)
          {
              var      x = bA[ i ]
              ,     kids = x.bracketchildren
-             , nakedOne = nakedCodeNoRx.substring( x.begin, x.end )
+             , nakedOne = nakedCodeNoStrNoRx.substring( x.begin, x.end )
              ,   offset = x.begin;
              ;
              // Whitespace open and close
@@ -2319,7 +2973,7 @@ if (typeof acorn === 'undefined')
                  ,   end    = after .index
                  ,   str    = code.substring( begin, end )
                  ;
-                 if (!str  ||  /^\s*$/.test(nakedCodeNoRx.substring( begin, end )))
+                 if (!str  ||  /^\s*$/.test(nakedCodeNoStrNoRx.substring( begin, end )))
                      continue;
                  
                  sS.push( { 
@@ -2397,10 +3051,10 @@ if (typeof acorn === 'undefined')
      }
 
 
-     function find_bracket( /*array*/cfgA, /*string*/nakedCodeNoRx, /*string*/code, /*array*/bA )
+     function find_bracket( /*array*/cfgA, /*string*/nakedCodeNoStrNoRx, /*string*/code, /*array*/bA )
      {
          // First, find all open & close occurences, in a single pass
-         // to keep the order they appear in `nakedCodeNoRx`.
+         // to keep the order they appear in `nakedCodeNoStrNoRx`.
          
          var rx = new RegExp(
              cfgA.map( function (o) { 
@@ -2426,7 +3080,7 @@ if (typeof acorn === 'undefined')
          ,   mo
          ,   error
          ;
-         while (mo = rx.exec( nakedCodeNoRx ))
+         while (mo = rx.exec( nakedCodeNoStrNoRx ))
          {
              var ind2 = -1;
              for (var i = mo.length; i--;)
@@ -2592,18 +3246,19 @@ if (typeof acorn === 'undefined')
 
 
 
-if (typeof lp2fmtree === 'undefined')
+if (typeof cp2fmtree === 'undefined')
     
-//#BUILD_BEGIN_FILE: "lp2fmtree.js"
+//#BUILD_BEGIN_FILE: "cp2fmtree.js"
 
 
 {
 (function (global) {
 
     // xxx common constants in a separate file
-    var METAFUN        = 'metafun'
-    ,   METARET        = 'metaret'
-    ,   FUNCTION       = 'function'
+    var METAFUN        = 'jsmMetafun'
+    ,   METARET        = 'jsmMetaret'
+    ,   FUNCTION_EXPRESSION       = 'functionExpression'
+    ,   FUNCTION_DECLARATION       = 'functionDeclaration'
     ,   RESERVED       = 'reserved'
 
     ,   CALL    = 'call'
@@ -2617,18 +3272,18 @@ if (typeof lp2fmtree === 'undefined')
 
     // ---------- Public API
 
-    global.lp2fmtree = lp2fmtree;
+    global.cp2fmtree = cp2fmtree;
 
     // ---------- Public API implementation
 
-    function lp2fmtree( lp, /*?array of string?*/namespace, /*?object?*/workspace, /*?fm?*/parent )
+    function cp2fmtree( cp, /*?array of string?*/namespace, /*?object?*/workspace, /*?fm?*/parent )
     // Input:  object returned by `codeparse`.
     // 
     // Output: array of function/metafun declaration trees.
     //
     // Comment:
     // 
-    // `lp2fmtree` is used by ./metaret.js to support local metafuns
+    // `cp2fmtree` is used by ./metaret.js to support local metafuns
     // e.g. `metafun b` in:
     // 
     // {{{ 
@@ -2653,7 +3308,7 @@ if (typeof lp2fmtree === 'undefined')
         namespace  ||  (namespace = []);
         workspace  ||  (workspace = { iAnonymous : 0, lastname2fmarr : {} });
         
-        var at = lp  instanceof Array  ?  lp  :  lp.allTree
+        var at = cp  instanceof Array  ?  cp  :  cp.allTree
         ,  ret = []
         ;
         if (isTopLevel)
@@ -2665,15 +3320,14 @@ if (typeof lp2fmtree === 'undefined')
 
             // Detect a named function/metafunction declaration,
             
-            var isFunction     = one.name === FUNCTION
-            ,   isMetafunction = one.name === METAFUN
+            var isFunction     = one.type === FUNCTION_EXPRESSION  ||  one.type === FUNCTION_DECLARATION
+            ,   isMetafunction = one.type === METAFUN
 
-            ,   isAnonymousFunction = isFunction  &&  at[ i+1 ].type === TYPE_BRACKET
+            ,   isAnonymousFunction = isFunction  &&  !one.name
             ;
 
 
-            if (((isFunction  ||  isMetafunction)  &&  at[ i+1 ].type !== TYPE_BRACKET)  ||
-                isAnonymousFunction)
+            if (isAnonymousFunction  ||  isFunction  ||  isMetafunction)
             {
                 var begin = one.begin
                 ,   end
@@ -2689,29 +3343,32 @@ if (typeof lp2fmtree === 'undefined')
                 }
                 else
                 {
-                    // Fetch the name of the function or metafunction.
-                    // Dots are supported (subnamespace).
-                    do {
-                        next = at[ ++i ];
-                        dotnode_arr.push( next );
-                        dot_arr.push( next.name );
-                    } while (
-                        next.type !== DOTCALL  &&  next.type !== CALL
-                    )
+                    dot_arr = one.name.split( '.' );
                 }
                 
-                var param_node = next = at[ ++i ];
-                var param_arr = param_node.sepSplit.map( strip_comment_and_space )
-                ,   param_set = {}
+                var ocnc = one.children.filter( function (c) { return c.type !== 'comment'; } )
+                ,   c0   = ocnc[ 0 ]
+                ;
+                if (c0.type === 'call')
+                {
+                    if (c0.name !== one.name)
+                        throw new Error( 'Inconsistency! Probably a bug here.' );
+
+                    ocnc.shift();
+                }
+                
+                if (ocnc.length !== 2)
+                    throw new Error( 'Unexpected metafun declaration or function declaration' );
+
+                var param_node = ocnc[ 0 ]
+                ,   param_arr  = param_node.sepSplit.map( strip_comment_and_space )
+                ,   param_set  = {}
                 ;
                 for (var pi = param_arr.length; pi--;)
                     param_set[ param_arr[ pi ] ] = 1;
                                
 
-                while (next.type !== TYPE_BRACKET  ||  next.typebracket !== TYPEBRACKET_CURLY)
-                    next = at[ ++i ];
-
-                var body_node = next 
+                var body_node = ocnc[ 1 ]
                 ,   end       = body_node.end
                 ,   body      = body_node.str
 
@@ -2747,7 +3404,7 @@ if (typeof lp2fmtree === 'undefined')
                 // Support for local metafunctions: look at the
                 // metafuns and functions within the body.
                 
-                var children = next.children  ?  lp2fmtree( next.children, fullname_arr, workspace, /*parent:*/out )  :  [];
+                var children = body_node.children  ?  cp2fmtree( body_node.children, fullname_arr, workspace, /*parent:*/out )  :  [];
                 
                 // Remove children code from the body.
                 
@@ -2778,15 +3435,15 @@ if (typeof lp2fmtree === 'undefined')
             {
                 // Useful to find functions e.g. within `(...)`:
                 // `(function (global) { ... })(this);`
-                ret.push.apply( ret, lp2fmtree( one.children, namespace, workspace ) );
+                ret.push.apply( ret, cp2fmtree( one.children, namespace, workspace ) );
             }
         }
 
         // When done with the tree, walk it from the top
         if (isTopLevel)
         {
-            find_out_who_has_what( ret, [].concat( lp.vardeclArr ), 'vardecl' );
-            find_out_who_has_what( ret, lp.identifierArr.filter( function (x) { return !x.isVardecl; } ), 'varuse' );
+            find_out_who_has_what( ret, [].concat( cp.vardeclArr ), 'vardecl' );
+            find_out_who_has_what( ret, cp.identifierArr.filter( function (x) { return !x.isVardecl; } ), 'varuse' );
 
             // Now we can find closures. Useful e.g. to shorten local names (see ./minify.js)
             find_decluse( ret );
@@ -3004,7 +3661,7 @@ if (typeof lp2fmtree === 'undefined')
 
 }
 
-//#BUILD_END_FILE: "lp2fmtree.js"
+//#BUILD_END_FILE: "cp2fmtree.js"
 
 
 
@@ -3014,7 +3671,7 @@ if (typeof metaparse === 'undefined')
 
 
 {
-/*global document console load codeparse need$ lp2fmtree JSON*/
+/*global document console load codeparse need$ cp2fmtree JSON*/
 
 // Guillaume Lathoud, 2011, 2013, MIT License, see ./LICENSE.TXT
 // 
@@ -3059,16 +3716,16 @@ if (typeof codeparse === 'undefined')
 
 
 
-if (typeof lp2fmtree === 'undefined')
+if (typeof cp2fmtree === 'undefined')
     
-//#BUILD_BEGIN_FILE: "lp2fmtree.js"
+//#BUILD_BEGIN_FILE: "cp2fmtree.js"
 
 
 {
 
 }
 
-//#BUILD_END_FILE: "lp2fmtree.js"
+//#BUILD_END_FILE: "cp2fmtree.js"
 
 
 
@@ -3082,6 +3739,8 @@ if (typeof lp2fmtree === 'undefined')
     , EXTRA_RESERVED_ARR = [ METAFUN, METARET ]
     ,  EXTRA_BRACKET_ARR  = [ { open : METARET, close : ';', typebracket : METARET, ignore_unbalanced : true } ]
     ,     CODEPARSE_OPT = { extraReservedArr : EXTRA_RESERVED_ARR, extraBracketArr : EXTRA_BRACKET_ARR }
+    ,     ALLOW_RET_OPT = { jsmAllowMetaretOutsideFunction : true, allowReturnOutsideFunction : true }
+    , CODEPARSE_ALLOW_RET_OPT = mixOwn( {}, CODEPARSE_OPT, ALLOW_RET_OPT )
     ;
 
     // ---------- Public API
@@ -3132,8 +3791,8 @@ if (typeof lp2fmtree === 'undefined')
                 continue;
             
             var metacode = sString  ?  s  :  s.textContent  ||  s.innerText
-            ,   lp       = codeparse( metacode, CODEPARSE_OPT )
-            ,   fmtree   = lp2fmtree( lp )
+            ,   cp       = codeparse( metacode, CODEPARSE_OPT )
+            ,   fmtree   = cp2fmtree( cp )
             ;
             rec_decl( fmtree, /*isTop:*/true, name2info, ret, opt );
         }
@@ -3218,8 +3877,8 @@ if (typeof lp2fmtree === 'undefined')
         // https://github.com/glathoud/js.metaret/issues/11
         if (!is_fun)
         {
-            var body_lp = codeparse( body )
-            ,   body_argumentsArr = body_lp.identifierObj[ 'arguments' ]  ||  []
+            var body_cp = codeparse( body, ALLOW_RET_OPT )
+            ,   body_argumentsArr = body_cp.identifierObj[ 'arguments' ]  ||  []
             ;
             if (body_argumentsArr.length)
                 throw new Error( 'metafun error: it is forbidden to use `arguments` in the body of the metafun (because the body of the metafun may end up being inlined within a `while` loop).' );
@@ -3655,8 +4314,8 @@ if (typeof lp2fmtree === 'undefined')
 
     function _extractVar( /*string*/body )
     {
-        var lp = codeparse( body, CODEPARSE_OPT )
-        ,   iA = lp.identifierArr
+        var cp = codeparse( body, CODEPARSE_ALLOW_RET_OPT )
+        ,   iA = cp.identifierArr
         , ret = []
         ;
         for (var n = iA.length, i = 0; i < n; i++)
@@ -3675,8 +4334,8 @@ if (typeof lp2fmtree === 'undefined')
 
     function _checkExtractMetaret( /*string*/body, /*string*/self, /*string*/selfName )
     {
-        var lp = codeparse( body, CODEPARSE_OPT )
-        ,  beA = lp.bracketextraArr
+        var cp = codeparse( body, CODEPARSE_ALLOW_RET_OPT )
+        ,  beA = cp.bracketextraArr
         ,  ret = []
         ;
 
@@ -4090,6 +4749,19 @@ if (typeof lp2fmtree === 'undefined')
         :  null  // global variable
         ;
     }
+
+    function mixOwn( /*...*/ )
+    {
+        var ret = arguments[ 0 ];
+        for (var i = 1, n = arguments.length; i < n; i++)
+        {
+            var one = arguments[ i ];
+            for (var k in one) { if (one.hasOwnProperty( k )) {
+                ret[ k ] = one[ k ];
+            }}
+        }
+        return ret;
+    }
     
 })(this);
 
@@ -4171,23 +4843,23 @@ if (typeof lp2fmtree === 'undefined')
     {
         CONST  ||  (CONST = metaparse.get_CONST());
         
-        var lp = codeparse( jscode, CONST.CODEPARSE_OPT )
-        ,   fm = lp2fmtree( lp )
-        ,   rO = lp.reservedObj
-        ,   mfunArr = (rO[ CONST.METAFUN ]  ||  []).map( enrich )
-        ,   mretArr = (rO[ CONST.METARET ]  ||  []).map( enrich )
+        var cp = codeparse( jscode, CONST.CODEPARSE_OPT )
+        ,   fm = cp2fmtree( cp )
+        ,   mretArr = cp.jsmMetaretArr  ||  []
+        ,   mfunArr = cp.jsmMetafunArr  ||  []
         ;
         
         if (mfunArr.length  ||  mretArr.length)
         {
             // Consider looking at `mfunArr` and `mretArr`
             // for detailed information useful to debug.
-
-            throw new Error( 'jsm2js:check_leftover: found remaining `metafun` and/or `metaret` within function(s): ' + 
-                             (
-                                 (mfunArr.concat( mretArr ).map( function (x) { return x.containing_function.fullname; }))
-                                     .join(',')
-                             ) +
+            
+            if ('undefined' !== typeof console)
+            {
+                console.error( 'mfunArr:', mfunArr );
+                console.error( 'mretArr:', mretArr );
+            }
+            throw new Error( 'jsm2js:check_leftover: found remaining `metafun` and/or `metaret` within function(s): ' +
                              ' - Please check for basic errors. For example a `metaret` can only be used from within a `metafun`.' +
                              ' See also github issue #9: https://github.com/glathoud/js.metaret/issues/9'
                            );
@@ -4227,7 +4899,7 @@ if (typeof lp2fmtree === 'undefined')
 
 
 {
-/*global need$ load codeparse lp2fmtree console print JSON*/
+/*global need$ load codeparse cp2fmtree console print JSON*/
 
 if (typeof codeparse === 'undefined')
     
@@ -4242,16 +4914,16 @@ if (typeof codeparse === 'undefined')
 
 
 
-if (typeof lp2fmtree === 'undefined')
+if (typeof cp2fmtree === 'undefined')
     
-//#BUILD_BEGIN_FILE: "lp2fmtree.js"
+//#BUILD_BEGIN_FILE: "cp2fmtree.js"
 
 
 {
 
 }
 
-//#BUILD_END_FILE: "lp2fmtree.js"
+//#BUILD_END_FILE: "cp2fmtree.js"
 
 
 
@@ -4261,7 +4933,12 @@ if (typeof lp2fmtree === 'undefined')
     , CODEPARSE_OPT = { 
         extraReservedArr  : [ INLINE ]
     }
-
+    , CODEPARSE_OPT_BODY = {
+        extraReservedArr  : [ INLINE ]
+        , jsmAllowMetaretOutsideFunction : true
+        , allowReturnOutsideFunction : true 
+    }
+    
     , VARASSIGN = 'varassign'
     ,    ASSIGN = 'assign'
     ,      CALL = 'call'
@@ -4308,10 +4985,10 @@ if (typeof lp2fmtree === 'undefined')
         
         // Parse this piece of code: find inline statements.
 
-        var      lp = codeparse( code, CODEPARSE_OPT )
-        ,        fm = lp2fmtree( lp )
+        var      cp = codeparse( code, CODEPARSE_OPT )
+        ,        fm = cp2fmtree( cp )
         
-        ,       all = lp.all
+        ,       all = cp.all
         , inlineArr = all
             .map( function (o, ind) { 
                 var ret = getInlineInfo( o, ind, all, code ); 
@@ -4354,7 +5031,7 @@ if (typeof lp2fmtree === 'undefined')
             code_info   : opt_code_info  // e.g. path of the file
             , inlineArr : inlineArr
             , lastname2fmarr : lastname2fmarr
-            , lp : lp
+            , cp : cp
             , fm : fm
         };
         
@@ -4436,7 +5113,7 @@ if (typeof lp2fmtree === 'undefined')
             // https://github.com/glathoud/js.metaret/issues/10
             var matchBegin   = one.fmCallMatch.begin
             ,   matchEnd     = one.fmCallMatch.end
-            ,   argumentsArr = lp.identifierObj[ 'arguments' ]  ||  []
+            ,   argumentsArr = cp.identifierObj[ 'arguments' ]  ||  []
             ;
             if (argumentsArr.some( function (x) { return matchBegin <= x  &&  x < matchEnd; } ))
                 throw new Error( 'inline error: it is forbidden to use `arguments` in the body of the function to be inlined.' );
@@ -4455,7 +5132,7 @@ if (typeof lp2fmtree === 'undefined')
 
             // Quick implementation to support imbricated inlines.
             // https://github.com/glathoud/js.metaret/issues/6
-            inline( getInlineCodeHygienic( lp.identifierObj, fm, one ), workspace, /*opt_code_info:*/null, error_inline_stack ) + 
+            inline( getInlineCodeHygienic( cp.identifierObj, fm, one ), workspace, /*opt_code_info:*/null, error_inline_stack ) + 
                 
             newcode.substring( end )
             ;
@@ -4475,10 +5152,18 @@ if (typeof lp2fmtree === 'undefined')
         ,   identifier   // identifier (optional)
         ,   call         // call       (mandatory)
         ,   args         // call args  (mandatory)
+
+        ,   oc_length = o.children.length
+
+        ,   oc_0 = o.children[ 0 ]
+        ,   oc_1 = o.children[ 1 ]
+        ,   oc_2 = o.children[ 2 ]
         ;
 
-        if ((call = all[ ind+1 ]).type === CALL  &&  
-            (args = all[ ind+2 ]).type === BRACKET  &&  args.typebracket === ROUND)
+        if (oc_length === 2  &&  
+            (call = oc_0).type === CALL  &&  
+            (args = oc_1).type === BRACKET  &&  args.typebracket === ROUND
+           )
         {
             return {
                 o            : o
@@ -4489,9 +5174,10 @@ if (typeof lp2fmtree === 'undefined')
             };
         }
 
-        if ((identifier = all[ ind+1 ]).type === IDENTIFIER  &&  
-            (call = all[ ind+2 ]).type === CALL  &&  
-            (args = all[ ind+3 ]).type === BRACKET  &&  args.typebracket === ROUND  &&  
+        if (oc_length === 3  &&
+            (identifier = oc_0).type  === IDENTIFIER  &&  
+            (call = oc_1).type === CALL  &&  
+            (args = oc_2).type === BRACKET  &&  args.typebracket === ROUND  &&
             /=/.test( code.substring( identifier.end, call.begin )))
         {
             return {
@@ -4505,11 +5191,12 @@ if (typeof lp2fmtree === 'undefined')
         }
 
         var vc;
-        if ((v = all[ ind+1 ]).type === BRACKET   &&  v.typebracket === VAR  &&
-            (vc = v.children).length === 4  &&
-            (identifier = vc[ 1 ]).type === VARDECL  &&  
-            (call       = vc[ 2 ]).type === CALL  &&  
-            (args       = vc[ 3 ]).type === BRACKET  &&  args.typebracket === ROUND  &&  
+        if (oc_length === 1  &&
+            (v = oc_0).type === BRACKET   &&  v.typebracket === VAR  &&
+            (vc = v.children).length === 3  &&
+            (identifier = vc[ 0 ]).type === VARDECL  &&  
+            (call       = vc[ 1 ]).type === CALL  &&  
+            (args       = vc[ 2 ]).type === BRACKET  &&  args.typebracket === ROUND  &&  
             /=/.test( code.substring( identifier.end, call.begin )))
         {
             return {
@@ -4574,14 +5261,14 @@ if (typeof lp2fmtree === 'undefined')
         , body_length = body_end - body_begin
         , toReplace = []
 
-        , body_lp = codeparse( body, CODEPARSE_OPT )
+        , body_cp = codeparse( body, CODEPARSE_OPT_BODY )
         ;
         
         // Prepare: Will replace variable names
 
-        for (var i = body_lp.identifierArr.length; i--;)
+        for (var i = body_cp.identifierArr.length; i--;)
         {
-            var ident = body_lp.identifierArr[ i ]
+            var ident = body_cp.identifierArr[ i ]
             ,  newstr = paramN_map[ ident.name ]  ||  vardeclN_map[ ident.name ]
             ;
             if (newstr)
@@ -4590,9 +5277,9 @@ if (typeof lp2fmtree === 'undefined')
         
         // Prepare: Will replace function names in calls
 
-        for (var i = body_lp.callArr.length; i--;)
+        for (var i = body_cp.callArr.length; i--;)
         {
-            var call = body_lp.callArr[ i ]
+            var call = body_cp.callArr[ i ]
             , newstr = paramN_map[ call.name ]  ||  vardeclN_map[ call.name ]
             ;
             if (newstr)
@@ -4601,9 +5288,9 @@ if (typeof lp2fmtree === 'undefined')
         
         // Prepare: Will replace returns
 
-        for (var i = body_lp.bracketextraArr.length; i--;)
+        for (var i = body_cp.bracketextraArr.length; i--;)
         {
-            var brack = body_lp.bracketextraArr[ i ];
+            var brack = body_cp.bracketextraArr[ i ];
             if (brack.typebracket !== RETURN)
                 continue;
             
@@ -4661,9 +5348,9 @@ if (typeof lp2fmtree === 'undefined')
         ,   var_decl_undef_set = {}
         ;
 
-        for (var n = body_lp.bracketextraArr.length, i = 0; i < n; i++)
+        for (var n = body_cp.bracketextraArr.length, i = 0; i < n; i++)
         {
-            var brack = body_lp.bracketextraArr[ i ];
+            var brack = body_cp.bracketextraArr[ i ];
             if (brack.typebracket !== VAR)
              continue;
             
