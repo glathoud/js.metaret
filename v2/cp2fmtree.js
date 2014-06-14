@@ -58,7 +58,7 @@
         ,  ret = []
         ;
         if (isTopLevel)
-            ret.lastname2fmarr = workspace.lastname2fmarr;  // Convenience access (mainly for ./inline.js)
+            ret.lastname2fmarr = workspace.lastname2fmarr;  // Convenience access (mainly for ./inline_code.js)
         
         for (var n = at.length, i = 0; i < n; i++)
         {

@@ -82,7 +82,7 @@ function gcd(a, b) {
 
 #### Imperative example
 
-[./inline.js](inline.js) transforms this clear, expressive code:
+[./inline_code.js](inline_code.js) transforms this clear, expressive code:
 
 ```js
 function doSomething() { alert("done!"); }

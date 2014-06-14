@@ -15,7 +15,7 @@ var need$, read;
     need$.read = readNative  ?  read  :  xhrGetSync;  // xhrGetSync to simulate the exact same order as a build file
 
     need$( 'jsm2js.js' );
-    need$( 'inline.js' );
+    need$( 'inline_code.js' );
 
     var canInline = true;
 
@@ -61,7 +61,7 @@ var need$, read;
             code = jsm2js( code );
 
             if (canInline)
-                code = inline( code, inline_workspace, { path : path } ); // `inline_workspace` to permit inlining accross files, see github issue #7 
+                code = inlineCode( code, inline_workspace, { path : path } ); // `inline_workspace` to permit inlining accross files, see github issue #7 
         }
 
         eval.call( global, code );  // May include calls to `need$` -> load all missing files recursively.

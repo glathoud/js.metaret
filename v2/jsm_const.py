@@ -30,7 +30,7 @@ JS_SEP_OUT = '\n##########\n'
 
 JSM2JS_AND_INLINE_SETUP = ' '.join([
     'load("jsm2js.js");',
-    'load("inline.js");',
+    'load("inline_code.js");',
     JS_WORKSPACE + ' = {};',
     '',
     ])
@@ -40,7 +40,7 @@ JSM2JS_AND_INLINE_PREPARE_ONE = lambda in_filename,out_filename: ' '.join( [
     'var out_filename = "' + out_filename + '";',
     'print( "#in_filename:\'" + in_filename + "\'" );',
     'print( "#out_filename:\'" + out_filename + "\'" );',
-    'print( inline( jsm2js( read( in_filename ) ), ' + JS_WORKSPACE + ', in_filename ) );',
+    'print( inlineCode( jsm2js( read( in_filename ) ), ' + JS_WORKSPACE + ', in_filename ) );',
     '',
     ])
 

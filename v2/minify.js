@@ -2,8 +2,8 @@
 
 // Support both use cases: browser development (example: jsm_dev) and
 // command-line transformation (example: jsm_dev -> jsm_out).
-    if (typeof codeparse === 'undefined')
-        (typeof need$ !== 'undefined'  ?  need$  :  load)( "codeparse.js" );
+if (typeof codeparse === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "codeparse.js" );
 
 if (typeof cp2fmtree === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "cp2fmtree.js" );

@@ -10,13 +10,13 @@
 
         // Make sure function calls are also renamed
         
-        if (!/_b_\s*\(\s*_a_\s*\+\s*_c_\s*\)/.test( inline('function f(a,b,c) { b(a+c); }  inline f(d,e,f);') ))
+        if (!/_b_\s*\(\s*_a_\s*\+\s*_c_\s*\)/.test( inlineCode('function f(a,b,c) { b(a+c); }  inline f(d,e,f);') ))
             throw new Error( 'inline failure: test #123' );
                 
         // https://github.com/glathoud/js.metaret/issues/6
         // detect and forbid inline cycles
 
-        ensure_error( 'inline( "inline f(); function f() { inline g(); } function g() { inline f(); }" );' 
+        ensure_error( 'inlineCode( "inline f(); function f() { inline g(); } function g() { inline f(); }" );' 
                       , function (error)
                       {
                           var msg = ('' + error).toLowerCase();
@@ -31,8 +31,8 @@
         ,   first_file  = 'function f() { "blah" }'
         ,   second_file = 'inline f();'
 
-        ,   first_file_inlined  = inline( first_file, workspace, { path : "first.file.js" } )
-        ,   second_file_inlined = inline( second_file, workspace, { path : "second.file.js" } )
+        ,   first_file_inlined  = inlineCode( first_file, workspace, { path : "first.file.js" } )
+        ,   second_file_inlined = inlineCode( second_file, workspace, { path : "second.file.js" } )
         ;
         assert( 'v.first_file === v.first_file_inlined', { first_file : first_file, first_file_inlined : first_file_inlined } );
         assert( 'v.second_file !== v.second_file_inlined', { second_file : second_file, second_file_inlined : second_file_inlined } );
@@ -47,8 +47,8 @@
         ,   first_file  = 'var SOME_CONST = "blah"; function f() { return SOME_CONST; }'
         ,   second_file = 'inline f();'
 
-        ,   first_file_inlined  = inline( first_file, workspace, { path : "first.file.js" } )
-        ,   second_file_inlined = inline( second_file, workspace, { path : "second.file.js" } )
+        ,   first_file_inlined  = inlineCode( first_file, workspace, { path : "first.file.js" } )
+        ,   second_file_inlined = inlineCode( second_file, workspace, { path : "second.file.js" } )
         ;
         assert( 'v.first_file === v.first_file_inlined', { first_file : first_file, first_file_inlined : first_file_inlined } );
         assert( 'v.second_file !== v.second_file_inlined', { second_file : second_file, second_file_inlined : second_file_inlined } );
@@ -63,12 +63,12 @@
         ,   first_file  = '(function () { var SOME_CONST = "blah"; function f() { return SOME_CONST; } })()'
         ,   second_file = 'inline f();'
 
-        ,   first_file_inlined  = inline( first_file, workspace, { path : "first.file.js" } )
+        ,   first_file_inlined  = inlineCode( first_file, workspace, { path : "first.file.js" } )
         ;
         assert( 'v.first_file === v.first_file_inlined', { first_file : first_file, first_file_inlined : first_file_inlined } );
         assert( '!/\\binline\\b/.test( v )', second_file_inlined.replace( /^\/\/#INLINE_.*$/gm, '' ) );
 
-        ensure_error( 'inline( this.second_file, this.workspace, { path : "second.file.js" } )'
+        ensure_error( 'inlineCode( this.second_file, this.workspace, { path : "second.file.js" } )'
                       , function (error)
                       {
                           var msg = ('' + error).toLowerCase();
@@ -83,7 +83,7 @@
         // to the target inline location.
         //
         ensure_error( 
-            "inline( 'function f() { var a,b; return g(); function g() { inline var ret = i(); return ret; function h() { function i() { return a+b; } } } }' )"
+            "inlineCode( 'function f() { var a,b; return g(); function g() { inline var ret = i(); return ret; function h() { function i() { return a+b; } } } }' )"
             , function (error)
             {
                  var msg = ('' + error).toLowerCase();
@@ -97,14 +97,14 @@
         // 
         //  * to inline any function that does not have any closure.
         // 
-        assert( "2 === inline( 'function f() { return g(); function g() { inline var ret = i(); return ret; } }  function h() { function i() { \"i-body\"; } }' ).match( /i-body/g ).length" );
+        assert( "2 === inlineCode( 'function f() { return g(); function g() { inline var ret = i(); return ret; } }  function h() { function i() { \"i-body\"; } }' ).match( /i-body/g ).length" );
         //  * to share bound variables as long as they are defined
         // within a scope shared by the source body and the target
         // inline location.
-        inline( 'function f() { var a,b; return g(); function g() { inline var ret = h(); return ret; function h() { return a+b; } } }' );
+        inlineCode( 'function f() { var a,b; return g(); function g() { inline var ret = h(); return ret; function h() { return a+b; } } }' );
 
         ensure_error( 
-            "inline( 'function f() { return g(); function g() { inline var ret = i(); } function h() { var a,b; function i() { return a+b; } } }' )"
+            "inlineCode( 'function f() { return g(); function g() { inline var ret = i(); } function h() { var a,b; function i() { return a+b; } } }' )"
             , function (error)
             {
                 var msg = ('' + error).toLowerCase();
@@ -113,7 +113,7 @@
         );
 
         ensure_error(
-            "inline( 'function f() { var a,b; inline var ret = g(); } var a,b; function g() { return a+b; }' )"
+            "inlineCode( 'function f() { var a,b; inline var ret = g(); } var a,b; function g() { return a+b; }' )"
             , function (error)
             {
                 var msg = ('' + error).toLowerCase();
@@ -133,7 +133,7 @@
                       }
                     );
 
-        ensure_error( 'inline( "inline f(); function f() { console.log( arguments ); }" )'
+        ensure_error( 'inlineCode( "inline f(); function f() { console.log( arguments ); }" )'
                       , function (error)
                       {
                           var msg = '' + error;

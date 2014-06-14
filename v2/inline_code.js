@@ -32,9 +32,9 @@ if (typeof cp2fmtree === 'undefined')
     ,    VARDECL = 'vardecl'
     ;
     
-    global.inline = inlineImpl;
+    global.inlineCode = inlineCode;
 
-    function inlineImpl( code, /*?object?*/workspace, /*?object?*/opt_code_info, /*?array?*/error_inline_stack )
+    function inlineCode( code, /*?object?*/workspace, /*?object?*/opt_code_info, /*?array?*/error_inline_stack )
     // Remove `inline` statements, replace them with hygienic inlining 
     // of the called function.
     //
@@ -211,7 +211,7 @@ if (typeof cp2fmtree === 'undefined')
 
             // Quick implementation to support imbricated inlines.
             // https://github.com/glathoud/js.metaret/issues/6
-            inlineImpl( getInlineCodeHygienic( cp.identifierObj, fm, one ), workspace, /*opt_code_info:*/null, error_inline_stack ) + 
+            inlineCode( getInlineCodeHygienic( cp.identifierObj, fm, one ), workspace, /*opt_code_info:*/null, error_inline_stack ) + 
                 
             newcode.substring( end )
             ;

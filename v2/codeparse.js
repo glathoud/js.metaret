@@ -106,7 +106,7 @@ if (typeof acorn.walk === 'undefined')
          }/*}1.1*/
 
 
-         /*dc*/// Walk the tree and extract what we need for metaret.js and inline.js
+         /*dc*/// Walk the tree and extract what we need for metaret.js and inline_code.js
          
          var /*vd*/tmp/**/
          ,   /*vd*/caA/**/       = ret.callArr
@@ -204,7 +204,7 @@ if (typeof acorn.walk === 'undefined')
                      }/*}1.3.2.2.2*/
                  }/*}1.3.2.2*/
              }/*}1.3.2*/     
-             else if (callee.type === /*dq*/"FunctionExpression"/**/)
+             else if (/*rr*//Expression$//**/.test( callee.type ))
              /*{1.3.3*/{
                  /*dc*/// No need to do anything here
              }/*}1.3.3*/
@@ -320,8 +320,10 @@ if (typeof acorn.walk === 'undefined')
                  var /*vd*/k/**/ = p.key;
                  if (k.type === /*dq*/"Identifier"/**/)
                      meet_Identifier( k );
+                 else if (k.type === /*dq*/"Literal"/**/)
+                     meet_Literal( k );
                  else
-                     throw new Error( /*dq*/"Whatever"/**/ );
+                     throw new Error( /*dq*/"Whatever "/**/ + node.start );
              }/*}1.65.1*/);
          }/*}1.65*/
 
