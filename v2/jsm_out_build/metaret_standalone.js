@@ -4521,10 +4521,10 @@ if (typeof cp2fmtree === 'undefined')
         ;
         for (var i = metaretArr.length; i--; )   // Downward order important
         {
-            var metaret = metaretArr[ i ]
+            var oneMetaret = metaretArr[ i ]
 
-            , before    = ret.slice( 0, metaret.start )
-            , after     = ret.slice( metaret.end )
+            , before    = ret.slice( 0, oneMetaret.start )
+            , after     = ret.slice( oneMetaret.end )
             ;
 
             // If there was a comment right on the metaret line,
@@ -4538,25 +4538,25 @@ if (typeof cp2fmtree === 'undefined')
                 after         =  after.substring( after_comment.length );
             }
             
-            var code = prepareCode( metaret, after_comment );
+            var code = prepareCode( oneMetaret, after_comment );
             
             ret = before + code + after;
         }
         
         return ret;
 
-        function prepareCode( metaret, after_comment )
+        function prepareCode( oneMetaret, after_comment )
         {
             var code   = []
-            , info     = name2info_get( name2info, metaret.action, metaret.namespace_arr )
+            , info     = name2info_get( name2info, oneMetaret.action, oneMetaret.namespace_arr )
             , paramArr = info.paramArr
-            , exprArr  = metaret.exprArr
+            , exprArr  = oneMetaret.exprArr
             ;
             
             if (paramArr.length !== exprArr.length)
             {
                 throw new Error( 'MetaFunction : _replaceMetaretWithContinue : prepareCode : Invalid number of metaret arguments, action  "' + 
-                                 metaret.action + '" expects ' + paramArr.length + ' arguments, but ' + exprArr.length + ' were given.'
+                                 oneMetaret.action + '" expects ' + paramArr.length + ' arguments, but ' + exprArr.length + ' were given.'
                                );
             }
 
@@ -4594,10 +4594,10 @@ if (typeof cp2fmtree === 'undefined')
 
                 var nameArr  = label_or_nameArr;
 
-                if (metaret.action === metaretArr.selfName)
+                if (oneMetaret.action === metaretArr.selfName)
                 {
                     // Actually a self-recursion (switch style)
-                    code.push( 'continue ' + nameArr.switchLabel + '; // --- stay in: ' + metaret.action );
+                    code.push( 'continue ' + nameArr.switchLabel + '; // --- stay in: ' + oneMetaret.action );
                 }
                 else
                 {
@@ -4606,11 +4606,11 @@ if (typeof cp2fmtree === 'undefined')
                     if (0 > switch_ind)
                     {
                         throw new Error('MetaFunction : _replaceMetaretWithContinue : prepareCode : Found a bug! Could not find the switch index of action "' +
-                                        metaret.action + '"' 
+                                        oneMetaret.action + '"' 
                                        );
                     }
                     
-                    code.push( nameArr.switch_ind_name + ' = ' + switch_ind + '; // --- go to: ' + metaret.action );
+                    code.push( nameArr.switch_ind_name + ' = ' + switch_ind + '; // --- go to: ' + oneMetaret.action );
                     code.push( 'continue ' + nameArr.switchLabel + ';' );
                 }
             }   
@@ -4953,9 +4953,9 @@ if (typeof cp2fmtree === 'undefined')
     ,    VARDECL = 'vardecl'
     ;
     
-    global.inline = inline;
+    global.inline = inlineImpl;
 
-    function inline( code, /*?object?*/workspace, /*?object?*/opt_code_info, /*?array?*/error_inline_stack )
+    function inlineImpl( code, /*?object?*/workspace, /*?object?*/opt_code_info, /*?array?*/error_inline_stack )
     // Remove `inline` statements, replace them with hygienic inlining 
     // of the called function.
     //
@@ -5132,7 +5132,7 @@ if (typeof cp2fmtree === 'undefined')
 
             // Quick implementation to support imbricated inlines.
             // https://github.com/glathoud/js.metaret/issues/6
-            inline( getInlineCodeHygienic( cp.identifierObj, fm, one ), workspace, /*opt_code_info:*/null, error_inline_stack ) + 
+            inlineImpl( getInlineCodeHygienic( cp.identifierObj, fm, one ), workspace, /*opt_code_info:*/null, error_inline_stack ) + 
                 
             newcode.substring( end )
             ;
