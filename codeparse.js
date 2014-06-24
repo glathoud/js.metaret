@@ -666,10 +666,10 @@ if (typeof acorn.walk === 'undefined')
                  , str = s.hasOwnProperty( 'str_noComments' )
 		     ? s.str_noComments
 		     : (s.str_noComments = 
-			( /\/\*|\*\//.test( s.str )  
+			trimSpaces( /\/\*|\*\//.test( s.str )  
 			  ? removeComments( s )
 			  : s.str
-			  ).replace( /^\s*|\s*$/g, '' )
+			  )
 			)
 		     
 		     , mo_LR = str.match( /^([^=]*)\s*=\s*([\s\S]+)$/ )
@@ -681,13 +681,15 @@ if (typeof acorn.walk === 'undefined')
                      : { leftstr : str, rightstr : null }
                  );
              }
-         }
+         }       
 
          function removeComments( s )
          {
              var str = s.str
              , begin = s.begin
              ,   end = s.end
+             
+             ,   arr = []
              ;
 	     if (0 < i_cA)
 		 {
@@ -703,9 +705,10 @@ if (typeof acorn.walk === 'undefined')
 				     break;
 				 }
 			     
-			     str = str.substring( 0, c.begin - begin )
-				 + str.substring( c.end - begin );
+                             arr.unshift( c.end - begin );
 			 }
+                     arr.unshift( c.begin - begin );
+                     return arr.join( '' );
 		 }
 	     return str;
          }
@@ -897,6 +900,31 @@ if (typeof acorn.walk === 'undefined')
 
              return (n < 0) ? (fill + s) : (s + fill);
          };
+     }
+
+     function trimSpaces( s )
+     {
+         // The two for loops turned out to be faster than the RegExps:
+         // 
+         // return s.replace( /^\s*|\s*$/g, '' );
+         // return s.replace( /^\s*/g, '' ).replace( /\s*$/g, '' );
+
+         var n = s.length;
+         if (!n)
+             return s;
+         
+         for (var i = 0; i < n; i++)
+         {
+             if (s.charAt(i) !== ' ')
+                 break;
+         }
+         
+         for (var j = n-1; j >= i; j--)
+         {
+             if (s.charAt(j) !== ' ')
+                 break;
+         }
+         return s.substring( i, j+1 );
      }
 
 })(this);
