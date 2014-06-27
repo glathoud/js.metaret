@@ -253,12 +253,15 @@
     {
         if (arr_or_fm instanceof Array)
         {
-            arr_or_fm.forEach( function (fm) { find_decluse( fm, idname2decluse ); } );
+            // for loop for performance // was: arr_or_fm.forEach( function (fm) { find_decluse( fm, idname2decluse ); } );
+            for (var n = arr_or_fm.length, i = 0; i < n; i++)
+                find_decluse( arr_or_fm[ i ], idname2decluse );
+            
             return;
         }
 
         var fm = arr_or_fm;        
-        idname2decluse = copy( idname2decluse || {} );
+        idname2decluse = idname2decluse  ?  copy( idname2decluse )  :  {};
 
         var fm_idname2decluse = fm.idname2decluse = idname2decluse
         , arr_push_out = [ idname2decluse ]
@@ -283,6 +286,19 @@
                     );
         }
         for (var name in fm.vardeclObj) { if (!(name in _emptyObj)) {  // More flexible than hasOwnProperty
+
+            // for performance. was: fm.vardeclObj[ name ].map( function (o) { return { begin : o.begin, end : o.end }; } )
+            var tmp_arr = fm.vardeclObj[ name ]
+            ,   tmp_n   = tmp_arr.length
+            ,   declArr = new Array( tmp_n )
+            ;
+            for (var tmp_i = 0; tmp_i < tmp_n; tmp_i++)
+            {
+                var o = tmp_arr[ tmp_i ];
+                declArr[ tmp_i ] = { begin : o.begin, end : o.end };
+            }
+            
+
             arr_push( arr_push_out
                       , name
                       , {
@@ -290,7 +306,7 @@
                           , fmDecl : fm
                           , use : []
                           , name : name
-                          , declArr : fm.vardeclObj[ name ].map( function (o) { return { begin : o.begin, end : o.end }; } )
+                          , declArr : declArr
                       }
                     );
         }}

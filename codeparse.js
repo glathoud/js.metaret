@@ -587,37 +587,32 @@ if (typeof acorn.walk === 'undefined')
              var      x = bA[ i ]
              ,     kids = x.bracketchildren
              , nakedOne = nakedCodeNoStrNoRx.substring( x.begin, x.end )
-             ,   offset = x.begin;
+             ,   offset = x.begin
+             
+             // Whitespace open
+             , whiteArr = [ { begin : 0, end : x.open.length } ]
              ;
-             // Whitespace open and close
-             nakedOne = str_repli( ' ', x.open.length ) + 
-                 nakedOne.substring( x.open.length, nakedOne.length - x.close.length ) + 
-                 str_repli( ' ', x.close.length )
-             ;
-
-             // Whitespace all brackedchildren
-             for (var j = kids.length; j--;)
+             for (var nj = kids.length, j = 0; j < nj; j++)
              {
-                 var  kid = kids[ j ];
-                 nakedOne = nakedOne.substring( 0, kid.begin - offset ) + 
-                     str_repli( ' ', kid.end - kid.begin ) 
-                     + nakedOne.substring( kid.end - offset )
-                 ;
+                 var kid = kids[ j ];
+                 whiteArr.push( { begin : kid.begin - offset, end : kid.end - offset } );
              }
+             // Whitespace close
+             whiteArr.push( { begin : nakedOne.length - x.close.length, end : nakedOne.length } );
+             
+             nakedOne = str_whiteSlice( nakedOne, whiteArr );
+
              // Now we can look for comma/semicolon splits without risking to
              // match any comma/semicolon within a kid.
 
-             var rx = new RegExp(
-                 [ ',', ';' ]
-		 // xxx wrong, remove this line: .concat( reservedArr.map( function (w) { return '\\b' + w + '\\b'; } ) )
-                     .join( '|' )
-                 , 'g' 
-             )
-             ,   sA = x.sepArr = []
-             ,   mo
-             ;
-             while (mo = rx.exec( nakedOne ))
-                 sA.push( { index : offset + mo.index, type : mo[ 0 ] } );
+             var sA = x.sepArr = [];
+             for (var nj = nakedOne.length, j = 0; j < nj; j++)
+             {
+                 var c = nakedOne.charAt( j );
+                 if (c === ','  ||  c === ';')
+                     sA.push( { index : offset + j, type : c } );
+             }
+             
 
              var FIRST = '<first>'
              ,   LAST  = '<last>'
@@ -666,7 +661,7 @@ if (typeof acorn.walk === 'undefined')
                  , str = s.hasOwnProperty( 'str_noComments' )
 		     ? s.str_noComments
 		     : (s.str_noComments = 
-			trimSpaces( /\/\*|\*\//.test( s.str )  
+			str_trim( /\/\*|\*\//.test( s.str )  
 			  ? removeComments( s )
 			  : s.str
 			  )
@@ -848,15 +843,57 @@ if (typeof acorn.walk === 'undefined')
      }
 
 
-     function str_repli(/*string*/s, /*positive number*/n) 
-     {
-         return str_filler(s, n)();
-     }
+    function str_repli( /*string*/s, /*positive number*/n ) 
+    {
+        var key;
+        if (n < 1000)
+        { 
+            key = s + '#' + n;
+            if (key in str_repli)
+                return str_repli[ key ];
+        }
+
+        var tmpArr = [];
+        while (n)
+        {
+            if (n & 1)
+                tmpArr.push( s );
+
+            s += s;
+            n >>= 1;
+        }
+
+        var ret = tmpArr.join( '' );
+        if (key != null)
+            str_repli[ key ] = ret;
+
+        return ret;
+    }
 
 
      function str_trim(/*string*/s) 
      {
-         return s.replace(/(^\s*|\s*$)/g, '');
+         // The two for loops turned out to be faster than the RegExps:
+         // 
+         // return s.replace( /^\s*|\s*$/g, '' );
+         // return s.replace( /^\s*/g, '' ).replace( /\s*$/g, '' );
+
+         var n = s.length;
+         if (!n)
+             return s;
+         
+         for (var i = 0; i < n; i++)
+         {
+             if (s.charAt(i) !== ' ')
+                 break;
+         }
+         
+         for (var j = n-1; j >= i; j--)
+         {
+             if (s.charAt(j) !== ' ')
+                 break;
+         }
+         return s.substring( i, j+1 );
      }
      
      function str_filler(/*?string?*/f, /*number, negative to fill on the left, positive to fill on the right*/n) 
@@ -902,29 +939,33 @@ if (typeof acorn.walk === 'undefined')
          };
      }
 
-     function trimSpaces( s )
+     function str_whiteSlice( str, whiteArr )
      {
-         // The two for loops turned out to be faster than the RegExps:
-         // 
-         // return s.replace( /^\s*|\s*$/g, '' );
-         // return s.replace( /^\s*/g, '' ).replace( /\s*$/g, '' );
+         if (!whiteArr.length)
+             return str;
 
-         var n = s.length;
-         if (!n)
-             return s;
+         var whiteLast  = whiteArr[ whiteArr.length - 1 ]
          
-         for (var i = 0; i < n; i++)
+         ,   retArr     = []
+         ,   current    = 0
+         ;
+         for (var n = whiteArr.length, i = 0; i < n; i++)
          {
-             if (s.charAt(i) !== ' ')
-                 break;
+             var white   = whiteArr[ i ]
+             ,   w_end   = white.end
+             ,   w_begin = white.begin
+             ;
+             if (current < w_begin)
+                 retArr.push( str.substring( current, w_begin ) );
+             
+             retArr.push( str_repli( ' ', w_end - w_begin ) );
+             current = w_end;
          }
          
-         for (var j = n-1; j >= i; j--)
-         {
-             if (s.charAt(j) !== ' ')
-                 break;
-         }
-         return s.substring( i, j+1 );
-     }
+         if (current < str.length)
+             retArr.push( str.substring( current ) );
+         
+         return retArr.join( '' );
+     }            
 
 })(this);

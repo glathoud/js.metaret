@@ -64,11 +64,7 @@ if (typeof cp2fmtree === 'undefined')
 
         function remove_comments( cA )
         {
-	    for (var i = cA.length; i--; )
-	    {
-		var c = cA[ i ];
-		newcode = newcode.substring( 0, c.begin ) + newcode.substring( c.end );
-	    }
+            newcode = str_whiteSlice( newcode, cA );
         }
 
         function minify_all( all )
@@ -256,5 +252,61 @@ if (typeof cp2fmtree === 'undefined')
         return '_' + i.toString( 36 );
     }
 
+    
+    function str_repli( /*string*/s, /*positive number*/n ) 
+    {
+        var key;
+        if (n < 1000)
+        { 
+            key = s + '#' + n;
+            if (key in str_repli)
+                return str_repli[ key ];
+        }
+
+        var tmpArr = [];
+        while (n)
+        {
+            if (n & 1)
+                tmpArr.push( s );
+
+            s += s;
+            n >>= 1;
+        }
+
+        var ret = tmpArr.join( '' );
+        if (key != null)
+            str_repli[ key ] = ret;
+
+        return ret;
+    }
+
+    function str_whiteSlice( str, whiteArr )
+    {
+        if (!whiteArr.length)
+            return str;
+
+        var whiteLast  = whiteArr[ whiteArr.length - 1 ]
+        
+        ,   retArr     = []
+        ,   current    = 0
+        ;
+        for (var n = whiteArr.length, i = 0; i < n; i++)
+        {
+            var white   = whiteArr[ i ]
+            ,   w_end   = white.end
+            ,   w_begin = white.begin
+            ;
+            if (current < w_begin)
+                retArr.push( str.substring( current, w_begin ) );
+            
+            retArr.push( str_repli( ' ', w_end - w_begin ) );
+            current = w_end;
+        }
+        
+        if (current < str.length)
+            retArr.push( str.substring( current ));
+        
+        return retArr.join( '' );
+    }            
 
 })(this);
