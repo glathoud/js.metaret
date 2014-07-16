@@ -138,8 +138,9 @@ if (typeof acorn.walk === 'undefined')
              , JsmMetafunExpression  : meet_JsmMetafunExpression
              , Literal               : meet_Literal
              , MemberExpression      : meet_MemberExpression
-             , NewExpression         : meet_CallExpression
+             , NewExpression         : meet_NewExpression
              , ObjectExpression      : meet_ObjectExpression
+             , ThisExpression        : meet_ThisExpression
              , VariableDeclaration   : meet_VariableDeclaration
          }/*}1.2*/);
 
@@ -182,14 +183,21 @@ if (typeof acorn.walk === 'undefined')
              else if (callee.type === /*dq*/"MemberExpression"/**/)
              /*{1.3.2*/{
                  var /*vd*/cp/**/ = callee.property
+
                  , /*vd*/name/**/ = cp.name
-                 , /*vd*/dotI/**/ = nakedCode.lastIndexOf( /*sq*/'.'/**/, cp.start )
-                 , /*vd*/parI/**/ = nakedCode.indexOf( /*dq*/"("/**/, cp.end )
+
+                 , /*vd*/prop_begin/**/ = nakedCode.lastIndexOf( callee.computed
+                                                                 ?  /*dq*/"["/**/  
+                                                                 :  /*dq*/"."/**/
+                                                                 , cp.start )
+                 , /*vd*/prop_end/**/ = callee.computed  ?  nakedCode.indexOf( /*dq*/"]"/**/, cp.end )  :  cp.end
+
+                 , /*vd*/parI/**/ = nakedCode.indexOf( /*dq*/"("/**/, prop_end )
                  ;
-                 if (dotI < 0  ||  parI < 0)
+                 if (prop_begin < 0  ||  prop_end < 0   ||  prop_end < prop_begin  ||  parI < 0)
                      throw new Error( /*sq*/'meet_CallExpression bug'/**/ );
 
-                 dcaA.push( /*{1.3.2.1*/{ begin : dotI, str : code.substring( dotI, parI + 1 ), name : name, acornNode : node }/*}1.3.2.1*/ );
+                 dcaA.push( /*{1.3.2.1*/{ begin : prop_begin, str : code.substring( prop_begin, parI + 1 ), name : name, acornNode : node }/*}1.3.2.1*/ );
 
                  for (var /*vd*/i/**/ = dA.length; i--;)
                  /*{1.3.2.2*/{
@@ -211,6 +219,13 @@ if (typeof acorn.walk === 'undefined')
              else
                  throw new Error( /*dq*/"bug"/**/ );
          }/*}1.3*/
+
+             function meet_NewExpression( node )
+             /*{1.32*/{
+                 if (node.arguments.length)
+                     meet_CallExpression( node );
+             }/*}1.32*/
+             
 
          function meet_FunctionDeclaration( node )
          /*{1.35*/{
@@ -326,6 +341,12 @@ if (typeof acorn.walk === 'undefined')
                      throw new Error( /*dq*/"Whatever "/**/ + node.start );
              }/*}1.65.1*/);
          }/*}1.65*/
+
+             function meet_ThisExpression( node )
+             /*{1.68*/{
+                 /*dc*/// Not quite right (actually reserved). reservedArr only when needed
+                 iA.push( /*{1.41*/{ begin : node.start, str : /*sq*/'this'/**/, name : /*sq*/'this'/**/, acornNode : node }/*}1.41*/ );
+             }/*}1.68*/
 
          function meet_VariableDeclaration( node )
          /*{1.7*/{

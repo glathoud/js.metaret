@@ -95,7 +95,6 @@
 
 
 
-
     <h2>codeparse</h2>
     
     <script type="text/javascript">testClearAll();</script>
@@ -111,9 +110,7 @@
 
 
 
-
     <hr/>
-
 
 
 
@@ -293,8 +290,6 @@
 
 
 
-
-
     <div id="jsm_dev_metaret_standalone_js">
 
       <h2>jsm_dev/metaret_standalone.js</h2>
@@ -354,7 +349,6 @@
 
 
 
-
     <div id="jsm_out_mini_metaret_standalone_js">
 
       <h2>jsm_out_mini/metaret_standalone.js</h2>
@@ -369,10 +363,7 @@
 
 
 
-
-
     <hr/>
-
 
     
 
@@ -387,8 +378,12 @@
       <script type="text/javascript">
 	var build_code = need$.read( "jsm_out_build/metaret_standalone.js" )
 	,   start      = new Date
-	,   mini_code  = minify( build_code )
-	,   duration   = new Date - start
+;
+
+console.profile("minify");
+var mini_code  = minify( build_code );
+console.profileEnd("minify");
+var duration   = new Date - start
 	;
 	document.write( "\x3Cp\x3E" + duration + "ms\x3C/p\x3E" );
       </script>
@@ -403,10 +398,10 @@
 
 
 
-
     <script type="text/javascript">
       document.getElementById("global_result").innerHTML = "\x3Cspan class='" + (global_result===true  ?  "happy'\x3Esuccess"  :  "sad'\x3Efailure") + "\x3C/span\x3E";
     </script>
+
 
   </body>
 </html>
