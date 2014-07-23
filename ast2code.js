@@ -14,7 +14,7 @@
 
     // ---------- Private implementation
 
-    function ast2arr( /*object | array*/ast, opt, /*?string?*/array_sep )
+    function ast2arr( /*object | array*/ast, /*?object?*/opt, /*?object?*/extra )
     // Returns an array of code strings.
     //
     // Notes:
@@ -29,8 +29,13 @@
     // glathoud@yahoo.fr
     {
         opt  ||  (opt = {});
-        var ret = opt.ret  ||  (opt.ret = []);
-        var jsm = opt.jsm;
+        var ret = opt.ret  ||  (opt.ret = [])
+        ,   jsm = opt.jsm
+        ;
+
+        var array_sep = extra  &&  extra.array_sep
+        ,   parent    = extra  &&  extra.parent
+        ;
         
         if (ast instanceof Array)
         {
@@ -39,7 +44,7 @@
                 if (0 < i  &&  array_sep)
                     ret.push( array_sep );
                 
-                ast2arr( ast[ i ], opt );
+                ast2arr( ast[ i ], opt, { parent : extra  &&  extra.parent } );
             }
             
             return ret;           
@@ -57,40 +62,36 @@
             {
                 if (0 < ie)
                     ret.push( ',' );
-                ast2arr( elt[ ie ], opt );
+                ast2arr( elt[ ie ], opt, { parent : ast } );
             }
             ret.push( ']' );
             return ret;
 
         case 'AssignmentExpression':
-            ret.push( '(' );
-            ast2arr( ast.left, opt );
+            var nds_prn = needs_parentheses( parent, ast );
+            if (nds_prn) ret.push( '(' );
+            ast2arr( ast.left, opt, { parent : ast } );
             ret.push( ast.operator );
-            ast2arr( ast.right, opt );
-            ret.push( ')' );
+            ast2arr( ast.right, opt, { parent : ast } );
+            if (nds_prn) ret.push( ')' );
             return ret;
             
         case 'BinaryExpression':
         case 'LogicalExpression':
-            var left = ast.left
+            var nds_prn = needs_parentheses( parent, ast )
+            ,   left = ast.left
             ,  right = ast.right
-            ,   left_exp = /expression/i.test( ast.left.type )
-            ,  right_exp = /expression/i.test( ast.right.type )
             ;
-            ret.push( '(' );
-            if (left_exp)  ret.push( '(' );  // Could be optimized, using relative priorities of operators 
-            ast2arr( left, opt );
-            if (left_exp)  ret.push( ')' );
+            if (nds_prn) ret.push( '(' );
+            ast2arr( left, opt, { parent : ast } );
             ret.push( /^\w+$/.test( ast.operator )  ?  ' ' + ast.operator + ' '  :  ast.operator );
-            if (right_exp)  ret.push( '(' );  // Could be optimized, using relative priorities of operators 
-            ast2arr( right, opt );
-            if (right_exp)  ret.push( ')' );
-            ret.push( ')' );
+            ast2arr( right, opt, { parent : ast } );
+            if (nds_prn) ret.push( ')' );
             return ret;
 
         case 'BlockStatement': 
             ret.push( '{' );
-            ast2arr( ast.body, opt );
+            ast2arr( ast.body, opt, { parent : ast } );
             ret.push( '}' );
             return ret;
             
@@ -101,7 +102,7 @@
             if (label)
             {
                 ret.push( ' ' );
-                ast2arr( label, opt );
+                ast2arr( label, opt, { parent : ast } );
             }
             ret.push( ';' );
             return ret;
@@ -109,35 +110,36 @@
         case 'CallExpression':
             var isFun = /function/i.test( ast.callee.type );
             if (isFun)  ret.push( '(' );
-            ast2arr( ast.callee, opt );
+            ast2arr( ast.callee, opt, { parent : ast } );
             if (isFun)  ret.push( ')' );
             ret.push( '(' );
-            ast2arr( ast.arguments, opt, ',' );
+            ast2arr( ast.arguments, opt, { parent : ast, array_sep : ',' } );
             ret.push( ')' );
             return ret;
 
         case 'CatchClause':
             ret.push( 'catch (' );
-            ast2arr( ast.param, opt );
+            ast2arr( ast.param, opt, { parent : ast } );
             ret.push( ')' );
             ast2arr( ast.body,  opt );
             return ret;
 
         case 'ConditionalExpression':
-            ret.push( '(' );
-            ast2arr( ast.test, opt );
+            var nds_prn = needs_parentheses( parent, ast );
+            if (nds_prn) ret.push( '(' );
+            ast2arr( ast.test, opt, { parent : ast } );
             ret.push( '?' );
-            ast2arr( ast.consequent, opt );
+            ast2arr( ast.consequent, opt, { parent : ast } );
             ret.push( ':' );
-            ast2arr( ast.alternate, opt );
-            ret.push( ')' );
+            ast2arr( ast.alternate, opt, { parent : ast } );
+            if (nds_prn) ret.push( ')' );
             return ret;
 
         case 'DoWhileStatement':
             ret.push( 'do ' );
-            ast2arr( ast.body, opt );
+            ast2arr( ast.body, opt, { parent : ast } );
             ret.push( ' while(' );
-            ast2arr( ast.test, opt );
+            ast2arr( ast.test, opt, { parent : ast } );
             ret.push( ')' );
             return ret;
         
@@ -146,7 +148,7 @@
             return ret;
 
         case 'ExpressionStatement':
-            ast2arr( ast.expression, opt );
+            ast2arr( ast.expression, opt, { parent : ast } );
             ret.push( ';' );
             return ret;
 
@@ -155,7 +157,7 @@
             
             if (ast.init)
             {
-                ast2arr( ast.init, opt );
+                ast2arr( ast.init, opt, { parent : ast } );
             }
             else
             {
@@ -164,7 +166,7 @@
             
             if (ast.test)
             {
-                ast2arr( ast.test, opt );
+                ast2arr( ast.test, opt, { parent : ast } );
                 ret.push( ';' );
             }
             else
@@ -173,34 +175,34 @@
             }
             
             if (ast.update)
-                ast2arr( ast.update, opt );
+                ast2arr( ast.update, opt, { parent : ast } );
             
             ret.push( ')' );
-            ast2arr( ast.body, opt );
+            ast2arr( ast.body, opt, { parent : ast } );
             return ret;
 
         case 'FunctionDeclaration':
         case 'FunctionExpression':
             ret.push( 'function ' );
             if (ast.id)
-                ast2arr( ast.id, opt );
+                ast2arr( ast.id, opt, { parent : ast } );
             ret.push( '(' );
-            ast2arr( ast.params, opt, ',' );
+            ast2arr( ast.params, opt, { parent : ast, array_sep : ',' } );
             ret.push( ')' );
-            ast2arr( ast.body, opt );
+            ast2arr( ast.body, opt, { parent : ast } );
             return ret;
 
         case 'ForInStatement': 
             ret.push( 'for (' );
-            ast2arr( ast.left, opt );
+            ast2arr( ast.left, opt, { parent : ast } );
 
             var ilast = ret.length - 1;
             ret[ ilast ] = ret[ ilast ].replace( /;\s*$/, '' );
             
             ret.push( ' in ' );
-            ast2arr( ast.right, opt );
+            ast2arr( ast.right, opt, { parent : ast } );
             ret.push( ')' );
-            ast2arr( ast.body, opt );
+            ast2arr( ast.body, opt, { parent : ast } );
             return ret;
 
         case 'Identifier': 
@@ -209,20 +211,20 @@
 
         case 'IfStatement':
             ret.push( 'if (' );
-            ast2arr( ast.test, opt );
+            ast2arr( ast.test, opt, { parent : ast } );
             ret.push( ')' );
-            ast2arr( ast.consequent, opt );
+            ast2arr( ast.consequent, opt, { parent : ast } );
             if (ast.alternate)
             {
                 ret.push( ' else ' );
-                ast2arr( ast.alternate, opt );
+                ast2arr( ast.alternate, opt, { parent : ast } );
             }
             return ret;
 
         case 'LabeledStatement':
-            ast2arr( ast.label, opt );
+            ast2arr( ast.label, opt, { parent : ast } );
             ret.push( ':' );
-            ast2arr( ast.body, opt );
+            ast2arr( ast.body, opt, { parent : ast } );
             return ret;
 
         case 'Literal': 
@@ -230,22 +232,22 @@
             return ret;
             
         case 'MemberExpression':
-            ast2arr( ast.object, opt );
+            ast2arr( ast.object, opt, { parent : ast } );
             ret.push( ast.computed  ?  '['  :  '.' );
-            ast2arr( ast.property, opt );
+            ast2arr( ast.property, opt, { parent : ast } );
             if (ast.computed)
                 ret.push( ']' );
             return ret;
 
         case 'NewExpression':
             ret.push( 'new ' );
-            ast2arr( ast.callee, opt );
+            ast2arr( ast.callee, opt, { parent : ast } );
             
             var arg = ast.arguments;
             if (arg)
             {
                 ret.push( '(' );
-                ast2arr( arg, opt, ',' );
+                ast2arr( arg, opt, { parent : ast, array_sep : ',' } );
                 ret.push( ')' );
             }
             return ret;
@@ -262,16 +264,16 @@
                 if (pi.kind !== 'init')
                     throw new Error( 'ast2arr: unknown kind of object property' );
 
-                ast2arr( pi.key, opt );
+                ast2arr( pi.key, opt, { parent : ast } );
                 ret.push( ':' );
-                ast2arr( pi.value, opt );
+                ast2arr( pi.value, opt, { parent : ast } );
             }
             
             ret.push( '}' );
             return ret;
 
         case 'Program': 
-            ast2arr( ast.body, opt );
+            ast2arr( ast.body, opt, { parent : ast } );
             return ret;
 
         case 'ReturnStatement':
@@ -279,7 +281,7 @@
             if (ast.argument)
             {
                 ret.push( ' ' );
-                ast2arr( ast.argument, opt );
+                ast2arr( ast.argument, opt, { parent : ast } );
             }
             ret.push( ';' );
             return ret;
@@ -288,13 +290,9 @@
             var es = ast.expressions;
             for (var nes = es.length, ies = 0; ies < nes; ies++)
             {
-                var e = es[ ies ]
-                , isAssign = /assign/i.test( e.type )
-                ;
+                var e = es[ ies ];
                 if (0 < ies)   ret.push( ',' );
-                if (isAssign)  ret.push( '(' );
-                ast2arr( e, opt );
-                if (isAssign)  ret.push( ')' );
+                ast2arr( e, opt, { parent : ast } );
             }
             return ret;
 
@@ -306,17 +304,17 @@
             else
             {
                 ret.push( 'case ' );
-                ast2arr( ast.test, opt );
+                ast2arr( ast.test, opt, { parent : ast } );
                 ret.push( ':' );
             }
-            ast2arr( ast.consequent, opt );
+            ast2arr( ast.consequent, opt, { parent : ast } );
             return ret;
 
         case 'SwitchStatement':
             ret.push( 'switch(' );
-            ast2arr( ast.discriminant, opt );
+            ast2arr( ast.discriminant, opt, { parent : ast } );
             ret.push( '){' );
-            ast2arr( ast.cases, opt );
+            ast2arr( ast.cases, opt, { parent : ast } );
             ret.push( '}' );
             return ret;
 
@@ -326,33 +324,36 @@
 
         case 'ThrowStatement':
             ret.push( 'throw ' );
-            ast2arr( ast.argument, opt );
+            ast2arr( ast.argument, opt, { parent : ast } );
             ret.push( ';' );
             return ret;
             
         case 'TryStatement':
             ret.push( 'try ' );
-            ast2arr( ast.block, opt );
+            ast2arr( ast.block, opt, { parent : ast } );
             if (ast.handler)   ast2arr( ast.handler,   opt );
-            if (ast.finalizer) ast2arr( ast.finalizer, opt );
+            if (ast.finalizer) ast2arr( ast.finalizer, opt, { parent : ast } );
             return ret;
 
         case 'UnaryExpression':
         case 'UpdateExpression':
-            var  op = ast.operator
+            var nds_prn = needs_parentheses( parent, ast )
+            ,    op = ast.operator
             ,   arg = ast.argument
             ;
+            if (nds_prn) ret.push( '(' );
             if (ast.prefix)
             {
                 ret.push( op );
                 if (/^\w+$/.test( op ))  ret.push( ' ' );
-                ast2arr( arg, opt );
+                ast2arr( arg, opt, { parent : ast } );
             }
             else
             {
-                ast2arr( arg, opt );
+                ast2arr( arg, opt, { parent : ast } );
                 ret.push( op );                
             }
+            if (nds_prn) ret.push( ')' );
             return ret;            
 
         case 'VariableDeclaration':
@@ -360,7 +361,7 @@
             for (var nd = decl.length, id = 0; id < nd; id++)
             {
                 ret.push( id < 1  ?  'var '  :  ',' );
-                ast2arr( decl[ id ], opt );
+                ast2arr( decl[ id ], opt, { parent : ast } );
             }
             ret.push(';');
             return ret;
@@ -371,20 +372,114 @@
             if (init)
             {
                 ret.push( '=' );
-                ast2arr( init, opt );
+                ast2arr( init, opt, { parent : ast } );
             }
             return ret;
 
         case 'WhileStatement':
             ret.push( 'while (' );
-            ast2arr( ast.test, opt );
+            ast2arr( ast.test, opt, { parent : ast } );
             ret.push( ')' );
-            ast2arr( ast.body, opt );
+            ast2arr( ast.body, opt, { parent : ast } );
             return ret;
         }
 
         console.error('xxx  unknown type ' + ast.type );
         error.bug;
+    }
+
+    function needs_parentheses( parent, ast )
+    {
+        if (!parent)
+            return false;
+
+        // Special cases: they already wrap arguments with parentheses/brackets anyway
+        if (((parent.type === 'CallExpression'  ||  parent.type === 'NewExpression')  &&  ast !== parent.callee)  ||
+            (parent.type === 'MemberExpression'  &&  parent.computed  &&  ast === parent.property)
+           ) return false;
+
+        var ppar = precedence( parent )
+        ,   past = precedence( ast )
+        ;
+        return ppar == null  ?  false  :  !(ppar > past);
+    }
+
+    function precedence( ast )
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+    {
+        var t = ast.type      // always
+        ,  op = ast.operator  // if any
+        , pre = ast.prefix    // if any
+
+        , tNE  = t === 'NewExpression'
+        ;
+        
+        if (t === 'MemberExpression'  ||  tNE && ast.arguments)
+            return 1;
+
+        if (t === 'CallExpression'  ||  tNE && !ast.arguments)
+            return 2;
+
+        var tUpE = t === 'UpdateExpression';
+
+        if (tUpE  &&  !pre  &&  (op === '++'  ||  op === '--'))
+            return 3;
+
+        var tUnE = t === 'UnaryExpression';
+        
+        if ((tUpE  &&  pre  &&  (op === '++'  ||  op === '--'))  ||
+            (tUnE  &&  pre  &&  (op === '!'  ||  op === '~'  ||  op === '+'  ||  op === '-'  ||  op === 'typeof'  ||  op === 'void'  ||  op === 'delete'))
+           )
+            return 4;
+
+        if (t === 'BinaryExpression')
+        {
+            if (op === '*'  ||  op === '/'  ||  op === '%')
+                return 5;
+
+            if (op === '+'  ||  op === '-')
+                return 6;
+            
+            if (op === '<<'  ||  op === '>>'  ||  op === '>>>')
+                return 7;
+            
+            if (op === '<'  ||  op === '<='  ||  op === '>'  ||  op === '>='  ||  op === 'in'  ||  op === 'instanceof')
+                return 8;
+
+            if (op === '=='  ||  op === '!='  ||  op === '==='  ||  op === '!==')
+                return 9;
+
+            if (op === '&')
+                return 10;
+
+            if (op === '^')
+                return 11;
+
+            if (op === '|')
+                return 12;
+        }
+
+        if (t === 'LogicalExpression')
+        {
+            if (op === '&&')
+                return 13;
+            
+            if (op === '||')
+                return 14;
+        }
+
+        if (t === 'ConditionalExpression')
+            return 15;
+
+        // yield not supported yet by acorn
+
+        if (t === 'AssignmentExpression')
+            return 17;
+
+        // spread not supported yet by acorn
+
+        if (t === 'SequenceExpression')
+            return 19;
     }
 
 })(this);
