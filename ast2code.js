@@ -211,7 +211,7 @@
             return ret;
 
         case 'IfStatement':
-            ret.push( 'if (' );
+            ret.push( 'if(' );
             ast2arr( ast.test, opt, { parent : ast } );
             ret.push( ')' );
             ast2arr( ast.consequent, opt, { parent : ast } );
