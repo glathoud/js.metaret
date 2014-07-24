@@ -35,6 +35,7 @@
 
         var array_sep = extra  &&  extra.array_sep
         ,   parent    = extra  &&  extra.parent
+        , isLeftChild = extra  &&  extra.isLeftChild
         ;
         
         if (ast instanceof Array)
@@ -68,24 +69,24 @@
             return ret;
 
         case 'AssignmentExpression':
-            var nds_prn = needs_parentheses( parent, ast );
+            var nds_prn = needs_parentheses( parent, ast, isLeftChild );
             if (nds_prn) ret.push( '(' );
-            ast2arr( ast.left, opt, { parent : ast } );
+            ast2arr( ast.left, opt, { parent : ast, isLeftChild : true } );
             ret.push( ast.operator );
-            ast2arr( ast.right, opt, { parent : ast } );
+            ast2arr( ast.right, opt, { parent : ast, isLeftChild : false } );
             if (nds_prn) ret.push( ')' );
             return ret;
             
         case 'BinaryExpression':
         case 'LogicalExpression':
-            var nds_prn = needs_parentheses( parent, ast )
+            var nds_prn = needs_parentheses( parent, ast, isLeftChild )
             ,   left = ast.left
             ,  right = ast.right
             ;
             if (nds_prn) ret.push( '(' );
-            ast2arr( left, opt, { parent : ast } );
+            ast2arr( left, opt, { parent : ast, isLeftChild : true } );
             ret.push( /^\w+$/.test( ast.operator )  ?  ' ' + ast.operator + ' '  :  ast.operator );
-            ast2arr( right, opt, { parent : ast } );
+            ast2arr( right, opt, { parent : ast, isLeftChild : false } );
             if (nds_prn) ret.push( ')' );
             return ret;
 
@@ -110,7 +111,7 @@
         case 'CallExpression':
             var isFun = /function/i.test( ast.callee.type );
             if (isFun)  ret.push( '(' );
-            ast2arr( ast.callee, opt, { parent : ast } );
+            ast2arr( ast.callee, opt, { parent : ast, isLeftChild : true } );
             if (isFun)  ret.push( ')' );
             ret.push( '(' );
             ast2arr( ast.arguments, opt, { parent : ast, array_sep : ',' } );
@@ -125,13 +126,13 @@
             return ret;
 
         case 'ConditionalExpression':
-            var nds_prn = needs_parentheses( parent, ast );
+            var nds_prn = needs_parentheses( parent, ast, isLeftChild );
             if (nds_prn) ret.push( '(' );
-            ast2arr( ast.test, opt, { parent : ast } );
+            ast2arr( ast.test, opt, { parent : ast, isLeftChild : true } );
             ret.push( '?' );
-            ast2arr( ast.consequent, opt, { parent : ast } );
+            ast2arr( ast.consequent, opt, { parent : ast, isLeftChild : false } );
             ret.push( ':' );
-            ast2arr( ast.alternate, opt, { parent : ast } );
+            ast2arr( ast.alternate, opt, { parent : ast, isLeftChild : false } );
             if (nds_prn) ret.push( ')' );
             return ret;
 
@@ -241,7 +242,7 @@
 
         case 'NewExpression':
             ret.push( 'new ' );
-            ast2arr( ast.callee, opt, { parent : ast } );
+            ast2arr( ast.callee, opt, { parent : ast, isLeftChild : true } );
             
             var arg = ast.arguments;
             if (arg)
@@ -337,7 +338,7 @@
 
         case 'UnaryExpression':
         case 'UpdateExpression':
-            var nds_prn = needs_parentheses( parent, ast )
+            var nds_prn = needs_parentheses( parent, ast, isLeftChild )
             ,    op = ast.operator
             ,   arg = ast.argument
             ;
@@ -346,11 +347,11 @@
             {
                 ret.push( op );
                 if (/^\w+$/.test( op ))  ret.push( ' ' );
-                ast2arr( arg, opt, { parent : ast } );
+                ast2arr( arg, opt, { parent : ast, isLeftChild : false } );
             }
             else
             {
-                ast2arr( arg, opt, { parent : ast } );
+                ast2arr( arg, opt, { parent : ast, isLeftChild : true } );
                 ret.push( op );                
             }
             if (nds_prn) ret.push( ')' );
@@ -388,7 +389,7 @@
         error.bug;
     }
 
-    function needs_parentheses( parent, ast )
+    function needs_parentheses( parent, ast, isLeftChild )
     {
         if (!parent)
             return false;
@@ -401,7 +402,25 @@
         var ppar = precedence( parent )
         ,   past = precedence( ast )
         ;
-        return ppar == null  ?  false  :  !(ppar > past);
+
+        // Parent not an operator, no need for extra parentheses.
+        // e.g. `if(a > b)` and not `if((a > b))`
+        if (ppar == null)
+            return false;
+
+        // Both parent and child are operators, and have the same
+        // precedence. Try to reduce the number of parentheses based
+        // on associativity direction.
+        var l2r;
+        if (ppar === past  &&  
+            null != isLeftChild  &&
+            null != (l2r = has_l2r_associativity( parent ))  &&
+            isLeftChild === l2r
+           ) 
+            return false;
+            
+        // All other cases
+        return !(ppar > past);
     }
 
     function precedence( ast )
@@ -480,6 +499,44 @@
 
         if (t === 'SequenceExpression')
             return 19;
+    }
+
+    function has_l2r_associativity( ast )
+    // Returns `true`, `false` or `null` if not applicable.
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+    {
+        var t = ast.type      // always
+        ,  op = ast.operator  // if any
+        , pre = ast.prefix    // if any
+        ;
+        
+        if (t === 'MemberExpression')
+            return true;
+        
+        if (t === 'CallExpression')
+            return true;
+
+        if (t === 'NewExpression'  &&  !ast.arguments)
+            return false;
+        
+        var tUpE = t === 'UpdateExpression'
+        ,   tUnE = t === 'UnaryExpression'
+        ;
+        if ((tUpE  &&  pre  &&  (op === '++'  ||  op === '--'))  ||
+            (tUnE  &&  pre  &&  (op === '!'  ||  op === '~'  ||  op === '+'  ||  op === '-'  ||  op === 'typeof'  ||  op === 'void'  ||  op === 'delete'))
+           )
+            return false;
+        
+        if (t === 'BinaryExpression'  ||  t === 'LogicalExpression')
+            return true;
+  
+        if (t === 'ConditionalExpression'  ||  t === 'AssignmentExpression') // yield not supported yet by acorn
+            return false;
+        
+        if (t === 'SequenceExpression')
+            return true;
+
+        return null;
     }
 
 })(this);
