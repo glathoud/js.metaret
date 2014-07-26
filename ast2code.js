@@ -119,7 +119,7 @@
             return ret;
 
         case 'CatchClause':
-            ret.push( 'catch (' );
+            ret.push( 'catch(' );
             ast2arr( ast.param, opt, { parent : ast } );
             ret.push( ')' );
             ast2arr( ast.body,  opt );
@@ -194,7 +194,7 @@
             return ret;
 
         case 'ForInStatement': 
-            ret.push( 'for (' );
+            ret.push( 'for(' );
             ast2arr( ast.left, opt, { parent : ast } );
 
             var ilast = ret.length - 1;
@@ -378,7 +378,7 @@
             return ret;
 
         case 'WhileStatement':
-            ret.push( 'while (' );
+            ret.push( 'while(' );
             ast2arr( ast.test, opt, { parent : ast } );
             ret.push( ')' );
             ast2arr( ast.body, opt, { parent : ast } );

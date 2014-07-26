@@ -136,6 +136,24 @@
     return {line: line, column: offset - cur};
   };
 
+    // JSM extension: useful to test whether a string can be used as
+    // an identifier, see e.g. ./ast2ast_shortidentifiers.js
+    exports.canBeSafeIdentifierName = canBeSafeIdentifierName; 
+
+    function canBeSafeIdentifierName( /*string*/s ) 
+    // Returns a boolean, `true` if `s` can safely be used as
+    // identifier name.
+    {
+        return !( isReservedWord3( s )  ||
+                  isReservedWord5( s )  ||
+                  isStrictReservedWord( s )  ||
+                  isStrictBadIdWord( s )  ||
+                  isKeyword( s )  ||
+                  isKeywordJsm( s )
+                );
+    }
+    
+
   // Acorn is organized as a tokenizer and a recursive-descent parser.
   // The `tokenize` export provides an interface to the tokenizer.
   // Because the tokenizer is optimized for being efficiently used by

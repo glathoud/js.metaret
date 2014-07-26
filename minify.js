@@ -8,6 +8,8 @@ if (typeof acorn === 'undefined')
 if (typeof ast2code === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "ast2code.js" );
 
+if (typeof ast2ast_shortidentifiers === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "ast2ast_shortidentifiers.js" );
 
 (function (global) {
 
@@ -22,8 +24,10 @@ if (typeof ast2code === 'undefined')
     function minify( /*string*/code )
     // Remove whitespaces and comments.
     {
-        var ast = acorn.parse( code, { jsm : true } );
-        return ast2code( ast, { jsm : true } );
+        var       ast = acorn.parse( code, { jsm : true } )
+        , ast_obscure = ast2ast_shortidentifiers( ast )
+        ;
+        return ast2code( ast_obscure, { jsm : true } );
     }
 
 })(this);

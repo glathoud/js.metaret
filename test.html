@@ -20,8 +20,6 @@
 
     <p>This should be the browser pendant of the command-line <a href="test.py"><code>test.py</code></a>.</p>
 
-
-
     <hr/>
 
     <p>Global result: <span id="global_result">&lt;...in progress...&gt;</span></p>
@@ -91,8 +89,10 @@
 
 
 
-    <hr/>
 
+
+
+    <hr/>
 
 
     <h2>codeparse</h2>
@@ -365,38 +365,73 @@
 
     <hr/>
 
-    
 
-    <div id="minify_speed">
+
+
+    <div id="minify_speed_short">
       
-      <h2>minify speed</h2>
+      <h2>minify speed (short code)</h2>
 
       <script type="text/javascript">testClearAll();</script>
       
       <script type="text/javascript" src="need$.js"></script>
       <script type="text/javascript" src="minify.js"></script>
       <script type="text/javascript">
-	var build_code = need$.read( "jsm_out_build/metaret_standalone.js" )
+        delete test; 
+        var test = function () {
+	var build_code = need$.read( "jsm_out_build/example_development.js" )
 	,   start      = new Date
-;
-
-console.profile("minify");
-var mini_code  = minify( build_code );
-console.profileEnd("minify");
-var duration   = new Date - start
+        ;
+        var mini_code  = minify( build_code );
+        var duration   = new Date - start
 	;
 	document.write( "\x3Cp\x3E" + duration + "ms\x3C/p\x3E" );
+        (mini_code  ||  0).substring.call.a;
+        return true;  // At least the above lines did not throw an error
+        }
       </script>
-
+      <script type="text/javascript">document.write(testRun("test","minify_speed_short"));</script>
       <script type="text/javascript">testClearAll();</script>
-
-
+      
     </div>
 
 
 
+    
+
+ 
 
 
+    <div id="minify_speed">
+      
+      <h2>minify speed (metaret_standalone)</h2>
+
+      <script type="text/javascript">testClearAll();</script>
+      
+      <script type="text/javascript" src="need$.js"></script>
+      <script type="text/javascript" src="minify.js"></script>
+      <script type="text/javascript">
+        delete test; 
+        var test = function () {
+	var build_code = need$.read( "jsm_out_build/metaret_standalone.js" )
+	,   start      = new Date
+        ;
+        var mini_code  = minify( build_code );
+        var duration   = new Date - start
+	;
+	document.write( "\x3Cp\x3E" + duration + "ms\x3C/p\x3E" );
+        (mini_code  ||  0).substring.call.a;
+        return true;  // At least the above lines did not throw an error
+        }
+      </script>
+      <script type="text/javascript">document.write(testRun("test","minify_speed_metaret_standalone"));</script>
+      <script type="text/javascript">testClearAll();</script>
+      
+    </div>
+
+
+
+    
 
     <script type="text/javascript">
       document.getElementById("global_result").innerHTML = "\x3Cspan class='" + (global_result===true  ?  "happy'\x3Esuccess"  :  "sad'\x3Efailure") + "\x3C/span\x3E";
