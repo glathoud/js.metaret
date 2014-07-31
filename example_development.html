@@ -46,7 +46,7 @@
         for (var n = arr.length, i = 0; i < n; i++) 
         {
            var s = arr[i];
-           if (!/(^|\s)no-display(\s|$)/.test(s.className))
+           if (!/(^|\s)no-display(\s|$)/.test(s.className)  &&  !/analytics/.test(s.src))
                out.textContent += s.outerHTML + '\n\n';
         }
         var rx = /(need\$\("|src=")([^"\x3C\x3E]+?)(")/g;
@@ -62,7 +62,7 @@ document.write(gcd(910,1235));
 
     <h3>--- See also</h3>
     
-    <p>See also <a href="example_production.html">example_production.html</a></p>
+    <p>See also <a href="example_production.html">example_production.html</a> and the main <a href="index.html">article</a>.</p>
 
 
 <script type="text/javascript" class="no-display">
