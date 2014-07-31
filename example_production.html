@@ -3,6 +3,7 @@
   <head>
     <meta charset='utf-8'>
     <title>example: production</title>
+    <style type="text/css">pre {margin-left: 40px}</style>
     <script type="text/javascript" src="jsm_out_mini/example_development.js"></script>
   </head>
   <body>
@@ -10,16 +11,62 @@
 
     <p>To build, install <a href="http://docs.python.org/3/">Python 3</a> and <a href="https://code.google.com/p/v8/">V8</a>, then run:</p>
     <pre><code>
-	../js.metaret/jsm_build.py jsm_dev/example_development.jsm 
+../js.metaret/jsm_build.py jsm_dev/example_development.jsm 
     </code></pre> 
-    <p>...which outputs:</p>
-    <ul>
-      <li><a href="jsm_out_build/example_development.js"><code>jsm_out_build/example_development.js</code></a></li>
-      <li><a href="jsm_out_mini/example_development.js"><code>jsm_out_mini/example_development.js</code></a></li>
-    </ul>
+    <p>This reads <code>jsm_dev/example_development.jsm</code>:</p>
+    <pre><code>metafun gcd( self, a, b )
+{
+    if (a > b)
+        metaret self, a-b, b;
+    
+    if (b > a)
+        metaret self, b-a, a;
+    
+    return a; 
+}
+</code></pre>
 
-    <p>Test:</p>
+    <p>...and transforms it into 100% standard JS: <a href="jsm_out_build/example_development.js"><code>jsm_out_build/example_development.js</code></a></p>
+    <p>...and then minifies:
+      <a href="jsm_out_mini/example_development.js"><code>jsm_out_mini/example_development.js</code></a>
+    </p>
+
+    <h3>--- SCRIPT tags in the present page:</h3>
+      <pre><code id="script-code-display"></code></pre>
+      <script type="text/javascript" class="no-display">
+        setTimeout( function () {
+        var arr = document.getElementsByTagName( "script" )
+        ,   out = document.getElementById( "script-code-display" )
+        ;
+        for (var n = arr.length, i = 0; i < n; i++) 
+        {
+           var s = arr[i];
+           if (!/(^|\s)no-display(\s|$)/.test(s.className))
+               out.textContent += s.outerHTML + '\n\n';
+        }
+        var rx = /(need\$\("|src=")([^"\x3C\x3E]+?)(")/g;
+        out.innerHTML = out.innerHTML.replace( rx, '$1\x3Ca href="$2"\x3E$2\x3C/a\x3E$3');
+        }, 0)
+      </script>
+      
+
+    <h3>--- Result:</h3>
     <p>GCD(910,1235)=<script type="text/javascript">document.write(gcd(910,1235));</script>
+
+    <h3>--- Note</h3>
+
+    <p>Since we now have 100% standard JavaScript, <code>metaret_standalone.js</code> is not needed anymore.</p>
+    
+    <p>See also <a href="example_development.html">example_development.html</a></p>
+        
+
+<script type="text/javascript" class="no-display">
+if (!/\d+\.\d+\.\d+\.\d+|localhost/.test( location.hostname ))
+{
+var _gaq = _gaq || [];  _gaq.push(['_setAccount', 'UA-5516483-1']);  _gaq.push(['_trackPageview']);  (function() {    var ga = document.createElement('script');    ga.src = ('https:' == document.location.protocol ? 'https://ssl' :         'http://www') + '.google-analytics.com/ga.js';    ga.setAttribute('async', 'true');    document.documentElement.firstChild.appendChild(ga);  })();
+}
+</script>
+
 
   </body>
 </html>

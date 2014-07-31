@@ -4,16 +4,74 @@
     <meta charset='utf-8'>
     <title>example: development</title>
 
+    <style type="text/css">pre {margin-left: 40px}</style>
     <script type="text/javascript" src="../js.metaret/metaret_standalone.js"></script>
-    <script type="text/javascript">need$("jsm_dev/example_development.jsm");</script>
+    <script type="text/javascript">
+    // need$ loads the .jsm file, 
+    // turns it into standard JavaScript, 
+    // and runs it.
+
+    need$("jsm_dev/example_development.jsm");
+
+    // Now the `gcd` function is available.
+</script>
 
   </head>
   <body>
     <h1>example: development</h1>
 
-    <p>Source: <a href="jsm_dev/example_development.jsm">jsm_dev/example_development.jsm</a></p>
+    <h3>--- <code>.jsm</code> source code</h3>
+
+<p>File <code>jsm_dev/example_development.jsm</code>:</p>
+    <pre><code>metafun gcd( self, a, b )
+{
+    if (a > b)
+        metaret self, a-b, b;
     
-    <p>Test: GCD(910,1235)=<script type="text/javascript">document.write(gcd(910,1235));</script>
-      
+    if (b > a)
+        metaret self, b-a, a;
+    
+    return a; 
+}
+</code></pre>
+
+    
+    <h3>--- SCRIPT tags in the present page:</h3>
+      <pre><code id="script-code-display"></code></pre>
+      <script type="text/javascript" class="no-display">
+        setTimeout( function () {
+        var arr = document.getElementsByTagName( "script" )
+        ,   out = document.getElementById( "script-code-display" )
+        ;
+        for (var n = arr.length, i = 0; i < n; i++) 
+        {
+           var s = arr[i];
+           if (!/(^|\s)no-display(\s|$)/.test(s.className))
+               out.textContent += s.outerHTML + '\n\n';
+        }
+        var rx = /(need\$\("|src=")([^"\x3C\x3E]+?)(")/g;
+        out.innerHTML = out.innerHTML.replace( rx, '$1\x3Ca href="$2"\x3E$2\x3C/a\x3E$3');
+        }, 0)
+      </script>
+
+
+    <h3>--- Result:</h3>
+    <pre><code>GCD(910,1235)=<script type="text/javascript">
+document.write(gcd(910,1235));
+</script></code></pre>
+
+    <h3>--- See also</h3>
+    
+    <p>See also <a href="example_production.html">example_production.html</a></p>
+
+
+<script type="text/javascript" class="no-display">
+if (!/\d+\.\d+\.\d+\.\d+|localhost/.test( location.hostname ))
+{
+var _gaq = _gaq || [];  _gaq.push(['_setAccount', 'UA-5516483-1']);  _gaq.push(['_trackPageview']);  (function() {    var ga = document.createElement('script');    ga.src = ('https:' == document.location.protocol ? 'https://ssl' :         'http://www') + '.google-analytics.com/ga.js';    ga.setAttribute('async', 'true');    document.documentElement.firstChild.appendChild(ga);  })();
+}
+</script>
+
+
   </body>
 </html>
