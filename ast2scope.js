@@ -18,6 +18,7 @@ if (typeof acorn.walk === 'undefined')
     // glathoud@yahoo.fr
     {
         var key2scope
+        ,   funinfoarr
         ,   funkey2info
         ,   idinfoarr
         ,   idstart2info
@@ -33,6 +34,7 @@ if (typeof acorn.walk === 'undefined')
             , idinfoarr    : function ()          { ensure_ready(); return idinfoarr.slice(); }
             , idstart2info : function ()          { ensure_ready(); return Object.create( idstart2info ); }
             , fun2info     : function ( funnode ) { ensure_ready(); return funkey2info[ node2key( funnode ) ]; }
+            , funinfoarr   : function ()          { ensure_ready(); return funinfoarr.slice(); }
         };
 
         function ensure_ready()
@@ -69,6 +71,7 @@ if (typeof acorn.walk === 'undefined')
         function create_key2scope()
         {
             key2scope    = {};
+            funinfoarr   = [];
             funkey2info  = {};
             idinfoarr    = [];
             idstart2info = {};
@@ -209,12 +212,15 @@ if (typeof acorn.walk === 'undefined')
             if (p_info)
                 p_info.kidfunarr.push( node );
 
-            return funkey2info[ funkey ] = {
+            var ret = funkey2info[ funkey ] = {
                 funnode      : node  ||  null
                 , parent    : parent
                 , declarr   : []
                 , kidfunarr : []
-            };                
+            };
+            funinfoarr.push( ret );
+
+            return ret;
         }
         
         function get_parent_info( node, latest_info )

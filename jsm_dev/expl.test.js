@@ -164,6 +164,9 @@
             }
         );
         
+        need$( 'minify.js' );
+        assert( '"function f(){}"===minify("function f() { function g() { } }")' );
+
         //#END_TEST_DEV_ONLY
 
         // https://github.com/glathoud/js.metaret/issues/16

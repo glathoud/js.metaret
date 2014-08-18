@@ -11,6 +11,9 @@ if (typeof ast2code === 'undefined')
 if (typeof ast2ast_shortidentifiers === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "ast2ast_shortidentifiers.js" );
 
+if (typeof ast2ast_remove_unused_local_fundecl === 'undefined')
+    (typeof need$ !== 'undefined'  ?  need$  :  load)( "ast2ast_remove_unused_local_fundecl.js" );
+
 (function (global) {
 
     var _emptyObj = {};
@@ -24,10 +27,11 @@ if (typeof ast2ast_shortidentifiers === 'undefined')
     function minify( /*string*/code )
     // Remove whitespaces and comments.
     {
-        var       ast = acorn.parse( code, { jsm : true } )
-        , ast_obscure = ast2ast_shortidentifiers( ast )
+        var       ast         = acorn.parse( code, { jsm : true } )
+        , ast_obscure         = ast2ast_shortidentifiers( ast )
+        , ast_obscure_useful  = ast2ast_remove_unused_local_fundecl( ast_obscure )
         ;
-        return ast2code( ast_obscure, { jsm : true } );
+        return ast2code( ast_obscure_useful, { jsm : true } );
     }
 
 })(this);
