@@ -1,5 +1,15 @@
-/*global ast2scope need$ load acorn*/
+/*global global exports require ast2scope need$ load acorn*/
 
+// With Node.js
+var global, exports;
+if (typeof require === 'function')
+{
+    ast2scope = require( './ast2scope' ).ast2scope;
+    acorn     = require( './acorn.25.03.2014/acorn' ).acorn;
+    require( './acorn.25.03.2014/util/walk' );
+}
+
+// Without Node.js (browser, or V8 alone)
 // Support both use cases: browser development (example: jsm_dev) and
 // command-line transformation (example: jsm_dev -> jsm_out).
 if (typeof ast2scope === 'undefined')
@@ -112,4 +122,4 @@ if (typeof acorn.walk === 'undefined')
         }
     }
 
-})(this);
+})( global  ||  exports  ||  this );

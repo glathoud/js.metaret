@@ -1,10 +1,23 @@
-/*global need$ load codeparse cp2fmtree console print JSON*/
+/*global global exports require need$ load codeparse cp2fmtree console print JSON*/
 
+
+// With Node.js
+var global, exports;
+if (typeof require === 'function')
+{
+    codeparse = require( './codeparse' ).codeparse;
+    cp2fmtree = require( './cp2fmtree' ).cp2fmtree;
+}
+
+// Without Node.js (browser, or V8 alone)
+// Support both use cases: browser development (example: jsm_dev) and
+// command-line transformation (example: jsm_dev -> jsm_out).
 if (typeof codeparse === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "codeparse.js" );
 
 if (typeof cp2fmtree === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "cp2fmtree.js" );
+
 
 (function (global) {
 
@@ -622,4 +635,4 @@ if (typeof cp2fmtree === 'undefined')
     }
 
     
-})(this);
+})( global  ||  exports  ||  this );

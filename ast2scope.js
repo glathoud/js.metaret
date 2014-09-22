@@ -1,5 +1,15 @@
-/*global acorn need$ load*/
+/*global global exports require acorn need$ load*/
 
+// With Node.js
+var global, exports;
+if (typeof require === 'function')
+{
+    require( './acorn.25.03.2014/util/walk' );
+}
+
+// Without Node.js (browser, or V8 alone)
+// Support both use cases: browser development (example: jsm_dev) and
+// command-line transformation (example: jsm_dev -> jsm_out).
 if (typeof acorn.walk === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "acorn.25.03.2014/util/walk.js" );
 
@@ -266,4 +276,4 @@ if (typeof acorn.walk === 'undefined')
         }
     }
 
-})(this);
+})( global  ||  exports  ||  this );

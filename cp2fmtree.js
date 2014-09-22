@@ -1,3 +1,18 @@
+/*global global exports require*/
+
+// With Node.js
+var global, exports;
+if (typeof require === 'function')
+{
+    // No dependency for now
+}
+
+// Without Node.js (browser, or V8 alone)
+// Support both use cases: browser development (example: jsm_dev) and
+// command-line transformation (example: jsm_dev -> jsm_out).
+// No dependency for now
+
+
 (function (global) {
 
     // xxx common constants in a separate file
@@ -419,4 +434,4 @@
         return o;
     }
 
-}(this));
+})( global  ||  exports  ||  this );

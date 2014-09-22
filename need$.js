@@ -1,10 +1,18 @@
-/*global need$ read XMLHttpRequest*/
+/*global global exports require XMLHttpRequest jsm2js inlineCode */
 
-var need$, read;
+// With Node.js
+var global, exports;
+if (typeof require === 'function')
+{
+    jsm2js     = require( './jsm2js' ).jsm2js;
+    inlineCode = require( './inline_code' ).inlineCode;
+}
+
 
 (function (global) {
 
-    need$ = need$Impl;
+    global.need$ = need$Impl;
+    
     var has = {}
     , inline_workspace = {}
     ;
@@ -13,7 +21,11 @@ var need$, read;
 
     var readNative = typeof read === 'function';  // e.g. V8
     need$.read = readNative  ?  read  :  xhrGetSync;  // xhrGetSync to simulate the exact same order as a build file
-
+    
+    // (dependencies)
+    // Without Node.js (browser, or V8 alone)
+    // Support both use cases: browser development (example: jsm_dev) and
+    // command-line transformation (example: jsm_dev -> jsm_out).
     need$( 'jsm2js.js' );
     need$( 'inline_code.js' );
 
@@ -83,4 +95,4 @@ var need$, read;
         return xhr.responseText + "\r\n//@ sourceURL=" + path;
     }
 
-})(this);
+})( global  ||  exports  ||  this );

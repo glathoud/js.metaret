@@ -1,5 +1,15 @@
-/*global metaparse jsm2js cp2fmtree codeparse need$ load console*/
+/*global global exports require metaparse jsm2js cp2fmtree codeparse need$ load console*/
 
+// With Node.js
+var global, exports;
+if (typeof require === 'function')
+{
+    codeparse = require( './codeparse' ).codeparse;
+    cp2fmtree = require( './cp2fmtree' ).cp2fmtree;
+    metaparse = require( './metaret' )  .metaparse;
+}
+
+// Without Node.js (browser, or V8 alone)
 // Support both use cases: browser development (example: jsm_dev) and
 // command-line transformation (example: jsm_dev -> jsm_out).
 if (typeof codeparse === 'undefined')
@@ -127,4 +137,4 @@ if (typeof metaparse === 'undefined')
         }
     }
 
-})( this );
+})( global  ||  exports  ||  this );

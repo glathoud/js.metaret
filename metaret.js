@@ -1,4 +1,4 @@
-/*global document console load codeparse need$ cp2fmtree JSON*/
+/*global global exports require document console load codeparse need$ cp2fmtree JSON*/
 
 // Guillaume Lathoud, 2011, 2013, MIT License, see ./LICENSE.TXT
 // 
@@ -30,6 +30,19 @@
 //
 // [tomrec] http://glat.info/jscheck/tomrec_prod.html
 
+
+
+// With Node.js
+var global, exports;
+if (typeof require === 'function')
+{
+    codeparse = require( './codeparse' ).codeparse;
+    cp2fmtree = require( './cp2fmtree' ).cp2fmtree;
+}
+
+// Without Node.js (browser, or V8 alone)
+// Support both use cases: browser development (example: jsm_dev) and
+// command-line transformation (example: jsm_dev -> jsm_out).
 if (typeof codeparse === 'undefined')
     (typeof need$ !== 'undefined'  ?  need$  :  load)( "codeparse.js" );
 
@@ -1070,4 +1083,4 @@ if (typeof cp2fmtree === 'undefined')
         return ret;
     }
     
-})(this);
+})( global  ||  exports  ||  this );

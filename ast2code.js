@@ -1,4 +1,17 @@
-/*global minify need$ load codeparse cp2fmtree*/
+/*global global exports require minify need$ load codeparse cp2fmtree*/
+
+// With Node.js
+var global, exports;
+if (typeof require === 'function')
+{
+    // No dependency for now.
+}
+
+// Without Node.js (browser, or V8 alone)
+// Support both use cases: browser development (example: jsm_dev) and
+// command-line transformation (example: jsm_dev -> jsm_out).
+// No dependency for now.
+
 
 (function (global) {
 
@@ -539,4 +552,4 @@
         return null;
     }
 
-})(this);
+})(global  ||  exports  ||  this);
