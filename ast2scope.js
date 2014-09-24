@@ -4,7 +4,8 @@
 var global, exports;
 if (typeof require === 'function')
 {
-    require( './acorn.25.03.2014/util/walk' );
+    acorn      = require( './acorn.25.03.2014/acorn' );
+    acorn.walk = require( './acorn.25.03.2014/util/walk' );
 }
 
 // Without Node.js (browser, or V8 alone)

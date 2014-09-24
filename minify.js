@@ -4,7 +4,7 @@
 var global, exports;
 if (typeof require === 'function')
 {
-    acorn     = require( './acorn.25.03.2014/acorn' ).acorn;
+    acorn     = require( './acorn.25.03.2014/acorn' );
     ast2code  = require( './ast2code' ).ast2code;
     ast2ast_shortidentifiers  = require( './ast2ast_shortidentifiers' ).ast2ast_shortidentifiers;
     ast2ast_remove_unused_local_fundecl = require( './ast2ast_remove_unused_local_fundecl' ).ast2ast_remove_unused_local_fundecl;
