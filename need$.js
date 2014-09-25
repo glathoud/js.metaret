@@ -1,12 +1,14 @@
 /*global global exports require XMLHttpRequest jsm2js inlineCode */
 
-// With Node.js
 var global, exports;
+//#BEGIN_BUILD_STRIP
+// With Node.js
 if (typeof require === 'function')
 {
     jsm2js     = require( './jsm2js' ).jsm2js;
     inlineCode = require( './inline_code' ).inlineCode;
 }
+//#END_BUILD_STRIP
 
 
 (function (global) {

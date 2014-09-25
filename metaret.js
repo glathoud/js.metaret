@@ -31,14 +31,15 @@
 // [tomrec] http://glat.info/jscheck/tomrec_prod.html
 
 
-
-// With Node.js
 var global, exports;
+//#BEGIN_BUILD_STRIP
+// With Node.js
 if (typeof require === 'function')
 {
     codeparse = require( './codeparse' ).codeparse;
     cp2fmtree = require( './cp2fmtree' ).cp2fmtree;
 }
+//#END_BUILD_STRIP
 
 // Without Node.js (browser, or V8 alone)
 // Support both use cases: browser development (example: jsm_dev) and

@@ -19,6 +19,8 @@ def jsm_out_build( infilename, deptree = None, default_in = DEFAULT_IN, default_
 
     new_code = replace_dependencies( deptree, infilename, default_in, default_out )
 
+    new_code = re.sub( BUILD_STRIP_RX, '', new_code )
+    
     open( ensure_dir_for_filename( outbuildfilename ), 'wb' ).write( new_code.encode( UTF8 ))
 
 
@@ -39,6 +41,8 @@ def walk_test( infilename, outbuildfilename, default_in, default_out, deptree = 
 
         # Copy it almost exactly, stripping some parts
         new_test_code   = re.sub( TEST_DEV_ONLY_RX, '', open( intestfilename, 'rb' ).read().decode( UTF8 ) )
+
+        new_test_code = re.sub( BUILD_STRIP_RX, '', new_test_code )
 
         open( ensure_dir_for_filename( outtestfilename ), 'wb' ).write( new_test_code.encode( UTF8 ) )
 

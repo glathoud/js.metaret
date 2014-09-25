@@ -1,7 +1,8 @@
 /*global global exports require minify need$ load codeparse cp2fmtree*/
 
-// With Node.js
 var global, exports;
+//#BEGIN_BUILD_STRIP
+// With Node.js
 if (typeof require === 'function')
 {
     acorn     = require( './acorn.25.03.2014/acorn' );
@@ -9,6 +10,7 @@ if (typeof require === 'function')
     ast2ast_shortidentifiers  = require( './ast2ast_shortidentifiers' ).ast2ast_shortidentifiers;
     ast2ast_remove_unused_local_fundecl = require( './ast2ast_remove_unused_local_fundecl' ).ast2ast_remove_unused_local_fundecl;
 }
+//#END_BUILD_STRIP
 
 // Without Node.js (browser, or V8 alone)
 // Support both use cases: browser development (example: jsm_dev) and

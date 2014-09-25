@@ -1,13 +1,15 @@
 /*global global exports require ast2scope need$ load acorn*/
 
-// With Node.js
 var global, exports;
+//#BEGIN_BUILD_STRIP
+// With Node.js
 if (typeof require === 'function')
 {
     ast2scope  = require( './ast2scope' ).ast2scope;
     acorn      = require( './acorn.25.03.2014/acorn' );
     acorn.walk = require( './acorn.25.03.2014/util/walk' );
 }
+//#END_BUILD_STRIP
 
 // Without Node.js (browser, or V8 alone)
 // Support both use cases: browser development (example: jsm_dev) and

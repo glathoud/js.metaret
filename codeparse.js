@@ -1,12 +1,14 @@
 /*global global exports require acorn need$ load*/
 
-// With Node.js
 var global, exports;
+//#BEGIN_BUILD_STRIP
+// With Node.js
 if (typeof require === 'function')
 {
     acorn      = require( './acorn.25.03.2014/acorn' );
     acorn.walk = require( './acorn.25.03.2014/util/walk' );
 }
+//#END_BUILD_STRIP
 
 // Without Node.js (browser, or V8 alone)
 // Support both use cases: browser development (example: jsm_dev) and

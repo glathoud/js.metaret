@@ -4,6 +4,8 @@ ALL_TESTS_PASSED = 'All tests passed.'
 
 BEGIN = 'begin'
 
+BUILD_STRIP_RX = re.compile( r'//#BEGIN_BUILD_STRIP[\s\S]*?//#END_BUILD_STRIP' )
+
 CHILDREN = 'children'
 CODE = 'code'
 
@@ -80,7 +82,7 @@ RUN_TEST_JS = lambda filename, testfilename, dev = False, all_tests_passed_str =
       )
     )
 
-TEST_DEV_ONLY_RX = re.compile( r'//#BEGIN_TEST_DEV_ONLY[\s\S]*//#END_TEST_DEV_ONLY' )
+TEST_DEV_ONLY_RX = re.compile( r'//#BEGIN_TEST_DEV_ONLY[\s\S]*?//#END_TEST_DEV_ONLY' )
 TEST_JS_EXT      = '.test.js'
 
 UTF8 = 'utf-8'

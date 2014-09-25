@@ -1,11 +1,13 @@
 /*global global exports require minify need$ load codeparse cp2fmtree*/
 
-// With Node.js
 var global, exports;
+//#BEGIN_BUILD_STRIP
+// With Node.js
 if (typeof require === 'function')
 {
     // No dependency for now.
 }
+//#END_BUILD_STRIP
 
 // Without Node.js (browser, or V8 alone)
 // Support both use cases: browser development (example: jsm_dev) and
