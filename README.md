@@ -116,7 +116,7 @@ inline var x = getSomething();
 
 Thanks to Iain Ballard, there is a Node.js [npm package](https://www.npmjs.org/package/metaret) (GitHub [source](https://github.com/i-e-b/metaret-npm)).
 
-Alternatively, you can develop using just a browser, or the V8 engine alone. See below.
+Alternatively, you can develop using just a browser, or the V8 engine alone. See "Getting started".
 
 ## Getting started: develop your app
 
