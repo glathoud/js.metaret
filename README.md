@@ -6,7 +6,7 @@ fast.
 ## Contents
 
  * [How?](#how)
- * [Node.js support](#node-js-support)
+ * [Node.js support](#nodejs-support)
  * [Getting started: develop your app](#getting-started-develop-your-app)
  * [Getting started: test and build your app](#getting-started-test-and-build-your-app)
  * [Bigger example](#bigger-example)
@@ -114,12 +114,14 @@ inline var x = getSomething();
 
 ## Node.js support
 
-Thanks to Iain Ballard, there is a node.js [npm package](https://www.npmjs.org/package/metaret) (GitHub [source](https://github.com/i-e-b/metaret-npm)).</p>
+Thanks to Iain Ballard, there is a Node.js [npm package](https://www.npmjs.org/package/metaret) (GitHub [source](https://github.com/i-e-b/metaret-npm)).
+
+You can also develop without Node.js using V8 or a browser, as described below.
 
 ## Getting started: develop your app
 
 #### Requirements: 
- * A browser,  or [V8](https://code.google.com/p/v8/), or [node.js](http://nodejs.org). (browser: maybe with a server like [./simple_server.py](simple_server.py).)
+ * A browser,  or [V8](https://code.google.com/p/v8/) (browser: maybe with a server like [./simple_server.py](simple_server.py).)
  * [./metaret_standalone.js](metaret_standalone.js)
 
 #### Example
