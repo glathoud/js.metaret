@@ -6,6 +6,7 @@ fast.
 ## Contents
 
  * [How?](#how)
+ * [Node.js support](#node-js-support)
  * [Getting started: develop your app](#getting-started-develop-your-app)
  * [Getting started: test and build your app](#getting-started-test-and-build-your-app)
  * [Bigger example](#bigger-example)
@@ -110,6 +111,10 @@ inline doSomething();
 inline x = getSomething();
 inline var x = getSomething();
 ```
+
+## Node.js support
+
+Thanks to Iain Ballard, there is a node.js [npm package](https://www.npmjs.org/package/metaret) (GitHub [source](https://github.com/i-e-b/metaret-npm)).</p>
 
 ## Getting started: develop your app
 
