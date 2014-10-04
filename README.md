@@ -1,7 +1,7 @@
 ## Goal
 
 Write less code, that reads clear and runs
-fast.
+fast [Budapest 2014 [slides](http://glat.info/mlocjs2014/index.html), [video](http://www.ustream.tv/recorded/43778953), [both](http://www.infoq.com/presentations/javascript-tail-call-map-reduce)].
 
 ## Contents
 
